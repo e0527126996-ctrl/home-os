@@ -150,6 +150,7 @@ export interface BackupData {
   auditLogs: AuditLog[];
   accounts?: FinancialAccount[];
   transactions?: LedgerTransaction[];
+  documents?: Array<Omit<HouseholdDocument, 'blob'> & { dataUrl: string }>;
 }
 
 

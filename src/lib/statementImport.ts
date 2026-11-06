@@ -38,22 +38,34 @@ const clean = (v: unknown) => String(v ?? '').replace(/\s+/g, ' ').trim();
 const normalizeHeader = (v: unknown) => clean(v).toLowerCase().replace(/[\s_״"'׳-]/g, '');
 
 function parseDate(value: unknown): string | null {
+  const toIso = (year: number, month: number, day: number): string | null => {
+    if (!Number.isInteger(year) || year < 2000 || year > 2100 || month < 1 || month > 12 || day < 1) return null;
+    const check = new Date(Date.UTC(year, month - 1, day));
+    if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) return null;
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return [value.getFullYear(), String(value.getMonth() + 1).padStart(2, '0'), String(value.getDate()).padStart(2, '0')].join('-');
+    return toIso(value.getFullYear(), value.getMonth() + 1, value.getDate());
   }
   if (typeof value === 'number' && value > 20000 && value < 80000) {
     const d = XLSX.SSF.parse_date_code(value);
-    if (d) return `${d.y}-${String(d.m).padStart(2, '0')}-${String(d.d).padStart(2, '0')}`;
+    return d ? toIso(d.y, d.m, d.d) : null;
   }
   const s = clean(value);
-  let m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$/);
+  // Some bank exports store Excel serial dates as text rather than numeric cells.
+  if (/^\\d{5}(?:\\.\\d+)?$/.test(s)) {
+    const d = XLSX.SSF.parse_date_code(Number(s));
+    if (d) return toIso(d.y, d.m, d.d);
+  }
+  // Ignore a time suffix while retaining the date portion.
+  const datePart = s.match(/^(\\d{1,4}[./-]\\d{1,2}[./-]\\d{1,4})(?:[ T].*)?$/)?.[1] || s;
+  let m = datePart.match(/^(\\d{1,2})[./-](\\d{1,2})[./-](\\d{2,4})$/);
   if (m) {
     const year = m[3].length === 2 ? Number(m[3]) + 2000 : Number(m[3]);
-    const day = Number(m[1]), month = Number(m[2]);
-    if (year >= 2000 && month >= 1 && month <= 12 && day >= 1 && day <= 31) return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return toIso(year, Number(m[2]), Number(m[1]));
   }
-  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  if (m) return `${m[1]}-${String(Number(m[2])).padStart(2, '0')}-${String(Number(m[3])).padStart(2, '0')}`;
+  m = datePart.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})$/);
+  if (m) return toIso(Number(m[1]), Number(m[2]), Number(m[3]));
   return null;
 }
 

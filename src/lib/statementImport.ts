@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import { LedgerTransaction, TransactionType } from '../types.ts';
+import { LedgerTransaction } from '../types.ts';
 
 (pdfjsLib as any).GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
@@ -139,9 +139,10 @@ function parsePdfLines(text: string): ImportedStatementRow[] {
     if (!rawAmount || rawAmount === 0) continue;
     const payee = clean(rest.slice(0, last.index).replace(/[|:·-]+$/g, ''));
     if (payee.length < 2) continue;
-    const type = rawAmount > 0 ? 'INCOME' : 'EXPENSE';
+    const lower = line.toLowerCase();
+    const type = /חובה|חיוב|משיכה|תשלום|debit|withdrawal/.test(lower) || rawAmount < 0 ? 'EXPENSE' : /זכות|זיכוי|הפקדה|משכורת|credit|deposit/.test(lower) || rawAmount > 0 ? 'INCOME' : 'EXPENSE';
     const suggestion = categorize(payee, type);
-    rows.push({ id: `pdf_${i}_${date}_${Math.abs(rawAmount)}`, date, payee, amountCents: Math.abs(rawAmount), type, category: suggestion.category, confidence: 'medium', duplicate: false, sourceText: line });
+    rows.push({ id: `pdf_${i}_${date}_${Math.abs(rawAmount)}`, date, payee, amountCents: Math.abs(rawAmount), type, category: suggestion.category, confidence: /חובה|חיוב|משיכה|תשלום|debit|withdrawal|זכות|זיכוי|הפקדה|משכורת|credit|deposit/.test(lower) || rawAmount < 0 ? 'medium' : 'low', duplicate: false, sourceText: line });
   }
   return rows;
 }

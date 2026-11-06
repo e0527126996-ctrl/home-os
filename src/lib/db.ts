@@ -2131,13 +2131,29 @@ class HomeOSIndexedDB {
         'fin@t.l'
       );
 
+      const accWholeShekel = await this.createAccount(
+        hhdFin.id,
+        {
+          name: 'חשבון סכום שלם',
+          type: 'SAVINGS',
+          institution: 'בדיקת מערכת',
+          currency: 'ILS',
+          openingBalance: 12500,
+        },
+        'u_fin',
+        'fin@t.l'
+      );
+
       const accounts = await this.getAccountsByHousehold(hhdFin.id);
       const success =
-        accounts.length === 2 &&
+        accounts.length === 3 &&
         accChecking.currentBalance === 12500.45 &&
         accChecking.isLiability === false &&
         accCredit.currentBalance === -2500.25 &&
-        accCredit.isLiability === true;
+        accCredit.isLiability === true &&
+        accCredit.creditLimitCents === 1500000 &&
+        accWholeShekel.openingBalanceCents === 1250000 &&
+        accWholeShekel.currentBalance === 12500;
 
       results.push({
         testName: '11. יצירת חשבונות פיננסיים (עו"ש, אשראי) בדיוק עשרוני וסיווג התחייבויות',

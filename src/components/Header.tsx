@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, ShieldCheck, Database, Palette, Users, ChevronDown, Settings2, Home } from 'lucide-react';
+import { Download, ShieldCheck, Database, Palette, Users, ChevronDown, Home } from 'lucide-react';
 import { Household, User } from '../types.ts';
 import { MODERN_EDITORIAL_THEMES, ThemeConfig } from '../lib/themes.ts';
 
@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
           {household && <button onClick={onOpenHouseholds} className="hidden items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition hover:shadow-sm md:flex" style={controlStyle}><span className="h-2 w-2 rounded-full" style={{ backgroundColor: activeTheme.accent }} />{household.name}<ChevronDown className="h-3.5 w-3.5 opacity-60" /></button>}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <div className="relative hidden sm:block">
+          <div className="group relative hidden sm:block">
             <button className={control} style={controlStyle}><Palette className="h-4 w-4" style={{ color: activeTheme.accent }} /><span className="hidden lg:inline">{activeTheme.nameHe.split(' ')[0]}</span><ChevronDown className="h-3 w-3 opacity-50" /></button>
             <div className="absolute left-0 top-full z-50 mt-2 hidden w-64 rounded-2xl border p-2 shadow-xl group-hover:block focus-within:block" style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
               {MODERN_EDITORIAL_THEMES.map(theme => <button key={theme.id} onClick={() => onThemeSelect(theme.id)} className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-right text-xs hover:bg-black/5 dark:hover:bg-white/5"><span className={activeTheme.id === theme.id ? 'font-bold' : ''}>{theme.nameHe}</span><span className="h-3 w-3 rounded-full" style={{ backgroundColor: theme.accent }} /></button>)}

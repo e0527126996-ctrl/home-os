@@ -551,7 +551,7 @@ class HomeOSIndexedDB {
     const actorMembership = memberships.find((m) => m.userId === actorUserId);
 
     if (!actorMembership) {
-      throw new Error('����� ����: ���� ��� ���� ��� �� (Tenant Isolation Violation).');
+      throw new Error('הכנסה ����: ���� ��� ���� ��� �� (Tenant Isolation Violation).');
     }
 
     if (actorMembership.role === 'owner') return;
@@ -559,7 +559,7 @@ class HomeOSIndexedDB {
     if (actorMembership.role === 'admin') return;
 
     if (actorMembership.role === 'read_only' && (requiredAction === 'write' || requiredAction === 'approve')) {
-      throw new Error("דחיית הרשאה: משתמש בתפקיד '����� ����' (Read-Only) אינו רשאי לבצע שינויים.");
+      throw new Error("דחיית הרשאה: משתמש בתפקיד 'הוצאה ����' (Read-Only) אינו רשאי לבצע שינויים.");
     }
 
     const rules = await this.getPermissionsByMembership(actorMembership.id);
@@ -1634,7 +1634,7 @@ class HomeOSIndexedDB {
       actorEmail,
       'DELETE_TRANSACTION',
       'FINANCE',
-      `מחיקת עסקה ${existing.id} (${existing.payee}, ${formatCents(existing.amountCents)})${existing.linkedTransactionId ? ' ������ ��� ������ �������' : ''}`
+      `מחיקת עסקה ${existing.id} (${existing.payee}, ${formatCents(existing.amountCents)})${existing.linkedTransactionId ? ' יחד עם רגל ההעברה המקושרת' : ''}`
     );
   }
 

@@ -64,6 +64,14 @@ const COMMON_TRANSFER_CATEGORIES = [
   'תשלום הלוואה',
 ];
 
+const getLocalDateInputValue = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export const TransactionModal: React.FC<TransactionModalProps> = ({
   isOpen,
   onClose,
@@ -98,7 +106,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     initialTransaction ? String(fromCents(initialTransaction.amountCents)) : ''
   );
   const [date, setDate] = useState<string>(
-    initialTransaction?.date || new Date().toISOString().split('T')[0]
+    initialTransaction?.date || getLocalDateInputValue()
   );
   const [valueDate, setValueDate] = useState<string>(initialTransaction?.valueDate || '');
   const [category, setCategory] = useState<string>(initialTransaction?.category || 'מזון וסופרמרקט');

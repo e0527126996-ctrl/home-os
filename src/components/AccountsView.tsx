@@ -125,7 +125,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     <div className="space-y-6">
       {/* Editorial Financial Header Banner */}
       <div
-        className="p-6 rounded-xl border relative overflow-hidden"
+        className="p-7 sm:p-8 rounded-[1.5rem] border relative overflow-hidden shadow-sm"
         style={{
           backgroundColor: activeTheme.bgSurface,
           borderColor: activeTheme.borderSubtle,
@@ -134,7 +134,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="text-[11px] font-mono uppercase tracking-wider" style={{ color: activeTheme.accent }}>
-              תמונת מצב פיננסית ראשית · PHASE 2 SUB-PHASE A
+              ניהול פיננסי · תמונת הנכסים של משק הבית
             </div>
             <h1 className="font-serif text-2xl font-bold">ניהול חשבונות ונכסים</h1>
             <p className="text-xs max-w-2xl leading-relaxed" style={{ color: activeTheme.textSecondary }}>
@@ -181,7 +181,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Net Worth Card */}
         <div
-          className="p-5 rounded-lg border space-y-1 relative"
+          className="p-6 rounded-2xl border space-y-2 shadow-sm relative"
           style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}
         >
           <div className="text-[11px] uppercase tracking-wider font-mono opacity-60">שווי נטו כולל (Net Worth)</div>
@@ -240,7 +240,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       >
         <button
           onClick={() => setFilterType('ALL')}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${
+          className={`px-4 py-2.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap ${
             filterType === 'ALL' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
           }`}
           style={{

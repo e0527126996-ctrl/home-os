@@ -82,3 +82,11 @@
 @media (min-width: 640px) { .homeos-wealth-hero { padding:34px; } .homeos-lux-panel { padding:22px; } }
 @media (max-width: 639px) { .homeos-household-switch { display:none; } .homeos-toolbar-button { padding:9px; } .homeos-wealth-hero { border-radius:22px; padding:23px 19px; } .homeos-hero-footer { font-size:7px; } .homeos-chart-grid { gap:5px; } .homeos-chart-bars { gap:3px; } .homeos-lux-panel { border-radius:18px; } }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; } }
+
+
+.homeos-navigation-shell { border:1px solid rgba(52,70,60,.11); border-radius:20px; padding:15px; background:rgba(255,255,255,.68); box-shadow:0 8px 28px rgba(34,47,39,.04),inset 0 1px 0 rgba(255,255,255,.8); }
+.homeos-main-nav { display:flex; gap:7px; overflow-x:auto; padding:2px 1px 4px; scrollbar-width:thin; }
+.homeos-nav-item { display:inline-flex; flex-shrink:0; align-items:center; gap:9px; border-radius:12px; padding:11px 14px; font-size:11px; font-weight:800; white-space:nowrap; transition:transform .2s,background .2s,box-shadow .2s; }
+.homeos-nav-item:hover { transform:translateY(-1px); background:rgba(84,125,112,.08); }
+.homeos-nav-item[aria-current="page"] { color:#fff !important; }
+@media (max-width:639px) { .homeos-navigation-shell { padding:10px; border-radius:16px; } .homeos-nav-item { padding:10px 12px; } }

@@ -1387,7 +1387,7 @@ class HomeOSIndexedDB {
     await this.assertPermission(householdId, actorUserId, 'finance', 'write');
 
     if (!data.accountId) throw new Error('יש לבחור חשבון משויך לעסקה');
-    if (!data.date || !/^\d{4}-\d{2}-\d{2}$/.test(data.date) || Number.isNaN(Date.parse(`${data.date}T00:00:00`))) {
+    if (!isValidISODate(data.date)) {
       throw new Error('יש לציין תאריך עסקה תקין');
     }
     if (!data.category?.trim()) throw new Error('יש להגדיר קטגוריה לעסקה');
@@ -1468,7 +1468,7 @@ class HomeOSIndexedDB {
     if (data.fromAccountId === data.toAccountId) {
       throw new Error('חשבון מקור וחשבון יעד חייבים להיות חשבונות שונים');
     }
-    if (!data.date || !/^\d{4}-\d{2}-\d{2}$/.test(data.date) || Number.isNaN(Date.parse(`${data.date}T00:00:00`))) {
+    if (!isValidISODate(data.date)) {
       throw new Error('יש לציין תאריך תקין להעברה');
     }
     if (data.amountCents <= 0 || !Number.isSafeInteger(data.amountCents)) {

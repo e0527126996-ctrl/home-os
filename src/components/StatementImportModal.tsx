@@ -74,7 +74,7 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
           {rows.length===0 ? <div className="p-12 text-center text-sm" style={muted}>לא נמצאו תנועות בקובץ.</div> :
           <table className="w-full min-w-[760px] text-right text-xs">
             <thead className="sticky top-0 z-10" style={{backgroundColor:activeTheme.bgSurface,color:activeTheme.textSecondary}}><tr><th className="p-3">תאריך</th><th className="p-3">תיאור</th><th className="p-3">סוג</th><th className="p-3">סכום</th><th className="p-3">קטגוריה מוצעת (ניתנת לעריכה)</th><th className="p-3">זיהוי</th></tr></thead>
-            <tbody>{rows.map(row=><tr key={row.id} className="border-b" style={{borderColor:activeTheme.borderSubtle,opacity:row.duplicate?.48:1}}>
+            <tbody>{rows.map(row=><tr key={row.id} className="border-b" style={{borderColor:activeTheme.borderSubtle,opacity:row.duplicate ? 0.48 : 1}}>
               <td className="whitespace-nowrap p-3 tabular-nums">{new Date(row.date+'T12:00:00').toLocaleDateString('he-IL')}</td>
               <td className="max-w-[210px] truncate p-3 font-semibold" title={row.sourceText}>{row.payee}</td>
               <td className="p-3"><span className={'inline-flex items-center gap-1 '+(row.type==='INCOME'?'text-emerald-700':'text-amber-700')}>{row.type==='INCOME'?<ArrowDownRight className="h-3.5 w-3.5"/>:<ArrowUpRight className="h-3.5 w-3.5"/>}{row.type==='INCOME'?'הכנסה':'הוצאה'}</span></td>

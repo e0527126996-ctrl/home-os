@@ -151,3 +151,17 @@ export interface BackupData {
   accounts?: FinancialAccount[];
   transactions?: LedgerTransaction[];
 }
+
+
+/** A locally stored household document. The binary is kept in IndexedDB, never in GitHub. */
+export interface HouseholdDocument {
+  id: string;
+  householdId: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  category: 'BANK' | 'CREDIT_CARD' | 'INVOICE' | 'RECEIPT' | 'INSURANCE' | 'TAX' | 'OTHER';
+  uploadedAt: string;
+  uploadedBy: string;
+  blob: Blob;
+}

@@ -502,17 +502,17 @@ export default function App() {
       />
 
       {/* Main Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-7 lg:px-10 py-7 space-y-8">
         {/* Navigation & Section Tabs */}
         <div
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-3"
+          className="rounded-2xl border p-2 sm:flex-row sm:items-center justify-between gap-3 shadow-sm"
           style={{ borderColor: activeTheme.borderSubtle }}
         >
           {/* Main Module Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`px-3.5 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+              className={`px-4 py-2.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
                 activeTab === 'dashboard' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
               }`}
               style={{ backgroundColor: activeTab === 'dashboard' ? activeTheme.accent : 'transparent' }}
@@ -522,7 +522,7 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab('accounts')}
-              className={`px-3.5 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+              className={`px-4 py-2.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
                 activeTab === 'accounts' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
               }`}
               style={{
@@ -595,18 +595,6 @@ export default function App() {
             </button>
           </div>
 
-          {/* Phase 2 Sub-phase B Status Marker */}
-          <div
-            className="flex items-center gap-2 self-start sm:self-auto text-xs px-2.5 py-1 rounded border font-mono"
-            style={{
-              backgroundColor: activeTheme.bgSurface,
-              borderColor: activeTheme.borderSubtle,
-              color: activeTheme.textSecondary,
-            }}
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>PHASE 2 · SUB-PHASE B ACTIVE</span>
-          </div>
         </div>
 
         {activeTab === 'dashboard' && activeHousehold && (

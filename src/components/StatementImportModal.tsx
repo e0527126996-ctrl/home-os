@@ -31,7 +31,7 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
     return () => { active = false; };
   }, [file, transactions]);
 
-  const eligible = useMemo(() => rows.filter(r => !r.duplicate), [rows]);
+  const eligible = useMemo(() => rows.filter(r => !r.duplicate && r.date && r.payee.trim() && Number.isSafeInteger(r.amountCents) && r.amountCents > 0), [rows]);
   const totalIncome = eligible.filter(r => r.type === 'INCOME').reduce((s, r) => s + r.amountCents, 0);
   const totalExpense = eligible.filter(r => r.type === 'EXPENSE').reduce((s, r) => s + r.amountCents, 0);
   const updateRow = (id: string, patch: Partial<ImportedStatementRow>) => setRows(prev => prev.map(row => row.id === id ? { ...row, ...patch } : row));
@@ -75,10 +75,10 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
           <table className="w-full min-w-[760px] text-right text-xs">
             <thead className="sticky top-0 z-10" style={{backgroundColor:activeTheme.bgSurface,color:activeTheme.textSecondary}}><tr><th className="p-3">תאריך</th><th className="p-3">תיאור</th><th className="p-3">סוג</th><th className="p-3">סכום</th><th className="p-3">קטגוריה מוצעת (ניתנת לעריכה)</th><th className="p-3">זיהוי</th></tr></thead>
             <tbody>{rows.map(row=><tr key={row.id} className="border-b" style={{borderColor:activeTheme.borderSubtle,opacity:row.duplicate ? 0.48 : 1}}>
-              <td className="whitespace-nowrap p-3 tabular-nums">{new Date(row.date+'T12:00:00').toLocaleDateString('he-IL')}</td>
-              <td className="max-w-[210px] truncate p-3 font-semibold" title={row.sourceText}>{row.payee}</td>
+              <td className="p-2"><input type="date" disabled={row.duplicate} value={row.date} onChange={e=>updateRow(row.id,{date:e.target.value})} className="w-[130px] rounded-lg border px-2 py-2 text-[11px]" style={panel}/></td>
+              <td className="p-2"><input disabled={row.duplicate} value={row.payee} onChange={e=>updateRow(row.id,{payee:e.target.value})} className="w-[180px] rounded-lg border px-2 py-2 text-[11px] font-semibold" style={panel} title={row.sourceText}/></td>
               <td className="p-2"><select disabled={row.duplicate} value={row.type} onChange={e=>updateRow(row.id,{type:e.target.value as 'INCOME'|'EXPENSE',category:e.target.value==='INCOME'?'הכנסה אחרת':'הוצאות שונות',confidence:'high'})} className="rounded-lg border px-2 py-2 text-[11px]" style={panel}><option value="EXPENSE">הוצאה</option><option value="INCOME">הכנסה</option></select></td>
-              <td className="whitespace-nowrap p-3 font-bold tabular-nums">{row.type==='INCOME'?'+':'−'}₪{(row.amountCents/100).toLocaleString('he-IL',{minimumFractionDigits:2})}</td>
+              <td className="p-2"><input type="number" min="0.01" step="0.01" disabled={row.duplicate} value={(row.amountCents/100).toFixed(2)} onChange={e=>updateRow(row.id,{amountCents:Math.round(Number(e.target.value)*100)||0})} className="w-[105px] rounded-lg border px-2 py-2 text-[11px] font-bold tabular-nums" style={panel}/></td>
               <td className="p-2"><select disabled={row.duplicate} value={row.category} onChange={e=>updateRow(row.id,{category:e.target.value,confidence:'high'})} className="max-w-[230px] rounded-lg border px-2 py-2 text-[11px]" style={panel}>{categoryOptions.filter(c=>row.type==='INCOME'?!['מזון וסופרמרקט','דיור וחשבונות (שכירות, ארנונה, חשמל)','תחבורה, דלק ורכב','בריאות, רפואה וביטוחים','חינוך, חוגים וילדים','קניות, ביגוד והנעלה','מסעדות, בתי קפה ובילוי','תקשורת ואינטרנט','הוצאות שונות'].includes(c):!['משכורת חודשית','הכנסה מעסק / עצמאי','קצבאות ביטוח לאומי','החזר מס / תגמולים','שכר דירה / הכנסה פסיבית','מתנות ומענקים','הכנסה אחרת'].includes(c)).map(c=><option key={c}>{c}</option>)}</select></td>
               <td className="p-3">{row.duplicate?<span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-800">כפילות · דילוג</span>:<span className="text-[10px]" style={muted}>{row.confidence==='high'?'זיהוי טוב':row.confidence==='medium'?'נדרש אימות':'קטגוריה כללית'}</span>}</td>
             </tr>)}</tbody>

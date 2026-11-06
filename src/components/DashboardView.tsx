@@ -29,8 +29,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const data = useMemo(() => {
     const activeAccounts = accounts.filter(a => a.status === 'ACTIVE');
-    const assets = activeAccounts.filter(a => !a.isLiability).reduce((s, a) => s + (a.currentBalanceCents || 0), 0);
-    const liabilities = activeAccounts.filter(a => a.isLiability).reduce((s, a) => s + Math.abs(a.currentBalanceCents || 0), 0);
+    // Match the account ledger's treatment: an overdrawn checking account is a liability, not a negative asset.
+    const assets = activeAccounts.filter(a => !a.isLiability && (a.currentBalanceCents || 0) > 0)
+      .reduce((s, a) => s + (a.currentBalanceCents || 0), 0);
+    const liabilities = activeAccounts.filter(a => a.isLiability || (a.type === 'CHECKING' && (a.currentBalanceCents || 0) < 0))
+      .reduce((s, a) => s + Math.abs(a.currentBalanceCents || 0), 0);
     const now = new Date();
     const months = Array.from({ length: 6 }, (_, index) => {
       const date = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1);

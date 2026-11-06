@@ -12,7 +12,7 @@ export function toCents(val: number | string | undefined | null): number {
   if (val === undefined || val === null || val === '') return 0;
   
   if (typeof val === 'number') {
-    if (Number.isInteger(val)) return val;
+    if (!Number.isFinite(val)) return 0;
     val = val.toFixed(2);
   }
   

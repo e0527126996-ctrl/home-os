@@ -151,6 +151,7 @@ export interface BackupData {
   accounts?: FinancialAccount[];
   transactions?: LedgerTransaction[];
   documents?: Array<Omit<HouseholdDocument, 'blob'> & { dataUrl: string }>;
+  homeItems?: HouseholdHomeItem[];
 }
 
 
@@ -165,4 +166,17 @@ export interface HouseholdDocument {
   uploadedAt: string;
   uploadedBy: string;
   blob: Blob;
+}
+
+
+/** Local-first household operations: recipes, meal plans, shopping and tasks. */
+export type HouseholdHomeItemKind = 'recipe' | 'meal' | 'shopping' | 'task';
+
+export interface HouseholdHomeItem {
+  id: string;
+  householdId: string;
+  kind: HouseholdHomeItemKind;
+  data: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
 }

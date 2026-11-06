@@ -172,7 +172,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
       }
 
       return true;
-    });
+    }).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
   }, [
     transactions,
     accountFilter,
@@ -386,7 +386,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
           </div>
 
           {/* סרגל סינון */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 pt-2 border-t border-stone-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2.5 pt-2 border-t border-stone-100">
             {/* חיפוש */}
             <div className="relative md:col-span-2">
               <input
@@ -421,6 +421,20 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
                   <option key={a.id} value={a.id}>
                     {a.name}
                   </option>
+                ))}
+              </select>
+            </div>
+
+            {/* סינון לפי קטגוריה */}
+            <div>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="w-full px-2.5 py-2 rounded-xl border border-stone-200 text-xs font-sans bg-stone-50/50 focus:bg-white focus:outline-none focus:border-amber-700"
+              >
+                <option value="ALL">כל הקטגוריות</option>
+                {uniqueCategories.map((category) => (
+                  <option key={category} value={category}>{category}</option>
                 ))}
               </select>
             </div>

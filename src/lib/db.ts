@@ -1013,7 +1013,7 @@ class HomeOSIndexedDB {
         openingBalance: fromCents(openCents),
         currentBalanceCents: computedCents,
         currentBalance: fromCents(computedCents),
-        creditLimitCents: acc.creditLimit !== undefined ? toCents(acc.creditLimit) : undefined,
+        creditLimitCents: acc.creditLimit !== undefined ? toCents(String(acc.creditLimit)) : undefined,
       };
     });
   }
@@ -1045,7 +1045,7 @@ class HomeOSIndexedDB {
     }
 
     // Strict integer cents conversion
-    const openingBalanceCents = toCents(data.openingBalance);
+    const openingBalanceCents = toCents(String(data.openingBalance));
     const isLiability = data.type === 'CREDIT_CARD' || data.type === 'LOAN_MORTGAGE';
 
     const id = `acc_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -1065,7 +1065,7 @@ class HomeOSIndexedDB {
       currentBalance: fromCents(openingBalanceCents),
       status: 'ACTIVE',
       isLiability,
-      creditLimitCents: data.creditLimit !== undefined ? toCents(data.creditLimit) : undefined,
+      creditLimitCents: data.creditLimit !== undefined ? toCents(String(data.creditLimit)) : undefined,
       creditLimit: data.creditLimit !== undefined ? fromCents(toCents(data.creditLimit)) : undefined,
       interestRate: data.interestRate !== undefined ? Number(data.interestRate) : undefined,
       notes: data.notes?.trim() || undefined,
@@ -1110,7 +1110,7 @@ class HomeOSIndexedDB {
       : existing.isLiability;
 
     const openingBalanceCents = patch.openingBalance !== undefined
-      ? toCents(patch.openingBalance)
+      ? toCents(String(patch.openingBalance))
       : existing.openingBalanceCents;
 
     const updated: FinancialAccount = {

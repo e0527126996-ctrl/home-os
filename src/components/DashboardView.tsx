@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ArrowDownLeft, ArrowUpLeft, Wallet, Landmark, CreditCard, PiggyBank, ArrowLeft, Sparkles, Activity } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpLeft, Wallet, Landmark, CreditCard, PiggyBank, ArrowLeft, Sparkles, Activity, TrendingUp, TrendingDown, Lightbulb, CalendarDays } from 'lucide-react';
 import { FinancialAccount, LedgerTransaction } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
 
@@ -39,6 +39,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     });
     const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const current = months.find(m => m.key === currentKey) || { income: 0, expense: 0, label: '' };
+    const previous = months.length > 1 ? months[months.length - 2] : { income: 0, expense: 0, label: '' };
+    const expenseChange = previous.expense > 0 ? ((current.expense - previous.expense) / previous.expense) * 100 : null;
     const max = Math.max(1, ...months.flatMap(m => [m.income, m.expense]));
     const categories = transactions
       .filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === currentKey)
@@ -48,15 +50,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       }, {});
     const topCategories = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 4);
     const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
-    return { assets, liabilities, netWorth, months, max, current, topCategories, recent, activeAccounts };
+    return { assets, liabilities, netWorth, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts };
   }, [accounts, transactions]);
 
-  const card = 'rounded-2xl border p-5 shadow-sm';
+  const card = 'rounded-2xl border p-5 shadow-[0_8px_30px_rgba(15,23,42,0.035)] transition-shadow hover:shadow-md';
   const muted = { color: activeTheme.textSecondary };
   const currency = (cents: number) => money(cents / 100);
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-7" dir="rtl">
       <section className="relative overflow-hidden rounded-3xl p-7 md:p-9 text-white shadow-lg" style={{ background: 'linear-gradient(115deg, #172A26 0%, #29463D 58%, #526D5C 100%)' }}>
         <div className="absolute -left-12 -top-20 h-64 w-64 rounded-full border border-white/10" />
         <div className="absolute -left-2 -top-10 h-44 w-44 rounded-full border border-white/10" />
@@ -97,6 +99,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
+
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
+          <div className="flex items-center justify-between gap-3"><div><p className="text-xs" style={muted}>הכנסות החודש</p><p className="mt-2 text-xl font-bold tabular-nums text-emerald-700">{currency(data.current.income)}</p></div><span className="rounded-xl bg-emerald-500/10 p-3 text-emerald-700"><TrendingUp className="h-5 w-5" /></span></div>
+          <p className="mt-2 text-xs" style={muted}>על בסיס עסקאות הכנסה שנרשמו החודש</p>
+        </div>
+        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
+          <div className="flex items-center justify-between gap-3"><div><p className="text-xs" style={muted}>הוצאות החודש</p><p className="mt-2 text-xl font-bold tabular-nums">{currency(data.current.expense)}</p></div><span className="rounded-xl bg-amber-500/10 p-3 text-amber-700"><TrendingDown className="h-5 w-5" /></span></div>
+          <p className="mt-2 text-xs" style={muted}>על בסיס עסקאות הוצאה שנרשמו החודש</p>
+        </div>
+        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
+          <div className="flex items-center justify-between gap-3"><div><p className="text-xs" style={muted}>שינוי בהוצאות מול חודש קודם</p><p className="mt-2 text-xl font-bold tabular-nums">{data.expenseChange === null ? 'אין נתון להשוואה' : (data.expenseChange > 0 ? '+' : '') + data.expenseChange.toFixed(1) + '%'}</p></div><span className="rounded-xl p-3" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}><CalendarDays className="h-5 w-5" /></span></div>
+          <p className="mt-2 text-xs" style={muted}>{data.expenseChange === null ? 'נדרשות עסקאות בחודש הקודם להשוואה' : data.expenseChange > 0 ? 'ההוצאות גבוהות יותר מהחודש הקודם' : data.expenseChange < 0 ? 'ההוצאות נמוכות יותר מהחודש הקודם' : 'ההוצאות ללא שינוי לעומת החודש הקודם'}</p>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border p-5 md:p-6" style={{ backgroundColor: activeTheme.bgSurface, borderColor: activeTheme.borderSubtle }}>
+        <div className="flex items-start gap-3">
+          <span className="rounded-xl p-3" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}><Lightbulb className="h-5 w-5" /></span>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold">תובנה פיננסית</h2>
+            <p className="mt-1 text-sm leading-6" style={muted}>
+              {data.current.income === 0 && data.current.expense === 0
+                ? 'עדיין לא נרשמה פעילות פיננסית החודש. לאחר הוספת עסקאות יוצגו כאן תובנות המבוססות על הנתונים בפועל.'
+                : data.current.income - data.current.expense >= 0
+                  ? 'התזרים החודשי כרגע חיובי ועומד על ' + currency(data.current.income - data.current.expense) + '. המשך מעקב אחר ההוצאות כדי לשמור על המגמה.'
+                  : 'ההוצאות החודש גבוהות מההכנסות ב-' + currency(data.current.expense - data.current.income) + '. כדאי לבדוק את פירוט הקטגוריות ואת העסקאות האחרונות.'
+              }
+            </p>
+            <button onClick={onOpenLedger} className="mt-3 text-xs font-semibold" style={{ color: activeTheme.accent }}>בדיקת העסקאות החודש ←</button>
+          </div>
+        </div>
+      </section>
       <section className="grid grid-cols-1 gap-5 xl:grid-cols-[1.65fr_1fr]">
         <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
           <div className="mb-6 flex items-center justify-between"><div><h2 className="text-lg font-semibold">תזרים חודשי</h2><p className="mt-1 text-xs" style={muted}>ששת החודשים האחרונים · לפי העסקאות שנרשמו</p></div><span className="rounded-full px-3 py-1 text-xs" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}>₪</span></div>

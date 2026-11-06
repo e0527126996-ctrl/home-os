@@ -103,6 +103,16 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
     }
   };
 
+  const handleAnalyzeStatement = (doc: HouseholdDocument) => {
+    try {
+      const file = new File([doc.blob], doc.name, { type: doc.mimeType || 'application/pdf' });
+      setError('');
+      setStatementFile(file);
+    } catch (e: any) {
+      setError(e.message || 'לא ניתן לפתוח את דף החשבון לניתוח');
+    }
+  };
+
   const handleDownload = (doc: HouseholdDocument) => {
     const url = URL.createObjectURL(doc.blob);
     const anchor = document.createElement('a');
@@ -185,6 +195,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
               return <div key={doc.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-center gap-3"><span className="rounded-xl bg-[#7D9B8D]/10 p-3 text-[#527A68]"><Icon className="h-5 w-5" /></span><div className="min-w-0"><div className="truncate text-sm font-bold">{doc.name}</div><div className="mt-1 text-[11px]" style={muted}>{categories.find((item) => item.value === doc.category)?.label} · {formatSize(doc.size)} · {formatDate(doc.uploadedAt)}</div></div></div>
                 <div className="flex items-center gap-2">
+                  {doc.category === 'BANK' && /\\.(pdf|xlsx?|csv)$/i.test(doc.name) && <button onClick={() => handleAnalyzeStatement(doc)} className="rounded-lg border border-[#527A68]/40 bg-[#527A68]/10 px-3 py-2 text-xs font-bold text-[#527A68] hover:bg-[#527A68]/20">נתח דף חשבון</button>}
                   <button onClick={() => handlePreview(doc)} className="rounded-lg border px-3 py-2 text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5" style={{ borderColor: activeTheme.borderSubtle }}>פתח</button>
                   <button onClick={() => handleDownload(doc)} title="הורדה" className="rounded-lg border p-2 hover:bg-black/5 dark:hover:bg-white/5" style={{ borderColor: activeTheme.borderSubtle }}><Download className="h-4 w-4" /></button>
                   {canWrite && <button onClick={() => handleDelete(doc)} title="מחיקה" className="rounded-lg border p-2 text-rose-600 hover:bg-rose-50" style={{ borderColor: activeTheme.borderSubtle }}><Trash2 className="h-4 w-4" /></button>}

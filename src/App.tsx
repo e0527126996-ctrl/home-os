@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Header } from './components/Header.tsx';
+import { DashboardView } from './components/DashboardView.tsx';
 import { HouseholdsView } from './components/HouseholdsView.tsx';
 import { MembersAndPersonsView } from './components/MembersAndPersonsView.tsx';
 import { AccountsView } from './components/AccountsView.tsx';
@@ -58,7 +59,7 @@ export default function App() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   // Navigation & Theme
-  const [activeTab, setActiveTab] = useState<'overview' | 'accounts' | 'ledger' | 'members' | 'households' | 'audit'>('ledger');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'overview' | 'accounts' | 'ledger' | 'members' | 'households' | 'audit'>('dashboard');
   const [activeTheme, setActiveTheme] = useState<ThemeConfig>(MODERN_EDITORIAL_THEMES[0]);
   const [ledgerSelectedAccountId, setLedgerSelectedAccountId] = useState<string | null>(null);
 
@@ -510,6 +511,16 @@ export default function App() {
           {/* Main Module Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
             <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`px-3.5 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === 'dashboard' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
+              }`}
+              style={{ backgroundColor: activeTab === 'dashboard' ? activeTheme.accent : 'transparent' }}
+            >
+              לוח בקרה
+            </button>
+
+            <button
               onClick={() => setActiveTab('accounts')}
               className={`px-3.5 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex items-center gap-1.5 ${
                 activeTab === 'accounts' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
@@ -597,6 +608,17 @@ export default function App() {
             <span>PHASE 2 · SUB-PHASE B ACTIVE</span>
           </div>
         </div>
+
+        {activeTab === 'dashboard' && activeHousehold && (
+          <DashboardView
+            accounts={accounts}
+            transactions={transactions}
+            householdName={activeHousehold.name}
+            activeTheme={activeTheme}
+            onOpenAccounts={() => setActiveTab('accounts')}
+            onOpenLedger={() => setActiveTab('ledger')}
+          />
+        )}
 
         {/* Tab 1: Overview / Executive Pulse */}
         {activeTab === 'overview' && activeHousehold && (

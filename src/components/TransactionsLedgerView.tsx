@@ -201,12 +201,12 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
   };
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-7" dir="rtl">
       {/* סרגל סיכום פיננסי */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* סך הכנסות */}
         <div
-          className="p-5 rounded-2xl border bg-white shadow-xs transition-all"
+          className="p-6 rounded-2xl border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
           style={{ borderColor: activeTheme.borderSubtle }}
         >
           <div className="flex items-center justify-between mb-2">
@@ -318,11 +318,11 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
 
       {/* טבלת העסקאות */}
       <div
-        className="rounded-2xl border bg-white shadow-sm overflow-hidden"
+        className="rounded-[1.5rem] border bg-white shadow-sm overflow-hidden"
         style={{ borderColor: activeTheme.borderSubtle }}
       >
         {/* כותרת וסרגל סינון */}
-        <div className="p-5 border-b border-stone-200/80 space-y-4">
+        <div className="p-6 sm:p-7 border-b border-stone-200/80 space-y-5">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h2 className="font-serif text-xl font-bold text-stone-900 tracking-tight flex items-center gap-2">

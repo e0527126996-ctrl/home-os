@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowDownLeft, ArrowUpLeft, Wallet, Landmark, Activity, TrendingUp,
   TrendingDown, Lightbulb, CalendarDays, Sparkles, ArrowUpRight,
@@ -26,6 +26,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   accounts, transactions, householdName, activeTheme, onOpenAccounts, onOpenLedger,
 }) => {
   const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[] } | null>(null);
+
+  useEffect(() => {
+    if (!chartDetail) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setChartDetail(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [chartDetail]);
 
   const data = useMemo(() => {
     const activeAccounts = accounts.filter(a => a.status === 'ACTIVE');

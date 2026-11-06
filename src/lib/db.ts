@@ -1381,7 +1381,9 @@ class HomeOSIndexedDB {
     await this.assertPermission(householdId, actorUserId, 'finance', 'write');
 
     if (!data.accountId) throw new Error('יש לבחור חשבון משויך לעסקה');
-    if (!data.date) throw new Error('יש לציין תאריך עסקה');
+    if (!data.date || !/^\d{4}-\d{2}-\d{2}$/.test(data.date) || Number.isNaN(Date.parse(`${data.date}T00:00:00`))) {
+      throw new Error('יש לציין תאריך עסקה תקין');
+    }
     if (!data.category?.trim()) throw new Error('יש להגדיר קטגוריה לעסקה');
     if (!data.payee?.trim()) throw new Error('יש לציין בית עסק או גורם לעסקה');
     if (data.amountCents <= 0 || !Number.isInteger(data.amountCents)) {
@@ -1391,6 +1393,9 @@ class HomeOSIndexedDB {
     // Verify account exists in this household
     const account = await this.getAccountById(data.accountId, householdId);
     if (!account) throw new Error('החשבון המשויך אינו קיים במשק בית זה');
+    if (account.status === 'ARCHIVED' || account.status === 'CLOSED') {
+      throw new Error('לא ניתן לרשום עסקה בחשבון שהועבר לארכיון או נסגר');
+    }
 
     const id = `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const now = new Date().toISOString();
@@ -1457,6 +1462,9 @@ class HomeOSIndexedDB {
     if (data.fromAccountId === data.toAccountId) {
       throw new Error('חשבון מקור וחשבון יעד חייבים להיות חשבונות שונים');
     }
+    if (!data.date || !/^\d{4}-\d{2}-\d{2}$/.test(data.date) || Number.isNaN(Date.parse(`${data.date}T00:00:00`))) {
+      throw new Error('יש לציין תאריך תקין להעברה');
+    }
     if (data.amountCents <= 0 || !Number.isInteger(data.amountCents)) {
       throw new Error('סכום ההעברה חייב להיות מספר שלם חיובי באגורות');
     }
@@ -1468,6 +1476,9 @@ class HomeOSIndexedDB {
 
     if (!fromAccount || !toAccount) {
       throw new Error('אחד מהחשבונות לא נמצא במשק הבית הפעיל');
+    }
+    if ([fromAccount, toAccount].some((account) => account.status === 'ARCHIVED' || account.status === 'CLOSED')) {
+      throw new Error('לא ניתן לבצע העברה מחשבון שהועבר לארכיון או נסגר');
     }
 
     const transferId = `trf_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;

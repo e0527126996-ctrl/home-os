@@ -24,6 +24,24 @@ import { formatCents, fromCents, toCents } from './currency.ts';
 const DB_NAME = 'home_os_db';
 const DB_VERSION = 4;
 
+const blobToDataUrl = (blob: Blob): Promise<string> => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(String(reader.result));
+  reader.onerror = () => reject(reader.error || new Error('לא ניתן לקרוא את תוכן המסמך'));
+  reader.readAsDataURL(blob);
+});
+
+const dataUrlToBlob = (dataUrl: string, fallbackType: string): Blob => {
+  const comma = dataUrl.indexOf(',');
+  if (comma < 0) throw new Error('קובץ מסמך פגום בגיבוי');
+  const header = dataUrl.slice(0, comma);
+  const mime = header.match(/^data:([^;]+)/)?.[1] || fallbackType;
+  const binary = atob(dataUrl.slice(comma + 1));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+};
+
 const isValidISODate = (value: string): boolean => {
   if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return false;
   const parsed = new Date(`${value}T00:00:00.000Z`);
@@ -1786,7 +1804,7 @@ class HomeOSIndexedDB {
   // BACKUP EXPORT & IMPORT
   // -------------------------------------------------------------
   async exportFullBackup(householdId: string): Promise<BackupData> {
-    const [households, users, memberships, persons, permissions, auditLogs, accounts, transactions] = await Promise.all([
+    const [households, users, memberships, persons, permissions, auditLogs, accounts, transactions, documents] = await Promise.all([
       this.getHouseholds(),
       this.getUsers(),
       this.getMembershipsByHousehold(householdId),
@@ -1799,6 +1817,7 @@ class HomeOSIndexedDB {
       this.getAuditLogs(householdId, 500),
       this.getAccountsByHousehold(householdId),
       this.getTransactionsByHousehold(householdId),
+      this.getDocumentsByHousehold(householdId),
     ]);
 
     const targetHhd = households.filter((h) => h.id === householdId);
@@ -1814,6 +1833,17 @@ class HomeOSIndexedDB {
       auditLogs,
       accounts,
       transactions,
+      documents: await Promise.all(documents.map(async (doc) => ({
+        id: doc.id,
+        householdId: doc.householdId,
+        name: doc.name,
+        mimeType: doc.mimeType,
+        size: doc.size,
+        category: doc.category,
+        uploadedAt: doc.uploadedAt,
+        uploadedBy: doc.uploadedBy,
+        dataUrl: await blobToDataUrl(doc.blob),
+      }))),
     };
   }
 
@@ -1841,6 +1871,7 @@ class HomeOSIndexedDB {
         'audit_logs',
         'financial_accounts',
         'ledger_transactions',
+        'household_documents',
       ],
       'readwrite',
       async (tx) => {
@@ -1852,6 +1883,7 @@ class HomeOSIndexedDB {
         const aStore = tx.objectStore('audit_logs');
         const accStore = tx.objectStore('financial_accounts');
         const txStore = tx.objectStore('ledger_transactions');
+        const docsStore = tx.objectStore('household_documents');
 
         for (const h of backup.households) await this.reqToPromise(hStore.put(h));
         for (const u of backup.users || []) await this.reqToPromise(uStore.put(u));
@@ -1864,6 +1896,15 @@ class HomeOSIndexedDB {
         }
         if (backup.transactions && Array.isArray(backup.transactions)) {
           for (const t of backup.transactions) await this.reqToPromise(txStore.put(t));
+        }
+        if (backup.documents && Array.isArray(backup.documents)) {
+          for (const doc of backup.documents) {
+            const { dataUrl, ...metadata } = doc;
+            await this.reqToPromise(docsStore.put({
+              ...metadata,
+              blob: dataUrlToBlob(dataUrl, doc.mimeType),
+            }));
+          }
         }
       }
     );

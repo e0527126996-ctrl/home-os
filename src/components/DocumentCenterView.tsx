@@ -89,7 +89,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
         };
         await db.saveDocument(doc);
         saved++;
-        if (!statementToImport && category === 'BANK' && /\\.(pdf|xlsx?|csv)$/i.test(file.name)) statementToImport = file;
+        if (!statementToImport && category === 'BANK' && /\.(pdf|xlsx?|csv)$/i.test(file.name)) statementToImport = file;
       }
       await refresh();
       setMessage(`${saved} מסמכים נשמרו בכספת המקומית`);
@@ -193,6 +193,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
             })}
           </div>}
       </section>
+      {statementFile && <StatementImportModal file={statementFile} accounts={accounts} transactions={transactions} activeTheme={activeTheme} onClose={() => setStatementFile(null)} onImport={onImportTransactions} />}
     </div>
   );
 };

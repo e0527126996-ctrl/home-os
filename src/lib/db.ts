@@ -1568,16 +1568,43 @@ class HomeOSIndexedDB {
     const existing = await this.getTransactionById(transactionId, householdId);
     if (!existing) throw new Error('עסקה לא נמצאה');
 
+    if (patch.amountCents !== undefined && (patch.amountCents <= 0 || !Number.isSafeInteger(patch.amountCents))) {
+      throw new Error('סכום העסקה חייב להיות מספר חיובי שלם באגורות');
+    }
+    if (patch.date !== undefined && (!/^\\d{4}-\\d{2}-\\d{2}$/.test(patch.date) || Number.isNaN(Date.parse(`${patch.date}T00:00:00`)))) {
+      throw new Error('יש לציין תאריך עסקה תקין');
+    }
+    if (patch.category !== undefined && !patch.category.trim()) {
+      throw new Error('יש להגדיר קטגוריה לעסקה');
+    }
+    if (patch.payee !== undefined && !patch.payee.trim()) {
+      throw new Error('יש לציין בית עסק או גורם לעסקה');
+    }
+
     const now = new Date().toISOString();
+    // Only editable business fields may change. IDs, household/account ownership,
+    // transaction type and transfer links are immutable after creation.
     const updated: LedgerTransaction = {
       ...existing,
-      ...patch,
+      date: patch.date ?? existing.date,
+      valueDate: patch.valueDate !== undefined ? patch.valueDate : existing.valueDate,
+      amountCents: patch.amountCents ?? existing.amountCents,
+      category: patch.category !== undefined ? patch.category.trim() : existing.category,
+      payee: patch.payee !== undefined ? patch.payee.trim() : existing.payee,
+      notes: patch.notes !== undefined ? patch.notes?.trim() || undefined : existing.notes,
+      verificationStatus: patch.verificationStatus ?? existing.verificationStatus,
       updatedAt: now,
     };
 
     // If it's a transfer, synchronize counterpart leg atomically
-    if (existing.type === 'TRANSFER' && existing.linkedTransactionId) {
+    if (existing.type === 'TRANSFER') {
+      if (!existing.linkedTransactionId) {
+        throw new Error('העברה זו אינה מקושרת לרגל הנגדית שלה; לא ניתן לעדכן אותה');
+      }
       const counterLeg = await this.getTransactionById(existing.linkedTransactionId, householdId);
+      if (!counterLeg || counterLeg.type !== 'TRANSFER' || counterLeg.linkedTransactionId !== existing.id || counterLeg.transferId !== existing.transferId) {
+        throw new Error('רגל ההעברה הנגדית חסרה או אינה תואמת; העדכון בוטל כדי למנוע חוסר איזון');
+      }
 
       await this.transaction(['ledger_transactions'], 'readwrite', async (tx) => {
         const store = tx.objectStore('ledger_transactions');

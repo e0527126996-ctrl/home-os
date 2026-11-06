@@ -1471,7 +1471,7 @@ class HomeOSIndexedDB {
     if (!data.date || !/^\d{4}-\d{2}-\d{2}$/.test(data.date) || Number.isNaN(Date.parse(`${data.date}T00:00:00`))) {
       throw new Error('יש לציין תאריך תקין להעברה');
     }
-    if (data.amountCents <= 0 || !Number.isInteger(data.amountCents)) {
+    if (data.amountCents <= 0 || !Number.isSafeInteger(data.amountCents)) {
       throw new Error('סכום ההעברה חייב להיות מספר שלם חיובי באגורות');
     }
 

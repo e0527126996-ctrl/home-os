@@ -53,7 +53,7 @@ function parseDate(value: unknown): string | null {
   }
   const s = clean(value);
   // Some bank exports store Excel serial dates as text rather than numeric cells.
-  if (/^\d{5}(?:\\.\d+)?$/.test(s)) {
+  if (/^\d{5}(?:\.\d+)?$/.test(s)) {
     const d = XLSX.SSF.parse_date_code(Number(s));
     if (d) return toIso(d.y, d.m, d.d);
   }

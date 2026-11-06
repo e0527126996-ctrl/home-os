@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Archive, CloudOff, Download, File, FileImage, FileSpreadsheet, FileText, FolderOpen, Search, ShieldCheck, Trash2, Upload, X } from 'lucide-react';
-import { Household, HouseholdDocument, User } from '../types.ts';
+import { FinancialAccount, Household, HouseholdDocument, LedgerTransaction, User } from '../types.ts';
+import { ImportedStatementRow } from '../lib/statementImport.ts';
+import { StatementImportModal } from './StatementImportModal.tsx';
 import { ThemeConfig } from '../lib/themes.ts';
 import { db } from '../lib/db.ts';
 
@@ -10,6 +12,9 @@ interface DocumentCenterViewProps {
   activeTheme: ThemeConfig;
   canRead: boolean;
   canWrite: boolean;
+  accounts: FinancialAccount[];
+  transactions: LedgerTransaction[];
+  onImportTransactions: (rows: ImportedStatementRow[], accountId: string) => Promise<void>;
 }
 
 const categories: Array<{ value: HouseholdDocument['category']; label: string }> = [
@@ -38,7 +43,7 @@ const fileIcon = (mime: string) => {
 };
 
 export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
-  household, currentUser, activeTheme, canRead, canWrite,
+  household, currentUser, activeTheme, canRead, canWrite, accounts, transactions, onImportTransactions,
 }) => {
   const [documents, setDocuments] = useState<HouseholdDocument[]>([]);
   const [category, setCategory] = useState<HouseholdDocument['category']>('OTHER');
@@ -47,6 +52,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [statementFile, setStatementFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = async () => setDocuments(await db.getDocumentsByHousehold(household.id));
@@ -63,6 +69,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
     if (!files.length) return;
     setBusy(true); setError(''); setMessage('');
     let saved = 0;
+    let statementToImport: File | null = null;
     try {
       for (const file of files) {
         if (file.size > 25 * 1024 * 1024) throw new Error(`הקובץ "${file.name}" גדול מ-25MB`);
@@ -82,9 +89,11 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
         };
         await db.saveDocument(doc);
         saved++;
+        if (!statementToImport && category === 'BANK' && /\\.(pdf|xlsx?|csv)$/i.test(file.name)) statementToImport = file;
       }
       await refresh();
       setMessage(`${saved} מסמכים נשמרו בכספת המקומית`);
+      if (statementToImport) setStatementFile(statementToImport);
     } catch (e: any) {
       setError(e.message || 'שגיאה בהעלאת המסמכים');
       if (saved) await refresh();

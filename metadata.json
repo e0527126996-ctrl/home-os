@@ -1,0 +1,6 @@
+{
+  "name": "HOME OS",
+  "description": "מערכת פרימיום חכמה לניהול כלל משק הבית בעיצוב Modern Editorial עם תכנון מודולרי וסוכני AI מתקדמים",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

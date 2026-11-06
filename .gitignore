@@ -1,0 +1,17 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+.aistudio/
+2תקיית גי פי טי מאזן הבית/
+*.backup
+*.backup-*
+*.bak
+*.before-*
+*.design-backup*
+home-os.zip
+src/components/TransactionsLedgerView.backup.tsx

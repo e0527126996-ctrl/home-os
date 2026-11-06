@@ -58,6 +58,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const current = months.find(m => m.key === currentKey) || { income: 0, expense: 0, label: '' };
     const previous = months[months.length - 2] || { income: 0, expense: 0, label: '' };
     const currentDay = now.getDate();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const currentMonthTransactions = transactions.filter(tx => tx.date?.slice(0, 7) === currentKey && (tx.type === 'INCOME' || tx.type === 'EXPENSE'));
+    const currentTransactionDays = new Set(currentMonthTransactions.map(tx => tx.date)).size;
+    const projectionReady = currentDay >= 3 && currentTransactionDays >= 3 && currentMonthTransactions.length >= 5;
+    const paceFactor = daysInMonth / Math.max(1, currentDay);
+    const projectedIncome = Math.round(current.income * paceFactor);
+    const projectedExpense = Math.round(current.expense * paceFactor);
+    const projectedCashflow = projectedIncome - projectedExpense;
     const expenseToDate = transactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === currentKey && Number(tx.date.slice(8, 10)) <= currentDay)
       .reduce((sum, tx) => sum + tx.amountCents, 0);
     const previousExpenseToDate = transactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === previous.key && Number(tx.date.slice(8, 10)) <= currentDay)
@@ -79,7 +87,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const baselineTransactionCount = transactions.filter(tx => completedMonths.some(m => tx.date?.slice(0, 7) === m.key) && (tx.type === 'INCOME' || tx.type === 'EXPENSE')).length;
     const averageExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
     const cashflow = current.income - current.expense;
-    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineTransactionCount, baselineMonthCount: completedMonths.length };
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow };
   }, [accounts, transactions]);
 
   const currency = (cents: number) => money(cents / 100);
@@ -178,22 +186,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
         {data.baselineTransactionCount > 0 ? (
           <>
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <div className="rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
                 <div className="text-xs" style={muted}>הכנסה חודשית ממוצעת</div>
                 <div className="mt-2 text-xl font-bold tabular-nums text-[#477866]">{currency(data.baselineIncome)}</div>
+                <div className="mt-1 text-[10px]" style={muted}>ממוצע {data.baselineMonthCount} חודשים מלאים</div>
               </div>
               <div className="rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
                 <div className="text-xs" style={muted}>הוצאה חודשית ממוצעת</div>
                 <div className="mt-2 text-xl font-bold tabular-nums">{currency(data.baselineExpense)}</div>
+                <div className="mt-1 text-[10px]" style={muted}>קו בסיס היסטורי</div>
               </div>
               <div className="rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
-                <div className="text-xs" style={muted}>עודף / גירעון חודשי משוער</div>
+                <div className="text-xs" style={muted}>עודף / גירעון ממוצע</div>
                 <div className={'mt-2 text-xl font-bold tabular-nums ' + (data.baselineCashflow >= 0 ? 'text-[#477866]' : 'text-[#B45F56]')}>{currency(data.baselineCashflow)}</div>
+                <div className="mt-1 text-[10px]" style={muted}>על בסיס חודשים קודמים</div>
+              </div>
+              <div className="rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+                <div className="text-xs" style={muted}>תחזית הוצאות לסוף החודש</div>
+                <div className="mt-2 text-xl font-bold tabular-nums">{data.projectionReady ? currency(data.projectedExpense) : 'ממתין לנתונים'}</div>
+                <div className="mt-1 text-[10px]" style={muted}>{data.projectionReady ? 'לפי קצב ההוצאות עד היום' : 'נדרשות לפחות 3 ימי פעילות'}</div>
+              </div>
+              <div className="rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+                <div className="text-xs" style={muted}>תחזית תזרים לסוף החודש</div>
+                <div className={'mt-2 text-xl font-bold tabular-nums ' + (data.projectedCashflow >= 0 ? 'text-[#477866]' : 'text-[#B45F56]')}>{data.projectionReady ? currency(data.projectedCashflow) : '—'}</div>
+                <div className="mt-1 text-[10px]" style={muted}>אומדן לפי הקצב הנוכחי</div>
               </div>
             </div>
+            {data.projectionReady && <div className="mt-4 rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs"><strong>קצב החודש</strong><span style={muted}>יום {data.currentDay} מתוך {data.daysInMonth} · {data.currentTransactionDays} ימי פעילות</span></div>
+              <div className="h-2 overflow-hidden rounded-full" style={{ backgroundColor: activeTheme.borderSubtle }}><div className="h-full rounded-full" style={{ width: (data.currentDay / data.daysInMonth * 100) + '%', background: 'linear-gradient(90deg,#547D70,#B98B58)' }} /></div>
+              <div className="mt-2 flex justify-between text-[10px]" style={muted}><span>הוצאות בפועל: {currency(data.current.expense)}</span><span>תחזית: {currency(data.projectedExpense)}</span></div>
+            </div>}
             <p className="mt-4 text-[11px] leading-5" style={muted}>
-              החישוב כולל {data.baselineMonthCount} חודשים מלאים שקדמו לחודש הנוכחי. חודשים ללא עסקאות נכללים כאפס כדי לא להציג ממוצע מנופח. כדאי להתייחס לתוצאה כקו בסיס לתכנון ולעדכן אותה עם רישום עסקאות מלא.
+              הממוצעים מבוססים על {data.baselineMonthCount} חודשים מלאים שקדמו לחודש הנוכחי. תחזית סוף החודש היא חישוב קצב פשוט של הנתונים שנרשמו עד היום, ומוצגת רק לאחר לפחות 5 עסקאות הפרוסות על פני 3 ימי פעילות. היא אינה כוללת חיובים עתידיים שטרם נרשמו.
             </p>
           </>
         ) : (

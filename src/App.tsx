@@ -511,12 +511,12 @@ export default function App() {
       {/* Main Body */}
       <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-7 lg:px-10 py-7 space-y-8">
         {/* Premium primary navigation */}
-        <section className="rounded-[22px] border p-3 shadow-[0_8px_28px_rgba(20,30,25,.035)]" style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="mb-2 flex items-center justify-between px-2">
-            <div className="text-[10px] font-bold tracking-[.14em]" style={{ color: activeTheme.textSecondary }}>מרחבי העבודה</div>
-            <div className="text-[10px] tabular-nums" style={{ color: activeTheme.textSecondary }}>{transactions.length} תנועות · {accounts.length} חשבונות</div>
+        <section className="homeos-navigation-shell">
+          <div className="mb-3 flex items-center justify-between px-2">
+            <div><div className="homeos-section-kicker">YOUR HOUSEHOLD WORKSPACE</div><div className="mt-1 text-sm font-bold" style={{ color: activeTheme.textPrimary }}>מרחבי העבודה</div></div>
+            <div className="text-[10px] font-semibold tabular-nums" style={{ color: activeTheme.textSecondary }}>{transactions.length} תנועות <span className="mx-1 opacity-40">/</span> {accounts.length} חשבונות</div>
           </div>
-          <nav aria-label="ניווט ראשי" className="flex gap-1.5 overflow-x-auto pb-1">
+          <nav aria-label="ניווט ראשי" className="homeos-main-nav">
             {([
               { id: 'dashboard', label: 'לוח בקרה', icon: LayoutDashboard },
               { id: 'accounts', label: 'חשבונות ונכסים', icon: WalletCards, count: accounts.length },
@@ -533,11 +533,11 @@ export default function App() {
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
                   aria-current={selected ? 'page' : undefined}
-                  className="inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-3 text-xs font-semibold transition-all duration-200"
+                  className="homeos-nav-item"
                   style={{
                     color: selected ? '#FFFFFF' : activeTheme.textSecondary,
-                    backgroundColor: selected ? activeTheme.accent : 'transparent',
-                    boxShadow: selected ? '0 5px 14px rgba(20,40,30,.16)' : 'none',
+                    background: selected ? 'linear-gradient(135deg,#24483C,#527A68)' : 'transparent',
+                    boxShadow: selected ? '0 7px 18px rgba(36,72,60,.18)' : 'none',
                   }}
                 >
                   <Icon className="h-4 w-4" />

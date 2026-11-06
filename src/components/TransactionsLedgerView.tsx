@@ -185,6 +185,23 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
     lastMonthPrefix,
   ]);
 
+  const filteredSummary = useMemo(() => filteredTransactions.reduce((totals, tx) => {
+    if (tx.type === 'INCOME') totals.incomeCents += tx.amountCents;
+    if (tx.type === 'EXPENSE') totals.expenseCents += tx.amountCents;
+    if (tx.type === 'TRANSFER' && tx.transferDirection === 'OUT') totals.transferCents += tx.amountCents;
+    return totals;
+  }, { incomeCents: 0, expenseCents: 0, transferCents: 0 }), [filteredTransactions]);
+
+  const hasActiveFilters = Boolean(searchTerm.trim()) || typeFilter !== 'ALL' || accountFilter !== 'ALL' || categoryFilter !== 'ALL' || dateFilter !== 'ALL';
+  const clearFilters = () => {
+    setSearchTerm('');
+    setTypeFilter('ALL');
+    setAccountFilter('ALL');
+    setCategoryFilter('ALL');
+    setDateFilter('ALL');
+    onSelectAccount?.(null);
+  };
+
   const confirmDelete = async () => {
     if (!deletingTx) return;
 
@@ -440,6 +457,16 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
                 <option value="LAST_MONTH">חודש קודם</option>
               </select>
             </div>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-200 bg-stone-50/70 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px]">
+              <span className="font-semibold text-stone-600">תוצאות הסינון: {filteredTransactions.length} תנועות</span>
+              <span className="text-emerald-700">הכנסות: <strong>{formatCents(filteredSummary.incomeCents)}</strong></span>
+              <span className="text-stone-700">הוצאות: <strong>{formatCents(filteredSummary.expenseCents)}</strong></span>
+              <span className="text-blue-700">העברות יוצאות: <strong>{formatCents(filteredSummary.transferCents)}</strong></span>
+              <span className="font-bold text-stone-800">תזרים מסונן: {formatCents(filteredSummary.incomeCents - filteredSummary.expenseCents)}</span>
+            </div>
+            {hasActiveFilters && <button type="button" onClick={clearFilters} className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-[11px] font-semibold text-stone-700 transition hover:bg-stone-100">נקה את כל הסינונים</button>}
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Archive, CloudOff, Download, File, FileImage, FileSpreadsheet, FileText, FolderOpen, Search, ShieldCheck, Trash2, Upload, X } from 'lucide-react';
+import { Archive, CloudOff, Download, File as FileIcon, FileImage, FileSpreadsheet, FileText, FolderOpen, Search, ShieldCheck, Trash2, Upload, X } from 'lucide-react';
 import { FinancialAccount, Household, HouseholdDocument, LedgerTransaction, User } from '../types.ts';
 import { ImportedStatementRow } from '../lib/statementImport.ts';
 import { StatementImportModal } from './StatementImportModal.tsx';
@@ -39,7 +39,7 @@ const fileIcon = (mime: string) => {
   if (mime.startsWith('image/')) return FileImage;
   if (mime.includes('spreadsheet') || mime.includes('excel') || mime.includes('csv')) return FileSpreadsheet;
   if (mime.includes('pdf') || mime.includes('word')) return FileText;
-  return File;
+  return FileIcon;
 };
 
 export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({

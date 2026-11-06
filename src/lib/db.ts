@@ -23,6 +23,12 @@ import { formatCents, fromCents, toCents } from './currency.ts';
 const DB_NAME = 'home_os_db';
 const DB_VERSION = 3;
 
+const isValidISODate = (value: string): boolean => {
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+};
+
 class HomeOSIndexedDB {
   private dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -1386,7 +1392,7 @@ class HomeOSIndexedDB {
     }
     if (!data.category?.trim()) throw new Error('יש להגדיר קטגוריה לעסקה');
     if (!data.payee?.trim()) throw new Error('יש לציין בית עסק או גורם לעסקה');
-    if (data.amountCents <= 0 || !Number.isInteger(data.amountCents)) {
+    if (data.amountCents <= 0 || !Number.isSafeInteger(data.amountCents)) {
       throw new Error('סכום העסקה חייב להיות מספר חיובי שלם באגורות');
     }
 
@@ -1571,7 +1577,7 @@ class HomeOSIndexedDB {
     if (patch.amountCents !== undefined && (patch.amountCents <= 0 || !Number.isSafeInteger(patch.amountCents))) {
       throw new Error('סכום העסקה חייב להיות מספר חיובי שלם באגורות');
     }
-    if (patch.date !== undefined && (!/^\\d{4}-\\d{2}-\\d{2}$/.test(patch.date) || Number.isNaN(Date.parse(`${patch.date}T00:00:00`)))) {
+    if (patch.date !== undefined && !isValidISODate(patch.date)) {
       throw new Error('יש לציין תאריך עסקה תקין');
     }
     if (patch.category !== undefined && !patch.category.trim()) {

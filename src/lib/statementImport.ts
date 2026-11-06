@@ -53,18 +53,18 @@ function parseDate(value: unknown): string | null {
   }
   const s = clean(value);
   // Some bank exports store Excel serial dates as text rather than numeric cells.
-  if (/^\\d{5}(?:\\.\\d+)?$/.test(s)) {
+  if (/^\d{5}(?:\\.\d+)?$/.test(s)) {
     const d = XLSX.SSF.parse_date_code(Number(s));
     if (d) return toIso(d.y, d.m, d.d);
   }
   // Ignore a time suffix while retaining the date portion.
-  const datePart = s.match(/^(\\d{1,4}[./-]\\d{1,2}[./-]\\d{1,4})(?:[ T].*)?$/)?.[1] || s;
-  let m = datePart.match(/^(\\d{1,2})[./-](\\d{1,2})[./-](\\d{2,4})$/);
+  const datePart = s.match(/^(\d{1,4}[./-]\d{1,2}[./-]\d{1,4})(?:[ T].*)?$/)?.[1] || s;
+  let m = datePart.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$/);
   if (m) {
     const year = m[3].length === 2 ? Number(m[3]) + 2000 : Number(m[3]);
     return toIso(year, Number(m[2]), Number(m[1]));
   }
-  m = datePart.match(/^(\\d{4})-(\\d{1,2})-(\\d{1,2})$/);
+  m = datePart.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   if (m) return toIso(Number(m[1]), Number(m[2]), Number(m[3]));
   return null;
 }

@@ -43,6 +43,7 @@ import { HomeManagementView } from './components/HomeManagementView.tsx';
 import { db } from './lib/db.ts';
 import { MODERN_EDITORIAL_THEMES, ThemeConfig } from './lib/themes.ts';
 import { generateStandaloneHomeOSHtml } from './lib/standaloneGenerator.ts';
+import { ImportedStatementRow } from './lib/statementImport.ts';
 import {
   AuditLog,
   FinancialAccount,
@@ -397,6 +398,33 @@ export default function App() {
     }
   };
 
+  const handleImportTransactions = async (rows: ImportedStatementRow[], accountId: string) => {
+    if (!activeHousehold || !currentUser) throw new Error('יש להתחבר למשק הבית לפני ייבוא עסקאות');
+    let imported = 0;
+    try {
+      for (const row of rows) {
+        await db.createTransaction(activeHousehold.id, {
+          accountId,
+          date: row.date,
+          amountCents: row.amountCents,
+          type: row.type,
+          category: row.category,
+          payee: row.payee,
+          notes: 'יובא מדף חשבון · נדרש אימות מול המסמך המקורי',
+          source: 'IMPORT',
+          verificationStatus: 'PENDING',
+        }, currentUser.id, currentUser.email);
+        imported++;
+      }
+      await reloadHouseholdData(activeHousehold.id);
+      showToast(`יובאו ${imported} עסקאות. היתרות והדוחות עודכנו; העסקאות מסומנות לבדיקה.`);
+    } catch (err: any) {
+      await reloadHouseholdData(activeHousehold.id);
+      showToast(`יובאו ${imported} עסקאות לפני שגיאה: ${err.message}`, 'error');
+      throw err;
+    }
+  };
+
   const handleSaveTransfer = async (data: {
     fromAccountId: string;
     toAccountId: string;
@@ -573,6 +601,9 @@ export default function App() {
             activeTheme={activeTheme}
             canRead={Boolean(currentMembership)}
             canWrite={canPerformFinance}
+            accounts={accounts}
+            transactions={transactions}
+            onImportTransactions={handleImportTransactions}
           />
         )}
 

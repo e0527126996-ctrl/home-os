@@ -1,5 +1,9 @@
 import React, { useMemo } from 'react';
-import { ArrowDownLeft, ArrowUpLeft, Wallet, Landmark, CreditCard, PiggyBank, ArrowLeft, Sparkles, Activity, TrendingUp, TrendingDown, Lightbulb, CalendarDays } from 'lucide-react';
+import {
+  ArrowDownLeft, ArrowUpLeft, ArrowLeft, Wallet, Landmark, CreditCard,
+  PiggyBank, Activity, TrendingUp, TrendingDown, Lightbulb, CalendarDays,
+  Sparkles, ArrowUpRight, ArrowDownRight, ChartNoAxesCombined, ReceiptText,
+} from 'lucide-react';
 import { FinancialAccount, LedgerTransaction } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
 
@@ -39,7 +43,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     });
     const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const current = months.find(m => m.key === currentKey) || { income: 0, expense: 0, label: '' };
-    const previous = months.length > 1 ? months[months.length - 2] : { income: 0, expense: 0, label: '' };
+    const previous = months[months.length - 2] || { income: 0, expense: 0, label: '' };
     const expenseChange = previous.expense > 0 ? ((current.expense - previous.expense) / previous.expense) * 100 : null;
     const max = Math.max(1, ...months.flatMap(m => [m.income, m.expense]));
     const categories = transactions
@@ -48,125 +52,168 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         acc[tx.category || 'ללא קטגוריה'] = (acc[tx.category || 'ללא קטגוריה'] || 0) + tx.amountCents;
         return acc;
       }, {});
-    const topCategories = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 4);
-    const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
+    const topCategories = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)).slice(0, 6);
     return { assets, liabilities, netWorth, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts };
   }, [accounts, transactions]);
 
-  const card = 'rounded-2xl border p-5 shadow-[0_8px_30px_rgba(15,23,42,0.035)] transition-shadow hover:shadow-md';
-  const muted = { color: activeTheme.textSecondary };
   const currency = (cents: number) => money(cents / 100);
+  const muted = { color: activeTheme.textSecondary };
+  const panel = 'rounded-[22px] border shadow-[0_12px_36px_rgba(20,30,25,.045)]';
+  const categoryTotal = data.topCategories.reduce((sum, item) => sum + item[1], 0);
+  const categoryColors = ['#557A63', '#C79A58', '#6B8196', '#A77B70', '#8D8B73'];
+  const monthName = new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' }).format(new Date());
 
   return (
-    <div className="space-y-7" dir="rtl">
-      <section className="relative overflow-hidden rounded-3xl p-7 md:p-9 text-white shadow-lg" style={{ background: 'linear-gradient(115deg, #172A26 0%, #29463D 58%, #526D5C 100%)' }}>
-        <div className="absolute -left-12 -top-20 h-64 w-64 rounded-full border border-white/10" />
-        <div className="absolute -left-2 -top-10 h-44 w-44 rounded-full border border-white/10" />
-        <div className="relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-xs tracking-[.18em] text-emerald-100/75"><Activity className="h-4 w-4" /> HOME OS · HOUSEHOLD FINANCE</div>
-            <div className="text-sm text-emerald-50/75">תמונת המצב של</div>
-            <h1 className="font-serif text-3xl md:text-4xl font-semibold tracking-tight">{householdName || 'הבית שלנו'}</h1>
-            <p className="max-w-xl text-sm leading-7 text-emerald-50/75">כל התמונה הפיננסית במקום אחד — יתרות, תזרים והפעילות האחרונה.</p>
+    <div className="space-y-6 pb-8" dir="rtl">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-[.16em]" style={{ color: activeTheme.accent }}>
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: activeTheme.accent }} />
+            HOME OS <span className="opacity-40">/</span> מרכז הבקרה
           </div>
-          <div className="flex flex-wrap gap-2">
-            <button onClick={onOpenLedger} className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-50">לספר העסקאות <ArrowLeft className="mr-2 inline h-4 w-4" /></button>
-            <button onClick={onOpenAccounts} className="rounded-xl border border-white/30 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10">לחשבונות</button>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-[2.15rem]" style={{ color: activeTheme.textPrimary }}>שלום, {householdName || 'הבית שלנו'}</h1>
+          <p className="mt-2 text-sm" style={muted}>התמונה הפיננסית המלאה של משק הבית, במקום אחד.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-xl border px-3 py-2 text-xs font-medium" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgCard, color: activeTheme.textSecondary }}>{monthName}</span>
+          <button onClick={onOpenLedger} className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5" style={{ backgroundColor: activeTheme.accent }}>
+            <ReceiptText className="h-4 w-4" /> פנקס העסקאות
+          </button>
+          <button onClick={onOpenAccounts} className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition hover:bg-black/5" style={{ borderColor: activeTheme.borderSubtle, color: activeTheme.textPrimary }}>
+            <Landmark className="h-4 w-4" /> חשבונות
+          </button>
+        </div>
+      </header>
+
+      <section className="relative isolate overflow-hidden rounded-[28px] p-6 text-white shadow-[0_22px_60px_rgba(20,38,31,.18)] sm:p-8" style={{ background: 'linear-gradient(120deg,#142923 0%,#23483B 56%,#42634F 100%)' }}>
+        <div className="pointer-events-none absolute -left-16 -top-28 -z-10 h-80 w-80 rounded-full border border-white/10" />
+        <div className="pointer-events-none absolute -left-2 -top-16 -z-10 h-56 w-56 rounded-full border border-white/10" />
+        <div className="pointer-events-none absolute bottom-[-100px] right-[35%] -z-10 h-64 w-64 rounded-full bg-white/[.035] blur-2xl" />
+        <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:items-end">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-100/75"><Wallet className="h-4 w-4" /> השווי הנקי של משק הבית</div>
+            <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">{currency(data.netWorth)}</span>
+              <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] text-emerald-50/80">נכסים פחות התחייבויות</span>
+            </div>
+            <p className="mt-3 max-w-lg text-sm leading-6 text-emerald-50/70">מדד מרכזי למצב הכלכלי הכולל. הנתון מחושב מהיתרות בחשבונות הפעילים.</p>
           </div>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="flex items-center justify-between text-sm" style={muted}><span>שווי נקי</span><Wallet className="h-4 w-4" /></div>
-          <div className="mt-3 text-2xl font-bold tracking-tight tabular-nums">{currency(data.netWorth)}</div>
-          <div className="mt-2 text-xs" style={muted}>נכסים פחות התחייבויות</div>
-        </div>
-        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="flex items-center justify-between text-sm" style={muted}><span>נכסים</span><ArrowUpLeft className="h-4 w-4 text-emerald-600" /></div>
-          <div className="mt-3 text-2xl font-bold tracking-tight tabular-nums text-emerald-700">{currency(data.assets)}</div>
-          <div className="mt-2 text-xs" style={muted}>{data.activeAccounts.filter(a => !a.isLiability).length} חשבונות ונכסים פעילים</div>
-        </div>
-        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="flex items-center justify-between text-sm" style={muted}><span>התחייבויות</span><ArrowDownLeft className="h-4 w-4 text-rose-600" /></div>
-          <div className="mt-3 text-2xl font-bold tracking-tight tabular-nums text-rose-700">{currency(data.liabilities)}</div>
-          <div className="mt-2 text-xs" style={muted}>{data.activeAccounts.filter(a => a.isLiability).length} התחייבויות פעילות</div>
-        </div>
-        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="flex items-center justify-between text-sm" style={muted}><span>תזרים החודש</span><Activity className="h-4 w-4" /></div>
-          <div className="mt-3 text-2xl font-bold tracking-tight tabular-nums" style={{ color: data.current.income - data.current.expense >= 0 ? '#15803d' : '#be123c' }}>{currency(data.current.income - data.current.expense)}</div>
-          <div className="mt-2 text-xs" style={muted}>הכנסות פחות הוצאות החודש</div>
-        </div>
-      </section>
-
-
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="flex items-center justify-between gap-3"><div><p className="text-xs" style={muted}>הכנסות החודש</p><p className="mt-2 text-xl font-bold tabular-nums text-emerald-700">{currency(data.current.income)}</p></div><span className="rounded-xl bg-emerald-500/10 p-3 text-emerald-700"><TrendingUp className="h-5 w-5" /></span></div>
-          <p className="mt-2 text-xs" style={muted}>על בסיס עסקאות הכנסה שנרשמו החודש</p>
-        </div>
-        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="flex items-center justify-between gap-3"><div><p className="text-xs" style={muted}>הוצאות החודש</p><p className="mt-2 text-xl font-bold tabular-nums">{currency(data.current.expense)}</p></div><span className="rounded-xl bg-amber-500/10 p-3 text-amber-700"><TrendingDown className="h-5 w-5" /></span></div>
-          <p className="mt-2 text-xs" style={muted}>על בסיס עסקאות הוצאה שנרשמו החודש</p>
-        </div>
-        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="flex items-center justify-between gap-3"><div><p className="text-xs" style={muted}>שינוי בהוצאות מול חודש קודם</p><p className="mt-2 text-xl font-bold tabular-nums">{data.expenseChange === null ? 'אין נתון להשוואה' : (data.expenseChange > 0 ? '+' : '') + data.expenseChange.toFixed(1) + '%'}</p></div><span className="rounded-xl p-3" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}><CalendarDays className="h-5 w-5" /></span></div>
-          <p className="mt-2 text-xs" style={muted}>{data.expenseChange === null ? 'נדרשות עסקאות בחודש הקודם להשוואה' : data.expenseChange > 0 ? 'ההוצאות גבוהות יותר מהחודש הקודם' : data.expenseChange < 0 ? 'ההוצאות נמוכות יותר מהחודש הקודם' : 'ההוצאות ללא שינוי לעומת החודש הקודם'}</p>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border p-5 md:p-6" style={{ backgroundColor: activeTheme.bgSurface, borderColor: activeTheme.borderSubtle }}>
-        <div className="flex items-start gap-3">
-          <span className="rounded-xl p-3" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}><Lightbulb className="h-5 w-5" /></span>
-          <div className="min-w-0 flex-1">
-            <h2 className="font-semibold">תובנה פיננסית</h2>
-            <p className="mt-1 text-sm leading-6" style={muted}>
-              {data.current.income === 0 && data.current.expense === 0
-                ? 'עדיין לא נרשמה פעילות פיננסית החודש. לאחר הוספת עסקאות יוצגו כאן תובנות המבוססות על הנתונים בפועל.'
-                : data.current.income - data.current.expense >= 0
-                  ? 'התזרים החודשי כרגע חיובי ועומד על ' + currency(data.current.income - data.current.expense) + '. המשך מעקב אחר ההוצאות כדי לשמור על המגמה.'
-                  : 'ההוצאות החודש גבוהות מההכנסות ב-' + currency(data.current.expense - data.current.income) + '. כדאי לבדוק את פירוט הקטגוריות ואת העסקאות האחרונות.'
-              }
-            </p>
-            <button onClick={onOpenLedger} className="mt-3 text-xs font-semibold" style={{ color: activeTheme.accent }}>בדיקת העסקאות החודש ←</button>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="rounded-2xl border border-white/10 bg-white/[.075] p-3 sm:p-4">
+              <div className="flex items-center gap-1.5 text-[11px] text-emerald-100/70"><ArrowUpLeft className="h-3.5 w-3.5" /> נכסים</div>
+              <div className="mt-2 text-lg font-bold tabular-nums sm:text-xl">{currency(data.assets)}</div>
+              <div className="mt-1 text-[10px] text-emerald-100/55">{data.activeAccounts.filter(a => !a.isLiability).length} חשבונות</div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[.075] p-3 sm:p-4">
+              <div className="flex items-center gap-1.5 text-[11px] text-emerald-100/70"><ArrowDownLeft className="h-3.5 w-3.5" /> התחייבויות</div>
+              <div className="mt-2 text-lg font-bold tabular-nums sm:text-xl">{currency(data.liabilities)}</div>
+              <div className="mt-1 text-[10px] text-emerald-100/55">{data.activeAccounts.filter(a => a.isLiability).length} התחייבויות</div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[.075] p-3 sm:p-4">
+              <div className="flex items-center gap-1.5 text-[11px] text-emerald-100/70"><Activity className="h-3.5 w-3.5" /> תזרים חודשי</div>
+              <div className="mt-2 text-lg font-bold tabular-nums sm:text-xl">{currency(data.current.income - data.current.expense)}</div>
+              <div className="mt-1 text-[10px] text-emerald-100/55">הכנסות פחות הוצאות</div>
+            </div>
           </div>
         </div>
       </section>
-      <section className="grid grid-cols-1 gap-5 xl:grid-cols-[1.65fr_1fr]">
-        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="mb-6 flex items-center justify-between"><div><h2 className="text-lg font-semibold">תזרים חודשי</h2><p className="mt-1 text-xs" style={muted}>ששת החודשים האחרונים · לפי העסקאות שנרשמו</p></div><span className="rounded-full px-3 py-1 text-xs" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}>₪</span></div>
-          <div className="flex h-52 items-end justify-between gap-3 border-b pb-2" style={{ borderColor: activeTheme.borderSubtle }}>
-            {data.months.map(month => (
-              <div key={month.key} className="flex h-full flex-1 flex-col items-center justify-end gap-2">
-                <div className="flex h-[82%] w-full items-end justify-center gap-1.5">
-                  <div title={`הכנסות: ${currency(month.income)}`} className="w-3/12 max-w-7 rounded-t-md bg-emerald-600/85 transition-all" style={{ height: `${Math.max(2, month.income / data.max * 100)}%` }} />
-                  <div title={`הוצאות: ${currency(month.expense)}`} className="w-3/12 max-w-7 rounded-t-md bg-amber-600/80 transition-all" style={{ height: `${Math.max(2, month.expense / data.max * 100)}%` }} />
+
+      <section className="grid gap-3 sm:grid-cols-3">
+        <div className={`${panel} p-5`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
+          <div className="flex items-center justify-between"><span className="text-sm font-medium" style={muted}>הכנסות החודש</span><span className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-700"><TrendingUp className="h-5 w-5" /></span></div>
+          <div className="mt-3 text-2xl font-bold tracking-tight tabular-nums text-emerald-700">{currency(data.current.income)}</div>
+          <div className="mt-2 text-xs" style={muted}>על בסיס עסקאות הכנסה שנרשמו</div>
+        </div>
+        <div className={`${panel} p-5`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
+          <div className="flex items-center justify-between"><span className="text-sm font-medium" style={muted}>הוצאות החודש</span><span className="rounded-xl bg-amber-500/10 p-2.5 text-amber-700"><TrendingDown className="h-5 w-5" /></span></div>
+          <div className="mt-3 text-2xl font-bold tracking-tight tabular-nums" style={{ color: activeTheme.textPrimary }}>{currency(data.current.expense)}</div>
+          <div className="mt-2 text-xs" style={muted}>על בסיס עסקאות הוצאה שנרשמו</div>
+        </div>
+        <div className={`${panel} p-5`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
+          <div className="flex items-center justify-between"><span className="text-sm font-medium" style={muted}>שינוי בהוצאות</span><span className="rounded-xl p-2.5" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}><CalendarDays className="h-5 w-5" /></span></div>
+          <div className="mt-3 text-2xl font-bold tracking-tight tabular-nums" style={{ color: data.expenseChange === null ? activeTheme.textPrimary : data.expenseChange > 0 ? '#B45345' : '#25805A' }}>{data.expenseChange === null ? '—' : `${data.expenseChange > 0 ? '+' : ''}${data.expenseChange.toFixed(1)}%`}</div>
+          <div className="mt-2 text-xs" style={muted}>{data.expenseChange === null ? 'אין עדיין בסיס להשוואה' : data.expenseChange > 0 ? 'עלייה לעומת החודש הקודם' : data.expenseChange < 0 ? 'ירידה לעומת החודש הקודם' : 'ללא שינוי לעומת החודש הקודם'}</div>
+        </div>
+      </section>
+
+      <section className={`${panel} flex items-start gap-4 p-5 sm:p-6`} style={{ backgroundColor: activeTheme.bgSurface, borderColor: activeTheme.borderSubtle }}>
+        <span className="shrink-0 rounded-2xl p-3" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}><Lightbulb className="h-5 w-5" /></span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2"><h2 className="font-bold">תובנה פיננסית</h2><span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}>מבוסס נתונים</span></div>
+          <p className="mt-1 text-sm leading-6" style={muted}>
+            {data.current.income === 0 && data.current.expense === 0
+              ? 'עדיין לא נרשמה פעילות פיננסית החודש. לאחר הזנת עסקאות יוצגו כאן תובנות המבוססות על הנתונים בפועל.'
+              : data.current.income - data.current.expense >= 0
+                ? `התזרים החודשי חיובי ועומד על ${currency(data.current.income - data.current.expense)}. כדאי להמשיך לעקוב אחר ההוצאות ולשמור על המגמה.`
+                : `ההוצאות גבוהות מההכנסות ב-${currency(data.current.expense - data.current.income)}. מומלץ לבדוק את הקטגוריות והעסקאות האחרונות.`
+            }
+          </p>
+        </div>
+        <button onClick={onOpenLedger} className="hidden shrink-0 items-center gap-1 text-xs font-bold sm:flex" style={{ color: activeTheme.accent }}>לניתוח העסקאות <ArrowLeft className="h-3.5 w-3.5" /></button>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
+        <div className={`${panel} p-5 sm:p-6`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <div><div className="flex items-center gap-2"><ChartNoAxesCombined className="h-4 w-4" style={{ color: activeTheme.accent }} /><h2 className="text-base font-bold">תנועת הכסף</h2></div><p className="mt-1 text-xs" style={muted}>הכנסות והוצאות · ששת החודשים האחרונים</p></div>
+            <div className="flex gap-3 text-[11px]" style={muted}><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-emerald-600" /> הכנסות</span><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-amber-500" /> הוצאות</span></div>
+          </div>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-0 flex flex-col justify-between pb-8 pt-1">{[0,1,2,3].map(i => <div key={i} className="border-t border-dashed" style={{ borderColor: activeTheme.borderSubtle }} />)}</div>
+            <div className="relative grid h-52 grid-cols-6 gap-2 sm:gap-4">
+              {data.months.map((month, index) => (
+                <div key={month.key} className="flex min-w-0 flex-col items-center justify-end gap-2">
+                  <div className="flex h-[85%] w-full items-end justify-center gap-1 sm:gap-2">
+                    <div title={`הכנסות: ${currency(month.income)}`} className="w-[34%] max-w-8 rounded-t-lg bg-emerald-600 transition-all duration-500" style={{ height: `${Math.max(month.income ? 4 : 1, month.income / data.max * 100)}%`, opacity: index === 5 ? 1 : .78 }} />
+                    <div title={`הוצאות: ${currency(month.expense)}`} className="w-[34%] max-w-8 rounded-t-lg bg-amber-500 transition-all duration-500" style={{ height: `${Math.max(month.expense ? 4 : 1, month.expense / data.max * 100)}%`, opacity: index === 5 ? 1 : .78 }} />
+                  </div>
+                  <span className="text-[10px] font-medium sm:text-xs" style={muted}>{month.label}</span>
                 </div>
-                <span className="text-[11px]" style={muted}>{month.label}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-          <div className="mt-4 flex gap-5 text-xs" style={muted}><span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-sm bg-emerald-600" /> הכנסות</span><span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-sm bg-amber-600" /> הוצאות</span></div>
+          <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-4" style={{ borderColor: activeTheme.borderSubtle }}>
+            <div><div className="text-[11px]" style={muted}>מאזן החודש</div><div className="mt-1 text-lg font-bold tabular-nums" style={{ color: data.current.income >= data.current.expense ? '#25805A' : '#B45345' }}>{currency(data.current.income - data.current.expense)}</div></div>
+            <div className="text-left"><div className="text-[11px]" style={muted}>ממוצע הוצאות 6 חודשים</div><div className="mt-1 text-lg font-bold tabular-nums" style={{ color: activeTheme.textPrimary }}>{currency(data.months.reduce((s,m)=>s+m.expense,0) / 6)}</div></div>
+          </div>
         </div>
 
-        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="mb-5"><h2 className="text-lg font-semibold">הוצאות לפי קטגוריה</h2><p className="mt-1 text-xs" style={muted}>החודש הנוכחי</p></div>
-          {data.topCategories.length ? <div className="space-y-5">{data.topCategories.map(([name, value]) => {
-            const total = data.topCategories.reduce((sum, item) => sum + item[1], 0);
-            return <div key={name}><div className="mb-2 flex justify-between gap-3 text-sm"><span className="truncate">{name}</span><strong className="tabular-nums">{currency(value)}</strong></div><div className="h-2 overflow-hidden rounded-full" style={{ backgroundColor: activeTheme.borderSubtle }}><div className="h-full rounded-full" style={{ width: `${value / total * 100}%`, backgroundColor: activeTheme.accent }} /></div></div>;
-          })}</div> : <div className="flex min-h-36 flex-col items-center justify-center text-center"><Sparkles className="mb-2 h-6 w-6" style={muted} /><p className="text-sm font-medium">עדיין אין הוצאות החודש</p><p className="mt-1 text-xs" style={muted}>כשתירשמנה עסקאות, תופיע כאן חלוקה לפי קטגוריות</p></div>}
+        <div className={`${panel} p-5 sm:p-6`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
+          <div className="mb-5"><div className="flex items-center gap-2"><Activity className="h-4 w-4" style={{ color: activeTheme.accent }} /><h2 className="text-base font-bold">לאן הכסף הולך?</h2></div><p className="mt-1 text-xs" style={muted}>התפלגות הוצאות החודש</p></div>
+          {data.topCategories.length ? (
+            <>
+              <div className="mx-auto mb-5 flex h-36 w-36 items-center justify-center rounded-full" style={{ background: `conic-gradient(${data.topCategories.map(([name,value],i)=>`${categoryColors[i]} ${data.topCategories.slice(0,i).reduce((s,x)=>s+x[1],0)/categoryTotal*100}% ${(data.topCategories.slice(0,i).reduce((s,x)=>s+x[1],0)+value)/categoryTotal*100}%`).join(', ')})` }}>
+                <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full text-center" style={{ backgroundColor: activeTheme.bgCard }}><span className="text-[10px]" style={muted}>סה״כ הוצאות</span><strong className="mt-1 text-sm tabular-nums">{currency(categoryTotal)}</strong></div>
+              </div>
+              <div className="space-y-3">{data.topCategories.map(([name,value],i)=>(
+                <div key={name} className="flex items-center justify-between gap-3 text-xs"><span className="flex min-w-0 items-center gap-2"><i className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{backgroundColor:categoryColors[i]}}/><span className="truncate">{name}</span></span><strong className="shrink-0 tabular-nums">{currency(value)}</strong></div>
+              ))}</div>
+            </>
+          ) : <div className="flex min-h-48 flex-col items-center justify-center text-center"><Sparkles className="mb-3 h-7 w-7" style={muted} /><p className="text-sm font-semibold">אין עדיין נתוני הוצאות</p><p className="mt-1 max-w-[220px] text-xs leading-5" style={muted}>לאחר רישום עסקאות יוצג כאן פירוט חזותי לפי קטגוריות.</p></div>}
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-5 xl:grid-cols-[1.35fr_1fr]">
-        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="mb-4 flex items-center justify-between"><div><h2 className="text-lg font-semibold">פעילות אחרונה</h2><p className="mt-1 text-xs" style={muted}>חמש התנועות האחרונות</p></div><button onClick={onOpenLedger} className="text-xs font-semibold" style={{ color: activeTheme.accent }}>לכל העסקאות ←</button></div>
-          {data.recent.length ? <div className="divide-y" style={{ borderColor: activeTheme.borderSubtle }}>{data.recent.map(tx => <div key={tx.id} className="flex items-center justify-between gap-3 py-3"><div className="min-w-0"><div className="truncate text-sm font-medium">{tx.payee || tx.category}</div><div className="mt-1 text-xs" style={muted}>{tx.category} · {new Date(tx.date + 'T12:00:00').toLocaleDateString('he-IL')}</div></div><strong className={`shrink-0 text-sm tabular-nums ${tx.type === 'INCOME' ? 'text-emerald-700' : tx.type === 'EXPENSE' ? 'text-stone-700' : 'text-blue-700'}`}>{tx.type === 'INCOME' ? '+' : tx.type === 'EXPENSE' ? '−' : '↔'}{currency(tx.amountCents)}</strong></div>)}</div> : <div className="py-10 text-center text-sm" style={muted}>עדיין לא נרשמו עסקאות</div>}
+      <section className="grid gap-5 xl:grid-cols-[1.25fr_1fr]">
+        <div className={`${panel} p-5 sm:p-6`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
+          <div className="mb-3 flex items-center justify-between gap-3"><div><h2 className="text-base font-bold">פעילות אחרונה</h2><p className="mt-1 text-xs" style={muted}>התנועות האחרונות שנרשמו במערכת</p></div><button onClick={onOpenLedger} className="flex items-center gap-1 text-xs font-bold" style={{color:activeTheme.accent}}>כל העסקאות <ArrowLeft className="h-3.5 w-3.5"/></button></div>
+          {data.recent.length ? <div className="divide-y" style={{borderColor:activeTheme.borderSubtle}}>{data.recent.map(tx=>(
+            <div key={tx.id} className="flex items-center justify-between gap-3 py-3">
+              <div className="flex min-w-0 items-center gap-3"><span className="rounded-xl p-2.5" style={{backgroundColor:tx.type==='INCOME'?'rgba(22,163,74,.10)':tx.type==='EXPENSE'?'rgba(217,119,6,.10)':'rgba(59,130,246,.10)',color:tx.type==='INCOME'?'#15803D':tx.type==='EXPENSE'?'#B45309':'#2563EB'}}>{tx.type==='INCOME'?<ArrowDownRight className="h-4 w-4"/>:tx.type==='EXPENSE'?<ArrowUpRight className="h-4 w-4"/>:<Activity className="h-4 w-4"/>}</span><div className="min-w-0"><div className="truncate text-sm font-semibold">{tx.payee || tx.category}</div><div className="mt-1 truncate text-[11px]" style={muted}>{tx.category} · {new Date(tx.date+'T12:00:00').toLocaleDateString('he-IL')}</div></div></div>
+              <strong className="shrink-0 text-sm tabular-nums" style={{color:tx.type==='INCOME'?'#15803D':activeTheme.textPrimary}}>{tx.type==='INCOME'?'+':tx.type==='EXPENSE'?'−':'↔'}{currency(tx.amountCents)}</strong>
+            </div>
+          ))}</div> : <div className="py-12 text-center"><ReceiptText className="mx-auto mb-2 h-7 w-7" style={muted}/><p className="text-sm font-semibold">עדיין אין פעילות</p><p className="mt-1 text-xs" style={muted}>העסקאות שתזין יופיעו כאן.</p><button onClick={onOpenLedger} className="mt-4 rounded-xl px-4 py-2 text-xs font-bold text-white" style={{backgroundColor:activeTheme.accent}}>פתיחת פנקס העסקאות</button></div>}
         </div>
-        <div className={card} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="mb-4"><h2 className="text-lg font-semibold">חשבונות מרכזיים</h2><p className="mt-1 text-xs" style={muted}>יתרות עדכניות מכל החשבונות הפעילים</p></div>
-          {data.activeAccounts.length ? <div className="space-y-3">{data.activeAccounts.slice(0, 5).map(account => <div key={account.id} className="flex items-center justify-between gap-3 rounded-xl p-3" style={{ backgroundColor: activeTheme.bgCanvas }}><div className="flex min-w-0 items-center gap-3"><span className="rounded-lg p-2" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}>{account.type === 'CREDIT_CARD' ? <CreditCard className="h-4 w-4" /> : account.type === 'SAVINGS' ? <PiggyBank className="h-4 w-4" /> : <Landmark className="h-4 w-4" />}</span><div className="min-w-0"><div className="truncate text-sm font-medium">{account.name}</div><div className="text-xs" style={muted}>{account.institution}</div></div></div><strong className="shrink-0 text-sm tabular-nums">{currency(account.currentBalanceCents)}</strong></div>)}</div> : <div className="py-10 text-center text-sm" style={muted}>עדיין לא הוגדרו חשבונות</div>}
-          <button onClick={onOpenAccounts} className="mt-4 w-full rounded-xl border py-2.5 text-xs font-semibold transition hover:opacity-75" style={{ borderColor: activeTheme.borderSubtle, color: activeTheme.textPrimary }}>ניהול כל החשבונות</button>
+
+        <div className={`${panel} p-5 sm:p-6`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
+          <div className="mb-4 flex items-center justify-between"><div><h2 className="text-base font-bold">חשבונות ונכסים</h2><p className="mt-1 text-xs" style={muted}>יתרות החשבונות הפעילים</p></div><span className="rounded-xl p-2.5" style={{backgroundColor:activeTheme.accentMuted,color:activeTheme.accent}}><Landmark className="h-4 w-4"/></span></div>
+          {data.activeAccounts.length ? <div className="space-y-2.5">{data.activeAccounts.slice(0,5).map(account=>(
+            <div key={account.id} className="flex items-center justify-between gap-3 rounded-2xl p-3" style={{backgroundColor:activeTheme.bgCanvas}}>
+              <div className="flex min-w-0 items-center gap-3"><span className="rounded-xl p-2" style={{backgroundColor:activeTheme.accentMuted,color:activeTheme.accent}}>{account.type==='CREDIT_CARD'?<CreditCard className="h-4 w-4"/>:account.type==='SAVINGS'?<PiggyBank className="h-4 w-4"/>:<Landmark className="h-4 w-4"/>}</span><div className="min-w-0"><div className="truncate text-sm font-semibold">{account.name}</div><div className="truncate text-[11px]" style={muted}>{account.institution || 'חשבון אישי'}</div></div></div>
+              <strong className="shrink-0 text-sm tabular-nums">{currency(account.currentBalanceCents)}</strong>
+            </div>
+          ))}</div> : <div className="py-10 text-center text-sm" style={muted}>עדיין לא הוגדרו חשבונות</div>}
+          <button onClick={onOpenAccounts} className="mt-4 w-full rounded-xl border py-3 text-xs font-bold transition hover:bg-black/5" style={{borderColor:activeTheme.borderSubtle,color:activeTheme.textPrimary}}>ניהול כל החשבונות</button>
         </div>
       </section>
     </div>

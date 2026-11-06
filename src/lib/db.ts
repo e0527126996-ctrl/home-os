@@ -1424,7 +1424,7 @@ class HomeOSIndexedDB {
       actorEmail,
       'CREATE_TRANSACTION',
       'FINANCE',
-      `רישום עסקה: ${newTx.type === 'INCOME' ? '�����' : '�����'} ע"ס ${formatCents(newTx.amountCents)} בחשבון ${account.name} (${newTx.payee})`
+      `רישום עסקה: ${newTx.type === 'INCOME' ? 'הכנסה' : 'הוצאה'} ע"ס ${formatCents(newTx.amountCents)} בחשבון ${account.name} (${newTx.payee})`
     );
 
     return newTx;

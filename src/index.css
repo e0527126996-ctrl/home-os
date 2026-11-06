@@ -22,3 +22,36 @@
     font-family: var(--font-mono);
   }
 }
+
+
+/* HOME OS — unified premium editorial foundation */
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    min-width: 320px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "kern";
+  }
+  button, input, select, textarea { font: inherit; }
+  button { -webkit-tap-highlight-color: transparent; }
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--focus-ring, #547A61);
+    outline-offset: 3px;
+  }
+  ::selection { background: rgba(84, 122, 97, .2); }
+}
+@layer utilities {
+  .homeos-panel {
+    border: 1px solid var(--panel-border, #E6E0D8);
+    border-radius: 1.25rem;
+    background: var(--panel-surface, #fff);
+    box-shadow: 0 8px 28px rgba(44, 36, 27, .035);
+  }
+  .homeos-eyebrow {
+    font-size: .67rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+}

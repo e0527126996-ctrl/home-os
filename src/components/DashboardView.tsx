@@ -87,7 +87,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const baselineTransactionCount = transactions.filter(tx => completedMonths.some(m => tx.date?.slice(0, 7) === m.key) && (tx.type === 'INCOME' || tx.type === 'EXPENSE')).length;
     const averageExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
     const cashflow = current.income - current.expense;
-    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow };
+
+    // Compare the current month's category run-rate with the average of the prior
+    // three complete months. This is a review signal, not a promised saving.
+    const savingsInsights = projectionReady && completedMonths.length === 3
+      ? Object.entries(categories).map(([category, currentAmount]) => {
+          const categoryTransactions = currentMonthTransactions.filter(tx => tx.type === 'EXPENSE' && (tx.category || 'ללא קטגוריה') === category);
+          const historicalTotal = completedMonths.reduce((sum, month) => sum + transactions
+            .filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === month.key && (tx.category || 'ללא קטגוריה') === category)
+            .reduce((monthSum, tx) => monthSum + tx.amountCents, 0), 0);
+          const historicalAverage = historicalTotal / 3;
+          const projected = Math.round(currentAmount * paceFactor);
+          const increase = projected - historicalAverage;
+          return { category, currentAmount, projected, historicalAverage, increase, transactionCount: categoryTransactions.length };
+        })
+        .filter(item => item.transactionCount >= 2 && item.historicalAverage > 0 && item.increase >= 5000 && item.projected >= item.historicalAverage * 1.2)
+        .sort((a, b) => b.increase - a.increase)
+        .slice(0, 3)
+      : [];
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights };
   }, [accounts, transactions]);
 
   const currency = (cents: number) => money(cents / 100);
@@ -227,6 +245,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             עדיין אין מספיק היסטוריית עסקאות כדי לחשב תחזית אמינה. לאחר הזנת עסקאות בחודשים קודמים יוצג כאן אומדן הכנסות, הוצאות ותזרים.
           </div>
         )}
+      </section>
+
+      <section className={panel + ' p-5 sm:p-7'}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="homeos-section-kicker">SMART SAVINGS REVIEW</div>
+            <h2 className="mt-1 text-lg font-bold">הזדמנויות לבדיקה ולייעול</h2>
+            <p className="mt-1 text-xs" style={muted}>איתור סעיפים שקצב ההוצאה בהם גבוה מהממוצע ההיסטורי</p>
+          </div>
+          <span className="rounded-full bg-[#547D70]/10 px-3 py-1.5 text-[10px] font-semibold text-[#547D70]">מבוסס עסקאות בפועל</span>
+        </div>
+        {data.savingsInsights.length ? (
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {data.savingsInsights.map(item => (
+              <div key={item.category} className="rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+                <div className="flex items-center gap-2 text-sm font-semibold"><Lightbulb className="h-4 w-4 shrink-0 text-[#B98B58]" />{item.category}</div>
+                <div className="mt-3 text-xs" style={muted}>תחזית לסוף החודש</div>
+                <div className="mt-1 text-xl font-bold tabular-nums">{currency(item.projected)}</div>
+                <div className="mt-2 text-xs leading-5" style={muted}>לעומת ממוצע חודשי של {currency(item.historicalAverage)} בשלושת החודשים המלאים הקודמים — פער צפוי של {currency(item.increase)}.</div>
+                <button type="button" onClick={() => setChartDetail({ title: "בדיקת הוצאות: " + item.category, subtitle: "עסקאות בקטגוריה בחודש הנוכחי", items: transactions.filter(tx => tx.type === 'EXPENSE' && (tx.category || 'ללא קטגוריה') === item.category && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-text-link mt-3">בדיקת העסקאות <ArrowLeft className="h-4 w-4" /></button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 rounded-2xl border p-4 text-sm leading-6" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface, color: activeTheme.textSecondary }}>
+            {data.baselineMonthCount < 3
+              ? 'נדרשת היסטוריה של שלושה חודשים מלאים כדי לזהות חריגות באופן הוגן.'
+              : !data.projectionReady
+                ? 'לאחר לפחות 5 עסקאות הפרוסות על פני 3 ימי פעילות בחודש, נוכל להציג בדיקת קצב הוצאות.'
+                : 'כרגע לא זוהתה חריגה מובהקת לפי הספים שהוגדרו. ממשיכים לעקוב.'}
+          </div>
+        )}
+        <p className="mt-3 text-[10px] leading-5" style={muted}>ההתראות הן סימני בדיקה בלבד. הן אינן מעידות בהכרח על בזבוז ואינן מבטיחות חיסכון; יש להתחשב בעונתיות, חיובים חד-פעמיים והוצאות שטרם נרשמו.</p>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]">

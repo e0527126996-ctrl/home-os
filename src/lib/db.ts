@@ -1066,7 +1066,7 @@ class HomeOSIndexedDB {
       status: 'ACTIVE',
       isLiability,
       creditLimitCents: data.creditLimit !== undefined ? toCents(String(data.creditLimit)) : undefined,
-      creditLimit: data.creditLimit !== undefined ? fromCents(toCents(data.creditLimit)) : undefined,
+      creditLimit: data.creditLimit !== undefined ? fromCents(toCents(String(data.creditLimit))) : undefined,
       interestRate: data.interestRate !== undefined ? Number(data.interestRate) : undefined,
       notes: data.notes?.trim() || undefined,
       color: data.color || undefined,
@@ -1112,12 +1112,17 @@ class HomeOSIndexedDB {
     const openingBalanceCents = patch.openingBalance !== undefined
       ? toCents(String(patch.openingBalance))
       : existing.openingBalanceCents;
+    const creditLimitCents = patch.creditLimit !== undefined
+      ? toCents(String(patch.creditLimit))
+      : existing.creditLimitCents;
 
     const updated: FinancialAccount = {
       ...existing,
       ...patch,
       openingBalanceCents,
       openingBalance: fromCents(openingBalanceCents),
+      creditLimitCents,
+      creditLimit: creditLimitCents !== undefined ? fromCents(creditLimitCents) : undefined,
       isLiability,
       updatedAt: new Date().toISOString(),
     };

@@ -25,8 +25,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Install locked dependencies
-        run: npm ci
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
       - name: Type check
         run: npm run lint
       - name: Production build

@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
 import {
-  ArrowDownLeft, ArrowUpLeft, ArrowLeft, Wallet, Landmark, CreditCard,
-  PiggyBank, Activity, TrendingUp, TrendingDown, Lightbulb, CalendarDays,
-  Sparkles, ArrowUpRight, ArrowDownRight, ChartNoAxesCombined, ReceiptText,
+  ArrowDownLeft, ArrowUpLeft, Wallet, Landmark, Activity, TrendingUp,
+  TrendingDown, Lightbulb, CalendarDays, Sparkles, ArrowUpRight,
+  ArrowDownRight, ChartNoAxesCombined, ReceiptText, ArrowLeft,
+  PiggyBank, ShieldCheck, ChevronLeft, CircleDollarSign
 } from 'lucide-react';
 import { FinancialAccount, LedgerTransaction } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
@@ -19,7 +20,6 @@ interface DashboardViewProps {
 const money = (value: number) => new Intl.NumberFormat('he-IL', {
   style: 'currency', currency: 'ILS', maximumFractionDigits: 0,
 }).format(value);
-
 const monthLabel = (date: Date) => new Intl.DateTimeFormat('he-IL', { month: 'short' }).format(date);
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -29,192 +29,136 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const activeAccounts = accounts.filter(a => a.status === 'ACTIVE');
     const assets = activeAccounts.filter(a => !a.isLiability).reduce((s, a) => s + (a.currentBalanceCents || 0), 0);
     const liabilities = activeAccounts.filter(a => a.isLiability).reduce((s, a) => s + Math.abs(a.currentBalanceCents || 0), 0);
-    const netWorth = assets - liabilities;
     const now = new Date();
     const months = Array.from({ length: 6 }, (_, index) => {
       const date = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1);
-      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      const monthTx = transactions.filter(tx => tx.date?.slice(0, 7) === key);
+      const key = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+      const monthTx = transactions.filter(tx => tx.date && tx.date.slice(0, 7) === key);
       return {
         key, label: monthLabel(date),
         income: monthTx.filter(tx => tx.type === 'INCOME').reduce((s, tx) => s + tx.amountCents, 0),
         expense: monthTx.filter(tx => tx.type === 'EXPENSE').reduce((s, tx) => s + tx.amountCents, 0),
       };
     });
-    const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const currentKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     const current = months.find(m => m.key === currentKey) || { income: 0, expense: 0, label: '' };
     const previous = months[months.length - 2] || { income: 0, expense: 0, label: '' };
     const expenseChange = previous.expense > 0 ? ((current.expense - previous.expense) / previous.expense) * 100 : null;
     const max = Math.max(1, ...months.flatMap(m => [m.income, m.expense]));
-    const categories = transactions
-      .filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === currentKey)
+    const categories = transactions.filter(tx => tx.type === 'EXPENSE' && tx.date && tx.date.slice(0, 7) === currentKey)
       .reduce<Record<string, number>>((acc, tx) => {
-        acc[tx.category || 'ללא קטגוריה'] = (acc[tx.category || 'ללא קטגוריה'] || 0) + tx.amountCents;
+        const key = tx.category || 'ללא קטגוריה';
+        acc[key] = (acc[key] || 0) + tx.amountCents;
         return acc;
       }, {});
     const topCategories = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 5);
-    const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)).slice(0, 6);
-    return { assets, liabilities, netWorth, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts };
+    const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
+    const averageExpense = months.reduce((s, m) => s + m.expense, 0) / Math.max(1, months.length);
+    const cashflow = current.income - current.expense;
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, averageExpense, cashflow };
   }, [accounts, transactions]);
 
   const currency = (cents: number) => money(cents / 100);
   const muted = { color: activeTheme.textSecondary };
-  const panel = 'rounded-[22px] border shadow-[0_12px_36px_rgba(20,30,25,.045)]';
+  const panel = 'homeos-lux-panel';
   const categoryTotal = data.topCategories.reduce((sum, item) => sum + item[1], 0);
-  const categoryColors = ['#557A63', '#C79A58', '#6B8196', '#A77B70', '#8D8B73'];
+  const categoryColors = ['#B98B58', '#547D70', '#8295A7', '#A97972', '#9C9A7D'];
   const monthName = new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' }).format(new Date());
+  const hasActivity = data.current.income > 0 || data.current.expense > 0;
 
   return (
-    <div className="space-y-6 pb-8" dir="rtl">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="homeos-dashboard space-y-6 pb-10" dir="rtl">
+      <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-[.16em]" style={{ color: activeTheme.accent }}>
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: activeTheme.accent }} />
-            HOME OS <span className="opacity-40">/</span> מרכז הבקרה
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-[2.15rem]" style={{ color: activeTheme.textPrimary }}>שלום, {householdName || 'הבית שלנו'}</h1>
-          <p className="mt-2 text-sm" style={muted}>התמונה הפיננסית המלאה של משק הבית, במקום אחד.</p>
+          <div className="homeos-kicker"><span className="homeos-live-dot" /> HOME OS <span className="opacity-30">/</span> PRIVATE FINANCIAL DESK</div>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl" style={{ color: activeTheme.textPrimary }}>המרכז הפיננסי של {householdName || 'הבית'}</h1>
+          <p className="mt-2 text-sm" style={muted}>כל הנכסים, ההתחייבויות והתזרים — במבט אחד מדויק.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-xl border px-3 py-2 text-xs font-medium" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgCard, color: activeTheme.textSecondary }}>{monthName}</span>
-          <button onClick={onOpenLedger} className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5" style={{ backgroundColor: activeTheme.accent }}>
-            <ReceiptText className="h-4 w-4" /> פנקס העסקאות
-          </button>
-          <button onClick={onOpenAccounts} className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition hover:bg-black/5" style={{ borderColor: activeTheme.borderSubtle, color: activeTheme.textPrimary }}>
-            <Landmark className="h-4 w-4" /> חשבונות
-          </button>
+          <span className="homeos-date-chip"><CalendarDays className="h-4 w-4" /> {monthName}</span>
+          <button onClick={onOpenLedger} className="homeos-primary-action"><ReceiptText className="h-4 w-4" /> פנקס העסקאות</button>
+          <button onClick={onOpenAccounts} className="homeos-secondary-action"><Landmark className="h-4 w-4" /> ניהול חשבונות</button>
         </div>
       </header>
 
-      <section className="relative isolate overflow-hidden rounded-[28px] p-6 text-white shadow-[0_22px_60px_rgba(20,38,31,.18)] sm:p-8" style={{ background: 'linear-gradient(120deg,#142923 0%,#23483B 56%,#42634F 100%)' }}>
-        <div className="pointer-events-none absolute -left-16 -top-28 -z-10 h-80 w-80 rounded-full border border-white/10" />
-        <div className="pointer-events-none absolute -left-2 -top-16 -z-10 h-56 w-56 rounded-full border border-white/10" />
-        <div className="pointer-events-none absolute bottom-[-100px] right-[35%] -z-10 h-64 w-64 rounded-full bg-white/[.035] blur-2xl" />
-        <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:items-end">
+      <section className="homeos-wealth-hero">
+        <div className="homeos-hero-orbit homeos-orbit-one" />
+        <div className="homeos-hero-orbit homeos-orbit-two" />
+        <div className="homeos-hero-glow" />
+        <div className="relative z-10 grid gap-8 xl:grid-cols-[1.15fr_.85fr] xl:items-end">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-100/75"><Wallet className="h-4 w-4" /> השווי הנקי של משק הבית</div>
-            <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span className="text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">{currency(data.netWorth)}</span>
-              <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] text-emerald-50/80">נכסים פחות התחייבויות</span>
+            <div className="flex items-center gap-2 text-sm text-white/65"><CircleDollarSign className="h-4 w-4 text-[#D5B184]" /> השווי הנקי הכולל</div>
+            <div className="mt-4 flex flex-wrap items-end gap-x-4 gap-y-2">
+              <strong className="homeos-net-worth">{currency(data.netWorth)}</strong>
+              <span className="mb-2 rounded-full border border-white/15 bg-white/[.07] px-3 py-1.5 text-[11px] text-white/65">נכסים פחות התחייבויות</span>
             </div>
-            <p className="mt-3 max-w-lg text-sm leading-6 text-emerald-50/70">מדד מרכזי למצב הכלכלי הכולל. הנתון מחושב מהיתרות בחשבונות הפעילים.</p>
-          </div>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="rounded-2xl border border-white/10 bg-white/[.075] p-3 sm:p-4">
-              <div className="flex items-center gap-1.5 text-[11px] text-emerald-100/70"><ArrowUpLeft className="h-3.5 w-3.5" /> נכסים</div>
-              <div className="mt-2 text-lg font-bold tabular-nums sm:text-xl">{currency(data.assets)}</div>
-              <div className="mt-1 text-[10px] text-emerald-100/55">{data.activeAccounts.filter(a => !a.isLiability).length} חשבונות</div>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[.075] p-3 sm:p-4">
-              <div className="flex items-center gap-1.5 text-[11px] text-emerald-100/70"><ArrowDownLeft className="h-3.5 w-3.5" /> התחייבויות</div>
-              <div className="mt-2 text-lg font-bold tabular-nums sm:text-xl">{currency(data.liabilities)}</div>
-              <div className="mt-1 text-[10px] text-emerald-100/55">{data.activeAccounts.filter(a => a.isLiability).length} התחייבויות</div>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[.075] p-3 sm:p-4">
-              <div className="flex items-center gap-1.5 text-[11px] text-emerald-100/70"><Activity className="h-3.5 w-3.5" /> תזרים חודשי</div>
-              <div className="mt-2 text-lg font-bold tabular-nums sm:text-xl">{currency(data.current.income - data.current.expense)}</div>
-              <div className="mt-1 text-[10px] text-emerald-100/55">הכנסות פחות הוצאות</div>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-white/55">תמונת ההון של משק הבית, המחושבת מתוך היתרות בחשבונות הפעילים שלך.</p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <button onClick={onOpenAccounts} className="homeos-hero-button">סקירת הנכסים <ChevronLeft className="h-4 w-4" /></button>
+              <span className="flex items-center gap-2 text-xs text-white/45"><ShieldCheck className="h-4 w-4 text-[#B7C9B8]" /> נתונים מקומיים ומאובטחים במכשיר</span>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="grid gap-3 sm:grid-cols-3">
-        <div className={`${panel} p-5`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="flex items-center justify-between"><span className="text-sm font-medium" style={muted}>הכנסות החודש</span><span className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-700"><TrendingUp className="h-5 w-5" /></span></div>
-          <div className="mt-3 text-2xl font-bold tracking-tight tabular-nums text-emerald-700">{currency(data.current.income)}</div>
-          <div className="mt-2 text-xs" style={muted}>על בסיס עסקאות הכנסה שנרשמו</div>
-        </div>
-        <div className={`${panel} p-5`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="flex items-center justify-between"><span className="text-sm font-medium" style={muted}>הוצאות החודש</span><span className="rounded-xl bg-amber-500/10 p-2.5 text-amber-700"><TrendingDown className="h-5 w-5" /></span></div>
-          <div className="mt-3 text-2xl font-bold tracking-tight tabular-nums" style={{ color: activeTheme.textPrimary }}>{currency(data.current.expense)}</div>
-          <div className="mt-2 text-xs" style={muted}>על בסיס עסקאות הוצאה שנרשמו</div>
-        </div>
-        <div className={`${panel} p-5`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="flex items-center justify-between"><span className="text-sm font-medium" style={muted}>שינוי בהוצאות</span><span className="rounded-xl p-2.5" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}><CalendarDays className="h-5 w-5" /></span></div>
-          <div className="mt-3 text-2xl font-bold tracking-tight tabular-nums" style={{ color: data.expenseChange === null ? activeTheme.textPrimary : data.expenseChange > 0 ? '#B45345' : '#25805A' }}>{data.expenseChange === null ? '—' : `${data.expenseChange > 0 ? '+' : ''}${data.expenseChange.toFixed(1)}%`}</div>
-          <div className="mt-2 text-xs" style={muted}>{data.expenseChange === null ? 'אין עדיין בסיס להשוואה' : data.expenseChange > 0 ? 'עלייה לעומת החודש הקודם' : data.expenseChange < 0 ? 'ירידה לעומת החודש הקודם' : 'ללא שינוי לעומת החודש הקודם'}</div>
-        </div>
-      </section>
-
-      <section className={`${panel} flex items-start gap-4 p-5 sm:p-6`} style={{ backgroundColor: activeTheme.bgSurface, borderColor: activeTheme.borderSubtle }}>
-        <span className="shrink-0 rounded-2xl p-3" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}><Lightbulb className="h-5 w-5" /></span>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2"><h2 className="font-bold">תובנה פיננסית</h2><span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: activeTheme.accentMuted, color: activeTheme.accent }}>מבוסס נתונים</span></div>
-          <p className="mt-1 text-sm leading-6" style={muted}>
-            {data.current.income === 0 && data.current.expense === 0
-              ? 'עדיין לא נרשמה פעילות פיננסית החודש. לאחר הזנת עסקאות יוצגו כאן תובנות המבוססות על הנתונים בפועל.'
-              : data.current.income - data.current.expense >= 0
-                ? `התזרים החודשי חיובי ועומד על ${currency(data.current.income - data.current.expense)}. כדאי להמשיך לעקוב אחר ההוצאות ולשמור על המגמה.`
-                : `ההוצאות גבוהות מההכנסות ב-${currency(data.current.expense - data.current.income)}. מומלץ לבדוק את הקטגוריות והעסקאות האחרונות.`
-            }
-          </p>
-        </div>
-        <button onClick={onOpenLedger} className="hidden shrink-0 items-center gap-1 text-xs font-bold sm:flex" style={{ color: activeTheme.accent }}>לניתוח העסקאות <ArrowLeft className="h-3.5 w-3.5" /></button>
-      </section>
-
-      <section className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-        <div className={`${panel} p-5 sm:p-6`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-            <div><div className="flex items-center gap-2"><ChartNoAxesCombined className="h-4 w-4" style={{ color: activeTheme.accent }} /><h2 className="text-base font-bold">תנועת הכסף</h2></div><p className="mt-1 text-xs" style={muted}>הכנסות והוצאות · ששת החודשים האחרונים</p></div>
-            <div className="flex gap-3 text-[11px]" style={muted}><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-emerald-600" /> הכנסות</span><span className="flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-amber-500" /> הוצאות</span></div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:grid-cols-1">
+            <div className="homeos-hero-metric"><span className="homeos-metric-icon"><TrendingUp className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">נכסים</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.assets)}</div></div><span className="text-[10px] text-white/35">{data.activeAccounts.filter(a => !a.isLiability).length} חשבונות</span></div>
+            <div className="homeos-hero-metric"><span className="homeos-metric-icon copper"><TrendingDown className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">התחייבויות</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.liabilities)}</div></div><span className="text-[10px] text-white/35">{data.activeAccounts.filter(a => a.isLiability).length} התחייבויות</span></div>
+            <div className="homeos-hero-metric"><span className="homeos-metric-icon blue"><Activity className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">תזרים החודש</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.cashflow)}</div></div><span className="text-[10px] text-white/35">הכנסות פחות הוצאות</span></div>
           </div>
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-0 flex flex-col justify-between pb-8 pt-1">{[0,1,2,3].map(i => <div key={i} className="border-t border-dashed" style={{ borderColor: activeTheme.borderSubtle }} />)}</div>
-            <div className="relative grid h-52 grid-cols-6 gap-2 sm:gap-4">
-              {data.months.map((month, index) => (
-                <div key={month.key} className="flex min-w-0 flex-col items-center justify-end gap-2">
-                  <div className="flex h-[85%] w-full items-end justify-center gap-1 sm:gap-2">
-                    <div title={`הכנסות: ${currency(month.income)}`} className="w-[34%] max-w-8 rounded-t-lg bg-emerald-600 transition-all duration-500" style={{ height: `${Math.max(month.income ? 4 : 1, month.income / data.max * 100)}%`, opacity: index === 5 ? 1 : .78 }} />
-                    <div title={`הוצאות: ${currency(month.expense)}`} className="w-[34%] max-w-8 rounded-t-lg bg-amber-500 transition-all duration-500" style={{ height: `${Math.max(month.expense ? 4 : 1, month.expense / data.max * 100)}%`, opacity: index === 5 ? 1 : .78 }} />
-                  </div>
-                  <span className="text-[10px] font-medium sm:text-xs" style={muted}>{month.label}</span>
+        </div>
+        <div className="homeos-hero-footer"><span>HOUSEHOLD WEALTH OVERVIEW</span><span>01 — FINANCIAL POSITION</span></div>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className={panel}><div className="homeos-card-top"><span>הכנסות החודש</span><span className="homeos-icon-tile green"><ArrowDownLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value green">{currency(data.current.income)}</div><div className="homeos-card-foot">הכנסות שנרשמו החודש</div></div>
+        <div className={panel}><div className="homeos-card-top"><span>הוצאות החודש</span><span className="homeos-icon-tile copper"><ArrowUpLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{currency(data.current.expense)}</div><div className="homeos-card-foot">הוצאות שנרשמו החודש</div></div>
+        <div className={panel}><div className="homeos-card-top"><span>מאזן חודשי</span><span className="homeos-icon-tile blue"><Activity className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.cashflow >= 0 ? 'green' : 'negative')}>{currency(data.cashflow)}</div><div className="homeos-card-foot">הפרש בין הכנסות להוצאות</div></div>
+        <div className={panel}><div className="homeos-card-top"><span>שינוי בהוצאות</span><span className="homeos-icon-tile neutral"><CalendarDays className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{data.expenseChange === null ? '—' : ((data.expenseChange > 0 ? '+' : '') + data.expenseChange.toFixed(1) + '%')}</div><div className="homeos-card-foot">{data.expenseChange === null ? 'אין בסיס להשוואה עדיין' : 'בהשוואה לחודש הקודם'}</div></div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[1.55fr_.85fr]">
+        <div className={panel + ' p-5 sm:p-7'}>
+          <div className="mb-7 flex flex-wrap items-start justify-between gap-3">
+            <div><div className="homeos-section-kicker">CASH FLOW ANALYTICS</div><h2 className="mt-1 text-lg font-bold">תנועת הכסף לאורך זמן</h2><p className="mt-1 text-xs" style={muted}>השוואת הכנסות והוצאות · ששת החודשים האחרונים</p></div>
+            <div className="flex gap-4 text-[11px]" style={muted}><span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#547D70]" /> הכנסות</span><span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#C49A69]" /> הוצאות</span></div>
+          </div>
+          <div className="homeos-chart-grid">
+            {data.months.map((month, index) => (
+              <div key={month.key} className="homeos-chart-month">
+                <div className="homeos-chart-bars">
+                  <div className="homeos-chart-bar income" title={'הכנסות: ' + currency(month.income)} style={{ height: Math.max(month.income ? 3 : 1, month.income / data.max * 100) + '%', opacity: index === 5 ? 1 : .72 }} />
+                  <div className="homeos-chart-bar expense" title={'הוצאות: ' + currency(month.expense)} style={{ height: Math.max(month.expense ? 3 : 1, month.expense / data.max * 100) + '%', opacity: index === 5 ? 1 : .72 }} />
                 </div>
-              ))}
-            </div>
+                <span>{month.label}</span>
+              </div>
+            ))}
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-3 border-t pt-4" style={{ borderColor: activeTheme.borderSubtle }}>
-            <div><div className="text-[11px]" style={muted}>מאזן החודש</div><div className="mt-1 text-lg font-bold tabular-nums" style={{ color: data.current.income >= data.current.expense ? '#25805A' : '#B45345' }}>{currency(data.current.income - data.current.expense)}</div></div>
-            <div className="text-left"><div className="text-[11px]" style={muted}>ממוצע הוצאות 6 חודשים</div><div className="mt-1 text-lg font-bold tabular-nums" style={{ color: activeTheme.textPrimary }}>{currency(data.months.reduce((s,m)=>s+m.expense,0) / 6)}</div></div>
+          <div className="mt-5 grid grid-cols-2 gap-4 border-t pt-5" style={{ borderColor: activeTheme.borderSubtle }}>
+            <div><div className="text-[11px]" style={muted}>מאזן החודש</div><div className="mt-1 text-lg font-bold tabular-nums" style={{ color: data.cashflow >= 0 ? '#477866' : '#B45F56' }}>{currency(data.cashflow)}</div></div>
+            <div><div className="text-[11px]" style={muted}>ממוצע הוצאות חודשי · 6 חודשים</div><div className="mt-1 text-lg font-bold tabular-nums">{currency(data.averageExpense)}</div></div>
           </div>
         </div>
 
-        <div className={`${panel} p-5 sm:p-6`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="mb-5"><div className="flex items-center gap-2"><Activity className="h-4 w-4" style={{ color: activeTheme.accent }} /><h2 className="text-base font-bold">לאן הכסף הולך?</h2></div><p className="mt-1 text-xs" style={muted}>התפלגות הוצאות החודש</p></div>
-          {data.topCategories.length ? (
-            <>
-              <div className="mx-auto mb-5 flex h-36 w-36 items-center justify-center rounded-full" style={{ background: `conic-gradient(${data.topCategories.map(([name,value],i)=>`${categoryColors[i]} ${data.topCategories.slice(0,i).reduce((s,x)=>s+x[1],0)/categoryTotal*100}% ${(data.topCategories.slice(0,i).reduce((s,x)=>s+x[1],0)+value)/categoryTotal*100}%`).join(', ')})` }}>
-                <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full text-center" style={{ backgroundColor: activeTheme.bgCard }}><span className="text-[10px]" style={muted}>סה״כ הוצאות</span><strong className="mt-1 text-sm tabular-nums">{currency(categoryTotal)}</strong></div>
-              </div>
-              <div className="space-y-3">{data.topCategories.map(([name,value],i)=>(
-                <div key={name} className="flex items-center justify-between gap-3 text-xs"><span className="flex min-w-0 items-center gap-2"><i className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{backgroundColor:categoryColors[i]}}/><span className="truncate">{name}</span></span><strong className="shrink-0 tabular-nums">{currency(value)}</strong></div>
-              ))}</div>
-            </>
-          ) : <div className="flex min-h-48 flex-col items-center justify-center text-center"><Sparkles className="mb-3 h-7 w-7" style={muted} /><p className="text-sm font-semibold">אין עדיין נתוני הוצאות</p><p className="mt-1 max-w-[220px] text-xs leading-5" style={muted}>לאחר רישום עסקאות יוצג כאן פירוט חזותי לפי קטגוריות.</p></div>}
+        <div className={panel + ' p-5 sm:p-7'}>
+          <div className="homeos-section-kicker">SPENDING BREAKDOWN</div><h2 className="mt-1 text-lg font-bold">לאן הכסף הולך?</h2><p className="mt-1 text-xs" style={muted}>התפלגות הוצאות החודש לפי קטגוריה</p>
+          {data.topCategories.length ? <><div className="my-6 flex items-center justify-center"><div className="homeos-donut" style={{ background: 'conic-gradient(' + data.topCategories.map(([name, value], i) => { const start = data.topCategories.slice(0, i).reduce((s, x) => s + x[1], 0) / categoryTotal * 100; const end = (data.topCategories.slice(0, i).reduce((s, x) => s + x[1], 0) + value) / categoryTotal * 100; return categoryColors[i] + ' ' + start + '% ' + end + '%'; }).join(', ') + ')' }}><div><span>סה״כ הוצאות</span><strong>{currency(categoryTotal)}</strong></div></div></div><div className="space-y-3">{data.topCategories.map(([name, value], i) => <div key={name} className="flex items-center justify-between gap-3 text-xs"><span className="flex min-w-0 items-center gap-2"><i className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: categoryColors[i] }} /><span className="truncate">{name}</span></span><strong className="shrink-0 tabular-nums">{currency(value)}</strong></div>)}</div></> : <div className="flex min-h-52 flex-col items-center justify-center text-center"><Sparkles className="mb-3 h-7 w-7" style={muted} /><p className="text-sm font-semibold">אין עדיין נתוני הוצאות</p><p className="mt-1 max-w-[220px] text-xs leading-5" style={muted}>לאחר רישום עסקאות יוצג כאן ניתוח לפי קטגוריות.</p></div>}
         </div>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[1.25fr_1fr]">
-        <div className={`${panel} p-5 sm:p-6`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="mb-3 flex items-center justify-between gap-3"><div><h2 className="text-base font-bold">פעילות אחרונה</h2><p className="mt-1 text-xs" style={muted}>התנועות האחרונות שנרשמו במערכת</p></div><button onClick={onOpenLedger} className="flex items-center gap-1 text-xs font-bold" style={{color:activeTheme.accent}}>כל העסקאות <ArrowLeft className="h-3.5 w-3.5"/></button></div>
-          {data.recent.length ? <div className="divide-y" style={{borderColor:activeTheme.borderSubtle}}>{data.recent.map(tx=>(
-            <div key={tx.id} className="flex items-center justify-between gap-3 py-3">
-              <div className="flex min-w-0 items-center gap-3"><span className="rounded-xl p-2.5" style={{backgroundColor:tx.type==='INCOME'?'rgba(22,163,74,.10)':tx.type==='EXPENSE'?'rgba(217,119,6,.10)':'rgba(59,130,246,.10)',color:tx.type==='INCOME'?'#15803D':tx.type==='EXPENSE'?'#B45309':'#2563EB'}}>{tx.type==='INCOME'?<ArrowDownRight className="h-4 w-4"/>:tx.type==='EXPENSE'?<ArrowUpRight className="h-4 w-4"/>:<Activity className="h-4 w-4"/>}</span><div className="min-w-0"><div className="truncate text-sm font-semibold">{tx.payee || tx.category}</div><div className="mt-1 truncate text-[11px]" style={muted}>{tx.category} · {new Date(tx.date+'T12:00:00').toLocaleDateString('he-IL')}</div></div></div>
-              <strong className="shrink-0 text-sm tabular-nums" style={{color:tx.type==='INCOME'?'#15803D':activeTheme.textPrimary}}>{tx.type==='INCOME'?'+':tx.type==='EXPENSE'?'−':'↔'}{currency(tx.amountCents)}</strong>
-            </div>
-          ))}</div> : <div className="py-12 text-center"><ReceiptText className="mx-auto mb-2 h-7 w-7" style={muted}/><p className="text-sm font-semibold">עדיין אין פעילות</p><p className="mt-1 text-xs" style={muted}>העסקאות שתזין יופיעו כאן.</p><button onClick={onOpenLedger} className="mt-4 rounded-xl px-4 py-2 text-xs font-bold text-white" style={{backgroundColor:activeTheme.accent}}>פתיחת פנקס העסקאות</button></div>}
+      <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]">
+        <div className={panel + ' p-5 sm:p-7'}>
+          <div className="mb-4 flex items-center justify-between gap-3"><div><div className="homeos-section-kicker">LATEST ACTIVITY</div><h2 className="mt-1 text-lg font-bold">פעילות אחרונה</h2></div><button onClick={onOpenLedger} className="homeos-text-link">לכל העסקאות <ArrowLeft className="h-4 w-4" /></button></div>
+          {data.recent.length ? <div className="divide-y" style={{ borderColor: activeTheme.borderSubtle }}>{data.recent.map(tx => <div key={tx.id} className="flex items-center justify-between gap-3 py-3.5"><div className="flex min-w-0 items-center gap-3"><span className={'homeos-transaction-icon ' + (tx.type === 'INCOME' ? 'income' : 'expense')}>{tx.type === 'INCOME' ? <ArrowDownRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span><div className="min-w-0"><div className="truncate text-sm font-semibold">{tx.payee || tx.category}</div><div className="mt-1 truncate text-[11px]" style={muted}>{tx.category} · {new Date(tx.date + 'T12:00:00').toLocaleDateString('he-IL')}</div></div></div><strong className={'shrink-0 text-sm tabular-nums ' + (tx.type === 'INCOME' ? 'text-[#477866]' : '')}>{tx.type === 'INCOME' ? '+' : '−'}{currency(tx.amountCents)}</strong></div>)}</div> : <div className="py-12 text-center text-sm" style={muted}>עדיין לא נרשמו עסקאות. הפעילות שתזין תופיע כאן.</div>}
         </div>
+        <div className={panel + ' p-5 sm:p-7'}>
+          <div className="homeos-section-kicker">PORTFOLIO SNAPSHOT</div><h2 className="mt-1 text-lg font-bold">מבט על החשבונות</h2><p className="mt-1 text-xs" style={muted}>היתרות הפעילות במשק הבית</p>
+          <div className="mt-5 space-y-3">{data.activeAccounts.slice(0, 4).map(acc => <div key={acc.id} className="flex items-center justify-between gap-3 rounded-2xl border p-3" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}><div className="flex min-w-0 items-center gap-3"><span className="rounded-xl bg-[#547D70]/10 p-2.5 text-[#547D70]"><PiggyBank className="h-4 w-4" /></span><div className="min-w-0"><div className="truncate text-sm font-semibold">{acc.name}</div><div className="mt-0.5 text-[11px]" style={muted}>{acc.institution}</div></div></div><strong className="shrink-0 text-sm tabular-nums">{currency(acc.currentBalanceCents || 0)}</strong></div>)}</div>
+          <button onClick={onOpenAccounts} className="homeos-wide-link mt-4">לכל החשבונות <ChevronLeft className="h-4 w-4" /></button>
+        </div>
+      </section>
 
-        <div className={`${panel} p-5 sm:p-6`} style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
-          <div className="mb-4 flex items-center justify-between"><div><h2 className="text-base font-bold">חשבונות ונכסים</h2><p className="mt-1 text-xs" style={muted}>יתרות החשבונות הפעילים</p></div><span className="rounded-xl p-2.5" style={{backgroundColor:activeTheme.accentMuted,color:activeTheme.accent}}><Landmark className="h-4 w-4"/></span></div>
-          {data.activeAccounts.length ? <div className="space-y-2.5">{data.activeAccounts.slice(0,5).map(account=>(
-            <div key={account.id} className="flex items-center justify-between gap-3 rounded-2xl p-3" style={{backgroundColor:activeTheme.bgCanvas}}>
-              <div className="flex min-w-0 items-center gap-3"><span className="rounded-xl p-2" style={{backgroundColor:activeTheme.accentMuted,color:activeTheme.accent}}>{account.type==='CREDIT_CARD'?<CreditCard className="h-4 w-4"/>:account.type==='SAVINGS'?<PiggyBank className="h-4 w-4"/>:<Landmark className="h-4 w-4"/>}</span><div className="min-w-0"><div className="truncate text-sm font-semibold">{account.name}</div><div className="truncate text-[11px]" style={muted}>{account.institution || 'חשבון אישי'}</div></div></div>
-              <strong className="shrink-0 text-sm tabular-nums">{currency(account.currentBalanceCents)}</strong>
-            </div>
-          ))}</div> : <div className="py-10 text-center text-sm" style={muted}>עדיין לא הוגדרו חשבונות</div>}
-          <button onClick={onOpenAccounts} className="mt-4 w-full rounded-xl border py-3 text-xs font-bold transition hover:bg-black/5" style={{borderColor:activeTheme.borderSubtle,color:activeTheme.textPrimary}}>ניהול כל החשבונות</button>
-        </div>
+      <section className="homeos-insight">
+        <span className="homeos-insight-icon"><Lightbulb className="h-5 w-5" /></span>
+        <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="font-bold">תובנה פיננסית</h2><span className="rounded-full bg-[#547D70]/10 px-2 py-1 text-[10px] font-semibold text-[#547D70]">מבוסס נתונים בפועל</span></div><p className="mt-1 text-sm leading-6" style={muted}>{!hasActivity ? 'עדיין לא נרשמה פעילות החודש. לאחר הזנת עסקאות יופיע כאן ניתוח של התזרים וההוצאות.' : data.cashflow >= 0 ? 'התזרים החודשי חיובי ועומד על ' + currency(data.cashflow) + '. מומלץ לשמור על מעקב ולבחון את קטגוריות ההוצאה הגדולות.' : 'ההוצאות גבוהות מההכנסות ב-' + currency(Math.abs(data.cashflow)) + '. כדאי לבדוק את העסקאות והקטגוריות המרכזיות.'}</p></div>
+        <button onClick={onOpenLedger} className="homeos-text-link hidden sm:flex">ניתוח עסקאות <ArrowLeft className="h-4 w-4" /></button>
       </section>
     </div>
   );

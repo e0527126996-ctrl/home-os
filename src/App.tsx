@@ -22,6 +22,7 @@ import {
   UsersRound,
   House,
   ClipboardList,
+  FolderOpen,
 } from 'lucide-react';
 import { Header } from './components/Header.tsx';
 import { DashboardView } from './components/DashboardView.tsx';
@@ -36,6 +37,7 @@ import { TestRunnerModal } from './components/TestRunnerModal.tsx';
 import { ExportImportModal } from './components/ExportImportModal.tsx';
 import { StandaloneExportModal } from './components/StandaloneExportModal.tsx';
 import { AuthModal } from './components/AuthModal.tsx';
+import { DocumentCenterView } from './components/DocumentCenterView.tsx';
 import { db } from './lib/db.ts';
 import { MODERN_EDITORIAL_THEMES, ThemeConfig } from './lib/themes.ts';
 import { generateStandaloneHomeOSHtml } from './lib/standaloneGenerator.ts';
@@ -66,7 +68,7 @@ export default function App() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   // Navigation & Theme
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'overview' | 'accounts' | 'ledger' | 'members' | 'households' | 'audit'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'overview' | 'accounts' | 'ledger' | 'members' | 'households' | 'audit' | 'documents'>('dashboard');
   const [activeTheme, setActiveTheme] = useState<ThemeConfig>(MODERN_EDITORIAL_THEMES[0]);
   const [ledgerSelectedAccountId, setLedgerSelectedAccountId] = useState<string | null>(null);
 
@@ -521,6 +523,7 @@ export default function App() {
               { id: 'dashboard', label: 'לוח בקרה', icon: LayoutDashboard },
               { id: 'accounts', label: 'חשבונות ונכסים', icon: WalletCards, count: accounts.length },
               { id: 'ledger', label: 'פנקס עסקאות', icon: ArrowLeftRight, count: transactions.length },
+              { id: 'documents', label: 'מרכז מסמכים', icon: FolderOpen },
               { id: 'overview', label: 'תמונת מצב', icon: ChartNoAxesCombined },
               { id: 'members', label: 'משפחה והרשאות', icon: UsersRound, count: memberships.length + persons.length },
               { id: 'households', label: 'משקי בית', icon: House, count: households.length },
@@ -557,6 +560,16 @@ export default function App() {
             activeTheme={activeTheme}
             onOpenAccounts={() => setActiveTab('accounts')}
             onOpenLedger={() => setActiveTab('ledger')}
+          />
+        )}
+
+        {activeTab === 'documents' && activeHousehold && (
+          <DocumentCenterView
+            household={activeHousehold}
+            currentUser={currentUser}
+            activeTheme={activeTheme}
+            canRead={Boolean(currentMembership)}
+            canWrite={canPerformFinance}
           />
         )}
 

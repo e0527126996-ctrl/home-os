@@ -48,7 +48,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const currentKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     const current = months.find(m => m.key === currentKey) || { income: 0, expense: 0, label: '' };
     const previous = months[months.length - 2] || { income: 0, expense: 0, label: '' };
-    const expenseChange = previous.expense > 0 ? ((current.expense - previous.expense) / previous.expense) * 100 : null;
+    const currentDay = now.getDate();
+    const expenseToDate = transactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === currentKey && Number(tx.date.slice(8, 10)) <= currentDay)
+      .reduce((sum, tx) => sum + tx.amountCents, 0);
+    const previousExpenseToDate = transactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === previous.key && Number(tx.date.slice(8, 10)) <= currentDay)
+      .reduce((sum, tx) => sum + tx.amountCents, 0);
+    const expenseChange = previousExpenseToDate > 0 ? ((expenseToDate - previousExpenseToDate) / previousExpenseToDate) * 100 : null;
     const max = Math.max(1, ...months.flatMap(m => [m.income, m.expense]));
     const categories = transactions.filter(tx => tx.type === 'EXPENSE' && tx.date && tx.date.slice(0, 7) === currentKey)
       .reduce<Record<string, number>>((acc, tx) => {
@@ -63,7 +68,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const baselineIncome = completedMonths.reduce((s, m) => s + m.income, 0) / Math.max(1, completedMonths.length);
     const baselineCashflow = baselineIncome - baselineExpense;
     const baselineTransactionCount = transactions.filter(tx => completedMonths.some(m => tx.date?.slice(0, 7) === m.key) && (tx.type === 'INCOME' || tx.type === 'EXPENSE')).length;
-    const averageExpense = months.reduce((s, m) => s + m.expense, 0) / Math.max(1, months.length);
+    const averageExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
     const cashflow = current.income - current.expense;
     return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineTransactionCount, baselineMonthCount: completedMonths.length };
   }, [accounts, transactions]);
@@ -121,7 +126,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <button type="button" onClick={() => setChartDetail({ title: "הכנסות החודש", subtitle: "כל ההכנסות שנרשמו בחודש הנוכחי", items: transactions.filter(tx => tx.type === 'INCOME' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>הכנסות החודש</span><span className="homeos-icon-tile green"><ArrowDownLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value green">{currency(data.current.income)}</div><div className="homeos-card-foot">לחץ לפירוט ההכנסות</div></button>
         <button type="button" onClick={() => setChartDetail({ title: "הוצאות החודש", subtitle: "כל ההוצאות שנרשמו בחודש הנוכחי", items: transactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>הוצאות החודש</span><span className="homeos-icon-tile copper"><ArrowUpLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{currency(data.current.expense)}</div><div className="homeos-card-foot">לחץ לפירוט ההוצאות</div></button>
         <button type="button" onClick={() => setChartDetail({ title: "מאזן חודשי", subtitle: "הכנסות והוצאות בחודש הנוכחי", items: transactions.filter(tx => tx.date?.slice(0, 7) === data.months[5]?.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>מאזן חודשי</span><span className="homeos-icon-tile blue"><Activity className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.cashflow >= 0 ? 'green' : 'negative')}>{currency(data.cashflow)}</div><div className="homeos-card-foot">לחץ לפירוט התזרים</div></button>
-        <button type="button" onClick={() => setChartDetail({ title: "השוואת הוצאות חודשית", subtitle: "עסקאות הוצאה בחודש הנוכחי ובחודש הקודם", items: transactions.filter(tx => tx.type === 'EXPENSE' && [data.months[5]?.key, data.months[4]?.key].includes(tx.date?.slice(0, 7))) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>שינוי בהוצאות</span><span className="homeos-icon-tile neutral"><CalendarDays className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{data.expenseChange === null ? '—' : ((data.expenseChange > 0 ? '+' : '') + data.expenseChange.toFixed(1) + '%')}</div><div className="homeos-card-foot">לחץ להשוואה מול החודש הקודם</div></button>
+        <button type="button" onClick={() => setChartDetail({ title: "השוואת הוצאות חודשית", subtitle: "עסקאות הוצאה בחודש הנוכחי ובחודש הקודם", items: transactions.filter(tx => tx.type === 'EXPENSE' && [data.months[5]?.key, data.months[4]?.key].includes(tx.date?.slice(0, 7))) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>שינוי בהוצאות</span><span className="homeos-icon-tile neutral"><CalendarDays className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{data.expenseChange === null ? '—' : ((data.expenseChange > 0 ? '+' : '') + data.expenseChange.toFixed(1) + '%')}</div><div className="homeos-card-foot">השוואה לאותם ימים בחודש הקודם · לחץ לפירוט</div></button>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[1.55fr_.85fr]">
@@ -143,7 +148,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="mt-5 grid grid-cols-2 gap-4 border-t pt-5" style={{ borderColor: activeTheme.borderSubtle }}>
             <div><div className="text-[11px]" style={muted}>מאזן החודש</div><div className="mt-1 text-lg font-bold tabular-nums" style={{ color: data.cashflow >= 0 ? '#477866' : '#B45F56' }}>{currency(data.cashflow)}</div></div>
-            <div><div className="text-[11px]" style={muted}>ממוצע הוצאות חודשי · 6 חודשים</div><div className="mt-1 text-lg font-bold tabular-nums">{currency(data.averageExpense)}</div></div>
+            <div><div className="text-[11px]" style={muted}>ממוצע הוצאות · 3 חודשים מלאים</div><div className="mt-1 text-lg font-bold tabular-nums">{currency(data.averageExpense)}</div></div>
           </div>
         </div>
 

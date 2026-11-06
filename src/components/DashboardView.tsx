@@ -55,9 +55,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       }, {});
     const topCategories = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 5);
     const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
+    const completedMonths = months.slice(0, -1).slice(-3);
+    const baselineExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
+    const baselineIncome = completedMonths.reduce((s, m) => s + m.income, 0) / Math.max(1, completedMonths.length);
+    const baselineCashflow = baselineIncome - baselineExpense;
+    const baselineTransactionCount = transactions.filter(tx => completedMonths.some(m => tx.date?.slice(0, 7) === m.key) && (tx.type === 'INCOME' || tx.type === 'EXPENSE')).length;
     const averageExpense = months.reduce((s, m) => s + m.expense, 0) / Math.max(1, months.length);
     const cashflow = current.income - current.expense;
-    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, averageExpense, cashflow };
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineTransactionCount, baselineMonthCount: completedMonths.length };
   }, [accounts, transactions]);
 
   const currency = (cents: number) => money(cents / 100);
@@ -145,6 +150,42 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
+      <section className={panel + ' p-5 sm:p-7'}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="homeos-section-kicker">HOUSEHOLD FORECAST</div>
+            <h2 className="mt-1 text-lg font-bold">תחזית חודשית ותכנון קדימה</h2>
+            <p className="mt-1 text-xs" style={muted}>אומדן המבוסס על ממוצע של שלושת החודשים המלאים האחרונים — לא התחייבות לתוצאה.</p>
+          </div>
+          <span className="rounded-full bg-[#547D70]/10 px-3 py-1.5 text-[10px] font-semibold text-[#547D70]">מבוסס היסטוריה בפועל</span>
+        </div>
+        {data.baselineTransactionCount > 0 ? (
+          <>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+                <div className="text-xs" style={muted}>הכנסה חודשית ממוצעת</div>
+                <div className="mt-2 text-xl font-bold tabular-nums text-[#477866]">{currency(data.baselineIncome)}</div>
+              </div>
+              <div className="rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+                <div className="text-xs" style={muted}>הוצאה חודשית ממוצעת</div>
+                <div className="mt-2 text-xl font-bold tabular-nums">{currency(data.baselineExpense)}</div>
+              </div>
+              <div className="rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+                <div className="text-xs" style={muted}>עודף / גירעון חודשי משוער</div>
+                <div className={'mt-2 text-xl font-bold tabular-nums ' + (data.baselineCashflow >= 0 ? 'text-[#477866]' : 'text-[#B45F56]')}>{currency(data.baselineCashflow)}</div>
+              </div>
+            </div>
+            <p className="mt-4 text-[11px] leading-5" style={muted}>
+              החישוב כולל {data.baselineMonthCount} חודשים מלאים שקדמו לחודש הנוכחי. חודשים ללא עסקאות נכללים כאפס כדי לא להציג ממוצע מנופח. כדאי להתייחס לתוצאה כקו בסיס לתכנון ולעדכן אותה עם רישום עסקאות מלא.
+            </p>
+          </>
+        ) : (
+          <div className="mt-5 rounded-2xl border p-5 text-sm" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface, color: activeTheme.textSecondary }}>
+            עדיין אין מספיק היסטוריית עסקאות כדי לחשב תחזית אמינה. לאחר הזנת עסקאות בחודשים קודמים יוצג כאן אומדן הכנסות, הוצאות ותזרים.
+          </div>
+        )}
+      </section>
+
       <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]">
         <div className={panel + ' p-5 sm:p-7'}>
           <div className="mb-4 flex items-center justify-between gap-3"><div><div className="homeos-section-kicker">LATEST ACTIVITY</div><h2 className="mt-1 text-lg font-bold">פעילות אחרונה</h2></div><button onClick={onOpenLedger} className="homeos-text-link">לכל העסקאות <ArrowLeft className="h-4 w-4" /></button></div>
@@ -179,7 +220,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       <section className="homeos-insight">
         <span className="homeos-insight-icon"><Lightbulb className="h-5 w-5" /></span>
-        <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="font-bold">תובנה פיננסית</h2><span className="rounded-full bg-[#547D70]/10 px-2 py-1 text-[10px] font-semibold text-[#547D70]">מבוסס נתונים בפועל</span></div><p className="mt-1 text-sm leading-6" style={muted}>{!hasActivity ? 'עדיין לא נרשמה פעילות החודש. לאחר הזנת עסקאות יופיע כאן ניתוח של התזרים וההוצאות.' : data.cashflow >= 0 ? 'התזרים החודשי חיובי ועומד על ' + currency(data.cashflow) + '. מומלץ לשמור על מעקב ולבחון את קטגוריות ההוצאה הגדולות.' : 'ההוצאות גבוהות מההכנסות ב-' + currency(Math.abs(data.cashflow)) + '. כדאי לבדוק את העסקאות והקטגוריות המרכזיות.'}</p></div>
+        <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="font-bold">תובנה פיננסית</h2><span className="rounded-full bg-[#547D70]/10 px-2 py-1 text-[10px] font-semibold text-[#547D70]">מבוסס נתונים בפועל</span></div><p className="mt-1 text-sm leading-6" style={muted}>{!hasActivity ? 'עדיין לא נרשמה פעילות החודש. לאחר הזנת עסקאות יופיע כאן ניתוח של התזרים וההוצאות.' : data.cashflow >= 0 ? 'התזרים החודשי כרגע חיובי ועומד על ' + currency(data.cashflow) + (data.topCategories[0] ? '. סעיף ההוצאה הגדול כרגע הוא ' + data.topCategories[0][0] + ' בסך ' + currency(data.topCategories[0][1]) + '. מומלץ לעקוב אחריו עד סוף החודש.' : '. מומלץ להמשיך לעקוב אחר ההוצאות לאורך החודש.') : 'ההוצאות גבוהות מההכנסות שנרשמו החודש ב-' + currency(Math.abs(data.cashflow)) + (data.topCategories[0] ? '. כדאי להתחיל בבדיקת סעיף ' + data.topCategories[0][0] + ' שהוא הגדול כרגע.' : '. כדאי לבדוק את העסקאות האחרונות.')}</p></div>
         <button onClick={onOpenLedger} className="homeos-text-link hidden sm:flex">ניתוח עסקאות <ArrowLeft className="h-4 w-4" /></button>
       </section>
     </div>

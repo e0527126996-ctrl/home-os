@@ -122,116 +122,42 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Editorial Financial Header Banner */}
-      <div
-        className="p-7 sm:p-8 rounded-[1.5rem] border relative overflow-hidden shadow-sm"
-        style={{
-          backgroundColor: activeTheme.bgSurface,
-          borderColor: activeTheme.borderSubtle,
-        }}
-      >
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="text-[11px] font-mono uppercase tracking-wider" style={{ color: activeTheme.accent }}>
-              ניהול פיננסי · תמונת הנכסים של משק הבית
+    <div className="space-y-6 pb-8">
+      <section className="relative isolate overflow-hidden rounded-[26px] p-6 text-white shadow-[0_20px_55px_rgba(20,38,31,.15)] sm:p-8" style={{ background: 'linear-gradient(118deg,#172B25 0%,#294A3C 58%,#55745C 100%)' }}>
+        <div className="pointer-events-none absolute -left-16 -top-24 -z-10 h-72 w-72 rounded-full border border-white/10" />
+        <div className="pointer-events-none absolute -left-2 -top-12 -z-10 h-48 w-48 rounded-full border border-white/10" />
+        <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+          <div className="max-w-2xl">
+            <div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-[.16em] text-emerald-100/75"><Landmark className="h-4 w-4" /> ניהול פיננסי <span className="opacity-40">/</span> נכסים והתחייבויות</div>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">החשבונות של הבית</h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-emerald-50/75">תמונה מרוכזת של יתרות, חסכונות, אשראי והלוואות. כל הנתונים מתעדכנים מתוך פנקס העסקאות.</p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {canEdit && <button onClick={() => { setEditingAccount(null); setModalOpen(true); }} className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-emerald-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-50"><Plus className="h-4 w-4" /> הוסף חשבון</button>}
+              {accounts.length === 0 && canEdit && <button onClick={onSeedDemoAccounts} className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"><Sparkles className="h-4 w-4" /> טען חשבונות לדוגמה</button>}
             </div>
-            <h1 className="font-serif text-2xl font-bold">ניהול חשבונות ונכסים</h1>
-            <p className="text-xs max-w-2xl leading-relaxed" style={{ color: activeTheme.textSecondary }}>
-              ריכוז כלל חשבונות העו״ש, כרטיסי האשראי, קופות החיסכון וההתחייבויות של משק הבית. נתונים אלו מהווים את
-              בסיס האמת הפיננסי (Single Source of Truth) שממנו יחושב ספר העסקאות והתקציב.
-            </p>
           </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            {canEdit && (
-              <button
-                onClick={() => {
-                  setEditingAccount(null);
-                  setModalOpen(true);
-                }}
-                className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded text-white shadow-xs transition-all hover:opacity-90"
-                style={{ backgroundColor: activeTheme.accent }}
-              >
-                <Plus className="w-4 h-4" />
-                <span>הוסף חשבון חדש</span>
-              </button>
-            )}
-
-            {accounts.length === 0 && canEdit && (
-              <button
-                onClick={onSeedDemoAccounts}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded border hover:opacity-90 transition-opacity"
-                style={{
-                  backgroundColor: activeTheme.bgCard,
-                  borderColor: activeTheme.borderSubtle,
-                  color: activeTheme.textPrimary,
-                }}
-                title="טען 4 חשבונות משפחתיים ראשוניים (עו״ש, כרטיס, חיסכון ומשכנתא)"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                <span>טען 4 חשבונות לדוגמה</span>
-              </button>
-            )}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:min-w-[440px]">
+            <div className="rounded-2xl border border-white/10 bg-white/[.08] p-3 sm:p-4"><div className="text-[11px] text-emerald-100/70">שווי נקי</div><div className={`mt-2 text-lg font-bold tabular-nums sm:text-xl ${netWorth >= 0 ? 'text-white' : 'text-rose-200'}`}>{formatCurrency(netWorth)}</div><div className="mt-1 text-[10px] text-emerald-100/55">נכסים פחות חובות</div></div>
+            <div className="rounded-2xl border border-white/10 bg-white/[.08] p-3 sm:p-4"><div className="flex items-center gap-1 text-[11px] text-emerald-100/70"><TrendingUp className="h-3.5 w-3.5" /> נכסים</div><div className="mt-2 text-lg font-bold tabular-nums sm:text-xl">{formatCurrency(totalAssets)}</div><div className="mt-1 text-[10px] text-emerald-100/55">{checkingCount + savingsCount} חשבונות</div></div>
+            <div className="rounded-2xl border border-white/10 bg-white/[.08] p-3 sm:p-4"><div className="flex items-center gap-1 text-[11px] text-emerald-100/70"><TrendingDown className="h-3.5 w-3.5" /> התחייבויות</div><div className="mt-2 text-lg font-bold tabular-nums sm:text-xl">{formatCurrency(totalLiabilities)}</div><div className="mt-1 text-[10px] text-emerald-100/55">{creditCount + loansCount} חשבונות</div></div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Top Net Worth & Asset / Liability Barometer */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Net Worth Card */}
-        <div
-          className="p-6 rounded-2xl border space-y-2 shadow-sm relative"
-          style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}
-        >
-          <div className="text-[11px] uppercase tracking-wider font-mono opacity-60">שווי נטו כולל (Net Worth)</div>
-          <div
-            className={`font-serif text-3xl font-bold tabular-nums ${
-              netWorth >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'
-            }`}
-          >
-            {formatCurrency(netWorth)}
-          </div>
-          <div className="text-xs opacity-75 flex items-center gap-1.5 pt-1">
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: activeTheme.accent }} />
-            <span>סך נכסים בניכוי התחייבויות והלוואות</span>
-          </div>
-        </div>
-
-        {/* Total Assets */}
-        <div
-          className="p-5 rounded-lg border space-y-1"
-          style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}
-        >
-          <div className="text-[11px] uppercase tracking-wider font-mono opacity-60 flex items-center justify-between">
-            <span>סך נכסים נזילים והשקעות</span>
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-          </div>
-          <div className="font-serif text-3xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-            {formatCurrency(totalAssets)}
-          </div>
-          <div className="text-xs opacity-75">
-            {checkingCount} חשבונות עו״ש + {savingsCount} קופות חיסכון
-          </div>
-        </div>
-
-        {/* Total Liabilities */}
-        <div
-          className="p-5 rounded-lg border space-y-1"
-          style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}
-        >
-          <div className="text-[11px] uppercase tracking-wider font-mono opacity-60 flex items-center justify-between">
-            <span>סך התחייבויות וחובות</span>
-            <TrendingDown className="w-3.5 h-3.5 text-rose-600" />
-          </div>
-          <div className="font-serif text-3xl font-bold tabular-nums text-rose-600 dark:text-rose-400">
-            {formatCurrency(totalLiabilities)}
-          </div>
-          <div className="text-xs opacity-75">
-            {creditCount} כרטיסי אשראי + {loansCount} הלוואות ומשכנתאות
-          </div>
-        </div>
-      </div>
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          { label: 'חשבונות עו״ש', value: checkingCount, icon: Landmark, color: '#527A63' },
+          { label: 'כרטיסי אשראי', value: creditCount, icon: CreditCard, color: '#B78643' },
+          { label: 'חסכונות והשקעות', value: savingsCount, icon: PiggyBank, color: '#527A91' },
+          { label: 'הלוואות ומשכנתאות', value: loansCount, icon: FileText, color: '#B66B61' },
+        ].map((item) => {
+          const Icon = item.icon;
+          return <div key={item.label} className="flex items-center gap-3 rounded-2xl border p-4 shadow-[0_8px_24px_rgba(20,30,25,.035)]" style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
+            <span className="rounded-xl p-3" style={{ color: item.color, backgroundColor: item.color + '18' }}><Icon className="h-5 w-5" /></span>
+            <div><div className="text-xl font-bold tabular-nums" style={{ color: activeTheme.textPrimary }}>{item.value}</div><div className="text-xs" style={{ color: activeTheme.textSecondary }}>{item.label}</div></div>
+          </div>;
+        })}
+      </section>
 
       {/* Filter Tabs */}
       <div

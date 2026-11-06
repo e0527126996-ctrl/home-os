@@ -12,6 +12,7 @@ import {
   HouseholdPerson,
   HouseholdPermissionRule,
   LedgerTransaction,
+  HouseholdDocument,
   Role,
   TransactionSource,
   TransactionType,
@@ -21,7 +22,7 @@ import {
 import { formatCents, fromCents, toCents } from './currency.ts';
 
 const DB_NAME = 'home_os_db';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 const isValidISODate = (value: string): boolean => {
   if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return false;
@@ -101,6 +102,13 @@ class HomeOSIndexedDB {
           txStore.createIndex('date', 'date', { unique: false });
           txStore.createIndex('type', 'type', { unique: false });
           txStore.createIndex('transferId', 'transferId', { unique: false });
+        }
+
+        // 10. Household documents (binary files remain local until cloud sync is configured)
+        if (!db.objectStoreNames.contains('household_documents')) {
+          const docsStore = db.createObjectStore('household_documents', { keyPath: 'id' });
+          docsStore.createIndex('householdId', 'householdId', { unique: false });
+          docsStore.createIndex('uploadedAt', 'uploadedAt', { unique: false });
         }
       };
 
@@ -1742,6 +1750,36 @@ class HomeOSIndexedDB {
       expenseCount,
       transferCount,
     };
+  }
+
+  // -------------------------------------------------------------
+  // HOUSEHOLD DOCUMENT VAULT
+  // -------------------------------------------------------------
+  async getDocumentsByHousehold(householdId: string): Promise<HouseholdDocument[]> {
+    return this.transaction(['household_documents'], 'readonly', async (tx) => {
+      const store = tx.objectStore('household_documents');
+      const records = await this.reqToPromise<HouseholdDocument[]>(store.index('householdId').getAll(householdId));
+      return records.sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt));
+    });
+  }
+
+  async saveDocument(document: HouseholdDocument): Promise<void> {
+    if (!document.householdId || !document.name || !(document.blob instanceof Blob)) {
+      throw new Error('פרטי המסמך אינם תקינים');
+    }
+    if (document.size > 25 * 1024 * 1024) throw new Error('גודל הקובץ המרבי הוא 25MB');
+    return this.transaction(['household_documents'], 'readwrite', async (tx) => {
+      await this.reqToPromise(tx.objectStore('household_documents').put(document));
+    });
+  }
+
+  async deleteDocument(documentId: string, householdId: string): Promise<void> {
+    return this.transaction(['household_documents'], 'readwrite', async (tx) => {
+      const store = tx.objectStore('household_documents');
+      const existing = await this.reqToPromise<HouseholdDocument | undefined>(store.get(documentId));
+      if (!existing || existing.householdId !== householdId) throw new Error('המסמך לא נמצא במשק הבית הפעיל');
+      await this.reqToPromise(store.delete(documentId));
+    });
   }
 
   // -------------------------------------------------------------

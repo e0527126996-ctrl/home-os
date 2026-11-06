@@ -2753,6 +2753,8 @@ class HomeOSIndexedDB {
       const c2 = toCents('0.20'); // 20
       const c3 = toCents('19.99'); // 1999
       const c4 = toCents('0.01'); // 1
+      const wholeShekelNumber = toCents(20); // 2000 — integer numbers are shekels, not pre-scaled cents
+      const largeWholeShekelNumber = toCents(21500); // 2150000
 
       const sumCents = c1 + c2 + c3 + c4; // 2030
       const sumShekels = fromCents(sumCents); // 20.3
@@ -2761,14 +2763,15 @@ class HomeOSIndexedDB {
       const floatHasNoise = floatDirect !== 20.3; // Usually 20.300000000000004
 
       const integerExact = Number.isInteger(sumCents) && sumCents === 2030 && sumShekels === 20.3;
-      const success = integerExact;
+      const wholeShekelExact = wholeShekelNumber === 2000 && largeWholeShekelNumber === 2150000;
+      const success = integerExact && wholeShekelExact;
 
       results.push({
         testName: '21. דיוק פיננסי מוחלט באגורות שלמות ללא סטיות נקודה צפה (Zero Floating-Point Epsilon)',
         passed: success,
         message: success
-          ? `אומת: חישוב באגורות שלמות נקי משגיאות עיגול (סכום: ${sumCents} אגורות = ${formatCents(sumCents)}, לעומת רעש ציפה ב-JS רגיל)`
-          : 'כשל בדיוק אגורות שלמות',
+          ? `אומת: דיוק אגורות שלמות והמרת שקלים שלמים (20 ₪ = ${wholeShekelNumber} אגורות; 21,500 ₪ = ${largeWholeShekelNumber} אגורות)`
+          : 'כשל בדיוק אגורות שלמות או בהמרת סכום שקלי שלם',
         durationMs: Math.round(performance.now() - t21Start),
       });
     } catch (e: any) {

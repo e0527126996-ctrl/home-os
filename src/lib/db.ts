@@ -13,6 +13,7 @@ import {
   HouseholdPermissionRule,
   LedgerTransaction,
   HouseholdDocument,
+  HouseholdHomeItem,
   Role,
   TransactionSource,
   TransactionType,
@@ -22,7 +23,7 @@ import {
 import { formatCents, fromCents, toCents } from './currency.ts';
 
 const DB_NAME = 'home_os_db';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 
 const blobToDataUrl = (blob: Blob): Promise<string> => new Promise((resolve, reject) => {
   const reader = new FileReader();
@@ -127,6 +128,13 @@ class HomeOSIndexedDB {
           const docsStore = db.createObjectStore('household_documents', { keyPath: 'id' });
           docsStore.createIndex('householdId', 'householdId', { unique: false });
           docsStore.createIndex('uploadedAt', 'uploadedAt', { unique: false });
+        }
+
+        // 11. Household operations: meal plans, recipes, shopping lists and tasks
+        if (!db.objectStoreNames.contains('household_home_items')) {
+          const homeStore = db.createObjectStore('household_home_items', { keyPath: 'id' });
+          homeStore.createIndex('householdId', 'householdId', { unique: false });
+          homeStore.createIndex('kind', 'kind', { unique: false });
         }
       };
 
@@ -1801,10 +1809,43 @@ class HomeOSIndexedDB {
   }
 
   // -------------------------------------------------------------
+  // HOUSEHOLD OPERATIONS
+  // -------------------------------------------------------------
+  async getHomeItemsByHousehold(householdId: string, actorUserId: string): Promise<HouseholdHomeItem[]> {
+    await this.assertPermission(householdId, actorUserId, 'food', 'read');
+    return this.transaction(['household_home_items'], 'readonly', async (tx) => {
+      const items = await this.reqToPromise<HouseholdHomeItem[]>(
+        tx.objectStore('household_home_items').index('householdId').getAll(householdId)
+      );
+      return items.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    });
+  }
+
+  async saveHomeItem(item: HouseholdHomeItem, actorUserId: string): Promise<void> {
+    await this.assertPermission(item.householdId, actorUserId, 'food', 'write');
+    if (!item.id || !item.householdId || !['recipe', 'meal', 'shopping', 'task'].includes(item.kind)) {
+      throw new Error('פרטי הרשומה אינם תקינים');
+    }
+    return this.transaction(['household_home_items'], 'readwrite', async (tx) => {
+      await this.reqToPromise(tx.objectStore('household_home_items').put(item));
+    });
+  }
+
+  async deleteHomeItem(itemId: string, householdId: string, actorUserId: string): Promise<void> {
+    await this.assertPermission(householdId, actorUserId, 'food', 'write');
+    return this.transaction(['household_home_items'], 'readwrite', async (tx) => {
+      const store = tx.objectStore('household_home_items');
+      const existing = await this.reqToPromise<HouseholdHomeItem | undefined>(store.get(itemId));
+      if (!existing || existing.householdId !== householdId) throw new Error('הרשומה לא נמצאה במשק הבית הפעיל');
+      await this.reqToPromise(store.delete(itemId));
+    });
+  }
+
+  // -------------------------------------------------------------
   // BACKUP EXPORT & IMPORT
   // -------------------------------------------------------------
   async exportFullBackup(householdId: string): Promise<BackupData> {
-    const [households, users, memberships, persons, permissions, auditLogs, accounts, transactions, documents] = await Promise.all([
+    const [households, users, memberships, persons, permissions, auditLogs, accounts, transactions, documents, homeItems] = await Promise.all([
       this.getHouseholds(),
       this.getUsers(),
       this.getMembershipsByHousehold(householdId),
@@ -1818,6 +1859,7 @@ class HomeOSIndexedDB {
       this.getAccountsByHousehold(householdId),
       this.getTransactionsByHousehold(householdId),
       this.getDocumentsByHousehold(householdId),
+      this.transaction(['household_home_items'], 'readonly', async (tx) => this.reqToPromise<HouseholdHomeItem[]>(tx.objectStore('household_home_items').index('householdId').getAll(householdId))),
     ]);
 
     const targetHhd = households.filter((h) => h.id === householdId);
@@ -1833,6 +1875,7 @@ class HomeOSIndexedDB {
       auditLogs,
       accounts,
       transactions,
+      homeItems,
       documents: await Promise.all(documents.map(async (doc) => ({
         id: doc.id,
         householdId: doc.householdId,
@@ -1872,6 +1915,7 @@ class HomeOSIndexedDB {
         'financial_accounts',
         'ledger_transactions',
         'household_documents',
+        'household_home_items',
       ],
       'readwrite',
       async (tx) => {
@@ -1884,6 +1928,7 @@ class HomeOSIndexedDB {
         const accStore = tx.objectStore('financial_accounts');
         const txStore = tx.objectStore('ledger_transactions');
         const docsStore = tx.objectStore('household_documents');
+        const homeStore = tx.objectStore('household_home_items');
 
         for (const h of backup.households) await this.reqToPromise(hStore.put(h));
         for (const u of backup.users || []) await this.reqToPromise(uStore.put(u));
@@ -1896,6 +1941,9 @@ class HomeOSIndexedDB {
         }
         if (backup.transactions && Array.isArray(backup.transactions)) {
           for (const t of backup.transactions) await this.reqToPromise(txStore.put(t));
+        }
+        if (backup.homeItems && Array.isArray(backup.homeItems)) {
+          for (const item of backup.homeItems) await this.reqToPromise(homeStore.put(item));
         }
         if (backup.documents && Array.isArray(backup.documents)) {
           for (const doc of backup.documents) {

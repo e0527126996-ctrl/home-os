@@ -834,6 +834,15 @@ export default function App() {
           onSwitchUser={async (u) => {
             setCurrentUser(u);
             await db.setSetting('current_user_id', u.id);
+            if (activeHousehold) {
+              await reloadHouseholdData(activeHousehold.id);
+            } else {
+              setMemberships([]);
+              setPersons([]);
+              setAuditLogs([]);
+              setAccounts([]);
+              setTransactions([]);
+            }
             showToast(`מחובר כעת כ-${u.fullName}`);
           }}
           onCreateUser={async (email, fullName, pin) => {

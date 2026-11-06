@@ -15,6 +15,13 @@ import {
   AlertCircle,
   Settings,
   Sparkles,
+  LayoutDashboard,
+  WalletCards,
+  ArrowLeftRight,
+  ChartNoAxesCombined,
+  UsersRound,
+  House,
+  ClipboardList,
 } from 'lucide-react';
 import { Header } from './components/Header.tsx';
 import { DashboardView } from './components/DashboardView.tsx';
@@ -503,99 +510,44 @@ export default function App() {
 
       {/* Main Body */}
       <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-7 lg:px-10 py-7 space-y-8">
-        {/* Navigation & Section Tabs */}
-        <div
-          className="rounded-2xl border p-2 sm:flex-row sm:items-center justify-between gap-3 shadow-sm"
-          style={{ borderColor: activeTheme.borderSubtle }}
-        >
-          {/* Main Module Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`px-4 py-2.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'dashboard' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
-              }`}
-              style={{ backgroundColor: activeTab === 'dashboard' ? activeTheme.accent : 'transparent' }}
-            >
-              לוח בקרה
-            </button>
-
-            <button
-              onClick={() => setActiveTab('accounts')}
-              className={`px-4 py-2.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'accounts' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
-              }`}
-              style={{
-                backgroundColor: activeTab === 'accounts' ? activeTheme.accent : 'transparent',
-              }}
-            >
-              <span>חשבונות ונכסים</span>
-              <span className="font-mono text-[10px] opacity-80">({accounts.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('ledger')}
-              className={`px-3.5 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-                activeTab === 'ledger' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
-              }`}
-              style={{
-                backgroundColor: activeTab === 'ledger' ? activeTheme.accent : 'transparent',
-              }}
-            >
-              <span>ספר עסקאות מרכזי</span>
-              <span className="font-mono text-[10px] opacity-80">({transactions.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`px-3.5 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-                activeTab === 'overview' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
-              }`}
-              style={{
-                backgroundColor: activeTab === 'overview' ? activeTheme.accent : 'transparent',
-              }}
-            >
-              תמונת מצב
-            </button>
-
-            <button
-              onClick={() => setActiveTab('members')}
-              className={`px-3.5 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-                activeTab === 'members' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
-              }`}
-              style={{
-                backgroundColor: activeTab === 'members' ? activeTheme.accent : 'transparent',
-              }}
-            >
-              משתמשים ובני בית ({memberships.length + persons.length})
-            </button>
-
-            <button
-              onClick={() => setActiveTab('households')}
-              className={`px-3.5 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-                activeTab === 'households' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
-              }`}
-              style={{
-                backgroundColor: activeTab === 'households' ? activeTheme.accent : 'transparent',
-              }}
-            >
-              משקי בית ({households.length})
-            </button>
-
-            <button
-              onClick={() => setActiveTab('audit')}
-              className={`px-3.5 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-                activeTab === 'audit' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
-              }`}
-              style={{
-                backgroundColor: activeTab === 'audit' ? activeTheme.accent : 'transparent',
-              }}
-            >
-              יומן ביקורת ({auditLogs.length})
-            </button>
+        {/* Premium primary navigation */}
+        <section className="rounded-[22px] border p-3 shadow-[0_8px_28px_rgba(20,30,25,.035)]" style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}>
+          <div className="mb-2 flex items-center justify-between px-2">
+            <div className="text-[10px] font-bold tracking-[.14em]" style={{ color: activeTheme.textSecondary }}>מרחבי העבודה</div>
+            <div className="text-[10px] tabular-nums" style={{ color: activeTheme.textSecondary }}>{transactions.length} תנועות · {accounts.length} חשבונות</div>
           </div>
-
-        </div>
+          <nav aria-label="ניווט ראשי" className="flex gap-1.5 overflow-x-auto pb-1">
+            {([
+              { id: 'dashboard', label: 'לוח בקרה', icon: LayoutDashboard },
+              { id: 'accounts', label: 'חשבונות ונכסים', icon: WalletCards, count: accounts.length },
+              { id: 'ledger', label: 'פנקס עסקאות', icon: ArrowLeftRight, count: transactions.length },
+              { id: 'overview', label: 'תמונת מצב', icon: ChartNoAxesCombined },
+              { id: 'members', label: 'משפחה והרשאות', icon: UsersRound, count: memberships.length + persons.length },
+              { id: 'households', label: 'משקי בית', icon: House, count: households.length },
+              { id: 'audit', label: 'יומן ביקורת', icon: ClipboardList, count: auditLogs.length },
+            ] as const).map((item) => {
+              const selected = activeTab === item.id;
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  aria-current={selected ? 'page' : undefined}
+                  className="inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-3 text-xs font-semibold transition-all duration-200"
+                  style={{
+                    color: selected ? '#FFFFFF' : activeTheme.textSecondary,
+                    backgroundColor: selected ? activeTheme.accent : 'transparent',
+                    boxShadow: selected ? '0 5px 14px rgba(20,40,30,.16)' : 'none',
+                  }}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                  {'count' in item && <span className="rounded-md px-1.5 py-0.5 text-[10px] tabular-nums" style={{ backgroundColor: selected ? 'rgba(255,255,255,.16)' : activeTheme.bgSurface }}>{item.count}</span>}
+                </button>
+              );
+            })}
+          </nav>
+        </section>
 
         {activeTab === 'dashboard' && activeHousehold && (
           <DashboardView

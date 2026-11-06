@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ArrowDownLeft, ArrowUpLeft, Wallet, Landmark, Activity, TrendingUp,
   TrendingDown, Lightbulb, CalendarDays, Sparkles, ArrowUpRight,
@@ -25,6 +25,8 @@ const monthLabel = (date: Date) => new Intl.DateTimeFormat('he-IL', { month: 'sh
 export const DashboardView: React.FC<DashboardViewProps> = ({
   accounts, transactions, householdName, activeTheme, onOpenAccounts, onOpenLedger,
 }) => {
+  const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[] } | null>(null);
+
   const data = useMemo(() => {
     const activeAccounts = accounts.filter(a => a.status === 'ACTIVE');
     const assets = activeAccounts.filter(a => !a.isLiability).reduce((s, a) => s + (a.currentBalanceCents || 0), 0);
@@ -122,13 +124,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="homeos-chart-grid">
             {data.months.map((month, index) => (
-              <div key={month.key} className="homeos-chart-month">
+              <button type="button" key={month.key} className="homeos-chart-month cursor-pointer rounded-xl px-1 transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#547D70] dark:hover:bg-white/10" aria-label={"פתיחת פירוט " + month.label} onClick={() => setChartDetail({ title: "פירוט " + month.label, subtitle: "הכנסות " + currency(month.income) + " · הוצאות " + currency(month.expense), items: transactions.filter(tx => tx.date && tx.date.slice(0, 7) === month.key) })}>
                 <div className="homeos-chart-bars">
                   <div className="homeos-chart-bar income" title={'הכנסות: ' + currency(month.income)} style={{ height: Math.max(month.income ? 3 : 1, month.income / data.max * 100) + '%', opacity: index === 5 ? 1 : .72 }} />
                   <div className="homeos-chart-bar expense" title={'הוצאות: ' + currency(month.expense)} style={{ height: Math.max(month.expense ? 3 : 1, month.expense / data.max * 100) + '%', opacity: index === 5 ? 1 : .72 }} />
                 </div>
                 <span>{month.label}</span>
-              </div>
+              </button>
             ))}
           </div>
           <div className="mt-5 grid grid-cols-2 gap-4 border-t pt-5" style={{ borderColor: activeTheme.borderSubtle }}>
@@ -154,6 +156,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <button onClick={onOpenAccounts} className="homeos-wide-link mt-4">לכל החשבונות <ChevronLeft className="h-4 w-4" /></button>
         </div>
       </section>
+
+      {chartDetail && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={chartDetail.title} onMouseDown={(event) => { if (event.target === event.currentTarget) setChartDetail(null); }}>
+          <div className="max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-3xl border bg-white shadow-2xl dark:bg-[#1E293B]" style={{ borderColor: activeTheme.borderSubtle }}>
+            <div className="flex items-start justify-between gap-4 border-b p-5 sm:p-6" style={{ borderColor: activeTheme.borderSubtle }}>
+              <div><div className="homeos-section-kicker">CHART DETAILS</div><h2 className="mt-1 text-xl font-bold">{chartDetail.title}</h2><p className="mt-1 text-sm" style={muted}>{chartDetail.subtitle}</p></div>
+              <button type="button" onClick={() => setChartDetail(null)} className="rounded-xl border px-3 py-2 text-sm" style={{ borderColor: activeTheme.borderSubtle }}>סגירה ✕</button>
+            </div>
+            <div className="max-h-[65vh] overflow-y-auto p-5 sm:p-6">
+              {chartDetail.items.length ? <div className="space-y-2">{chartDetail.items.slice().sort((a,b) => b.date.localeCompare(a.date)).map(tx => (
+                <div key={tx.id} className="flex items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+                  <div className="min-w-0"><div className="truncate text-sm font-semibold">{tx.payee || tx.category}</div><div className="mt-1 text-xs" style={muted}>{tx.category} · {new Date(tx.date + 'T12:00:00').toLocaleDateString('he-IL')}</div></div>
+                  <strong className={'shrink-0 text-sm tabular-nums ' + (tx.type === 'INCOME' ? 'text-[#477866]' : '')}>{tx.type === 'INCOME' ? '+' : '−'}{currency(tx.amountCents)}</strong>
+                </div>
+              ))}</div> : <div className="py-12 text-center text-sm" style={muted}>אין עסקאות בחודש הזה.</div>}
+            </div>
+            <div className="border-t p-4 text-left" style={{ borderColor: activeTheme.borderSubtle }}><button type="button" onClick={() => { setChartDetail(null); onOpenLedger(); }} className="homeos-primary-action">פתיחת פנקס העסקאות <ArrowLeft className="h-4 w-4" /></button></div>
+          </div>
+        </div>
+      )}
 
       <section className="homeos-insight">
         <span className="homeos-insight-icon"><Lightbulb className="h-5 w-5" /></span>

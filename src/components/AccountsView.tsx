@@ -122,11 +122,11 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 pb-8">
-      <section className="relative isolate overflow-hidden rounded-[26px] p-6 text-white shadow-[0_20px_55px_rgba(20,38,31,.15)] sm:p-8" style={{ background: 'linear-gradient(118deg,#172B25 0%,#294A3C 58%,#55745C 100%)' }}>
-        <div className="pointer-events-none absolute -left-16 -top-24 -z-10 h-72 w-72 rounded-full border border-white/10" />
-        <div className="pointer-events-none absolute -left-2 -top-12 -z-10 h-48 w-48 rounded-full border border-white/10" />
-        <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+    <div className="homeos-dashboard space-y-6 pb-8">
+      <section className="homeos-wealth-hero">
+        <div className="homeos-hero-orbit homeos-orbit-one" />
+        <div className="homeos-hero-orbit homeos-orbit-two" />
+        <div className="relative z-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div className="max-w-2xl">
             <div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-[.16em] text-emerald-100/75"><Landmark className="h-4 w-4" /> ניהול פיננסי <span className="opacity-40">/</span> נכסים והתחייבויות</div>
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">החשבונות של הבית</h1>
@@ -240,7 +240,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       {/* Account Cards Grid */}
       {displayedAccounts.length === 0 ? (
         <div
-          className="p-12 text-center rounded-xl border border-dashed space-y-3"
+          className="homeos-lux-panel space-y-3 border-dashed p-12 text-center"
           style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}
         >
           <Landmark className="w-10 h-10 mx-auto opacity-30" style={{ color: activeTheme.accent }} />
@@ -269,7 +269,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             return (
               <div
                 key={acc.id}
-                className="p-5 rounded-xl border transition-shadow hover:shadow-md flex flex-col justify-between space-y-4"
+                className="homeos-lux-panel flex flex-col justify-between space-y-4"
                 style={{
                   backgroundColor: activeTheme.bgCard,
                   borderColor: activeTheme.borderSubtle,

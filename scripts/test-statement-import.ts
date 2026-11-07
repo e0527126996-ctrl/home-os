@@ -3,9 +3,10 @@ import {
   normalizeStatementPayee,
   parsePdfLines,
   parseStatementAmount,
+  parseStatementFileWithDiagnostics,
 } from '../src/lib/statementImport.ts';
 
-const cases: Array<{ name: string; run: () => void }> = [
+const cases: Array<{ name: string; run: () => void | Promise<void> }> = [
   {
     name: 'parses Israeli shekel amounts with thousands and decimal separators',
     run: () => {
@@ -46,6 +47,23 @@ const cases: Array<{ name: string; run: () => void }> = [
       assert.doesNotMatch(rows[0].payee, /4,875/);
       assert.equal(rows[1].amountCents, 25000);
       assert.match(rows[1].payee, /סונול/);
+    },
+  },
+  {
+    name: 'classifies CSV credit and debit columns from their explicit column meaning',
+    run: async () => {
+      const csv = [
+        'תאריך,תיאור,חובה,זכות',
+        '01/11/2026,העברה נכנסת,,1250.00',
+        '02/11/2026,העברה יוצאת,85.00,',
+      ].join('\\n');
+      const file = new File([csv], 'bank-statement.csv', { type: 'text/csv' });
+      const result = await parseStatementFileWithDiagnostics(file, []);
+      assert.equal(result.rows.length, 2);
+      assert.equal(result.rows[0].type, 'INCOME');
+      assert.equal(result.rows[0].amountCents, 125000);
+      assert.equal(result.rows[1].type, 'EXPENSE');
+      assert.equal(result.rows[1].amountCents, 8500);
     },
   },
   {

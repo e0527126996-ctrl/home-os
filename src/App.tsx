@@ -41,6 +41,7 @@ const AuthModal = lazy(() => import('./components/AuthModal.tsx').then(({ AuthMo
 const DocumentCenterView = lazy(() => import('./components/DocumentCenterView.tsx').then(({ DocumentCenterView }) => ({ default: DocumentCenterView })));
 const HomeManagementView = lazy(() => import('./components/HomeManagementView.tsx').then(({ HomeManagementView }) => ({ default: HomeManagementView })));
 import { db } from './lib/db.ts';
+import { canReadHouseholdDomain, canWriteHouseholdDomain, filterHouseholdsByMembership, isHouseholdManager } from './lib/accessControl.ts';
 import { MODERN_EDITORIAL_THEMES, ThemeConfig } from './lib/themes.ts';
 import { BACKGROUND_PRESETS, DASHBOARD_WIDGETS, DEFAULT_DASHBOARD_WIDGET_ORDER, WorkspaceViewMode, WORKSPACE_VIEW_MODES } from './lib/workspace.ts';
 import type { DashboardWidgetSize, WorkspaceBackgroundPresetId } from './lib/workspace.ts';
@@ -132,8 +133,7 @@ export default function App() {
       db.getHouseholds(),
       db.getMembershipsByUser(userId),
     ]);
-    const allowedIds = new Set(userMemberships.map(membership => membership.householdId));
-    return allHouseholds.filter(household => allowedIds.has(household.id));
+    return filterHouseholdsByMembership(allHouseholds, userMemberships);
   };
 
   // Initialize DB and load only the households this local user belongs to.
@@ -746,11 +746,11 @@ export default function App() {
   };
 
   const currentMembership = memberships.find(membership => membership.userId === currentUser?.id);
-  const isOwnerOrAdmin = currentMembership?.role === 'owner' || currentMembership?.role === 'admin';
+  const isOwnerOrAdmin = isHouseholdManager(currentMembership?.role);
   const canReadDomain = (domain: HouseholdPermissionRule['domain']) =>
-    isOwnerOrAdmin || currentPermissionRules.some(rule => rule.domain === domain && (rule.canRead || rule.canWrite));
+    canReadHouseholdDomain(currentMembership?.role, currentPermissionRules, domain);
   const canWriteDomain = (domain: HouseholdPermissionRule['domain']) =>
-    isOwnerOrAdmin || currentPermissionRules.some(rule => rule.domain === domain && rule.canWrite);
+    canWriteHouseholdDomain(currentMembership?.role, currentPermissionRules, domain);
 
   const canReadFinance = canReadDomain('finance');
   const canPerformFinance = canWriteDomain('finance');

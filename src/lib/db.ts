@@ -1748,6 +1748,7 @@ class HomeOSIndexedDB {
             amountCents: patch.amountCents !== undefined ? patch.amountCents : counterLeg.amountCents,
             category: patch.category || counterLeg.category,
             notes: patch.notes !== undefined ? patch.notes : counterLeg.notes,
+            verificationStatus: patch.verificationStatus ?? counterLeg.verificationStatus,
             updatedAt: now,
           };
           await this.reqToPromise(store.put(counterUpdated));
@@ -1786,14 +1787,21 @@ class HomeOSIndexedDB {
     const existing = await this.getTransactionById(transactionId, householdId);
     if (!existing) throw new Error('עסקה לא נמצאה');
 
+    let counterLeg: LedgerTransaction | null = null;
+    if (existing.type === 'TRANSFER') {
+      if (!existing.linkedTransactionId || !existing.transferId) {
+        throw new Error('העברה זו אינה מקושרת לרגל הנגדית שלה; לא ניתן למחוק אותה בבטחה');
+      }
+      counterLeg = await this.getTransactionById(existing.linkedTransactionId, householdId);
+      if (!counterLeg || counterLeg.type !== 'TRANSFER' || counterLeg.linkedTransactionId !== existing.id || counterLeg.transferId !== existing.transferId) {
+        throw new Error('רגל ההעברה הנגדית חסרה או אינה תואמת; המחיקה בוטלה כדי למנוע פגיעה ביתרות');
+      }
+    }
+
     await this.transaction(['ledger_transactions'], 'readwrite', async (tx) => {
       const store = tx.objectStore('ledger_transactions');
       await this.reqToPromise(store.delete(transactionId));
-
-      // If it's a transfer leg, delete the linked leg in the same atomic transaction
-      if (existing.linkedTransactionId) {
-        await this.reqToPromise(store.delete(existing.linkedTransactionId));
-      }
+      if (counterLeg) await this.reqToPromise(store.delete(counterLeg.id));
     });
 
     await this.recordAuditLog(

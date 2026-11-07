@@ -56,6 +56,14 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = async () => setDocuments(await db.getDocumentsByHousehold(household.id));
+  const notifyDocumentsChanged = () => {
+    if (typeof BroadcastChannel !== 'undefined') {
+      const channel = new BroadcastChannel('homeos-documents-v1');
+      channel.postMessage({ householdId: household.id, changedAt: Date.now() });
+      channel.close();
+    }
+    window.dispatchEvent(new CustomEvent('homeos:documents-changed', { detail: { householdId: household.id } }));
+  };
   useEffect(() => {
     let active = true;
     const refreshSafely = () => { if (active) refresh().catch((e) => setError(e.message)); };
@@ -115,17 +123,16 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
         if (!statementToImport && category === 'BANK' && /\.(pdf|xlsx?|csv)$/i.test(file.name)) statementToImport = file;
       }
       await refresh();
-      if (typeof BroadcastChannel !== 'undefined') {
-        const channel = new BroadcastChannel('homeos-documents-v1');
-        channel.postMessage({ householdId: household.id, changedAt: Date.now() });
-        channel.close();
-      }
-      window.dispatchEvent(new CustomEvent('homeos:documents-changed', { detail: { householdId: household.id } }));
+      notifyDocumentsChanged();
       setMessage(`${saved} מסמכים נשמרו בכספת המקומית`);
       if (statementToImport) setStatementFile(statementToImport);
     } catch (e: any) {
       setError(e.message || 'שגיאה בהעלאת המסמכים');
-      if (saved) await refresh();
+      if (saved) {
+        await refresh();
+        notifyDocumentsChanged();
+        setMessage(`${saved} מסמכים נשמרו לפני שההעלאה נעצרה`);
+      }
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = '';
@@ -161,12 +168,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
     try {
       await db.deleteDocument(doc.id, household.id);
       await refresh();
-      if (typeof BroadcastChannel !== 'undefined') {
-        const channel = new BroadcastChannel('homeos-documents-v1');
-        channel.postMessage({ householdId: household.id, changedAt: Date.now() });
-        channel.close();
-      }
-      window.dispatchEvent(new CustomEvent('homeos:documents-changed', { detail: { householdId: household.id } }));
+      notifyDocumentsChanged();
     } catch (e: any) { setError(e.message || 'לא ניתן למחוק את המסמך'); }
   };
 

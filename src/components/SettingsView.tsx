@@ -1,8 +1,8 @@
 import React from 'react';
 import { ArrowDown, ArrowUp, Check, ImagePlus, LayoutGrid, Palette, Sparkles, Trash2 } from 'lucide-react';
 import type { ThemeConfig } from '../lib/themes.ts';
-import type { WorkspaceViewMode, DashboardWidgetSize } from '../lib/workspace.ts';
-import { DASHBOARD_WIDGETS } from '../lib/workspace.ts';
+import type { WorkspaceViewMode, DashboardWidgetSize, WorkspaceBackgroundPresetId } from '../lib/workspace.ts';
+import { BACKGROUND_PRESETS, DASHBOARD_WIDGETS } from '../lib/workspace.ts';
 
 interface SettingsViewProps {
   themes: ThemeConfig[];
@@ -19,6 +19,8 @@ interface SettingsViewProps {
   dashboardWidgetSizes: Record<string, DashboardWidgetSize>;
   onDashboardWidgetSizeChange: (widgetId: string, size: DashboardWidgetSize) => void | Promise<void>;
   backgroundImage: string | null;
+  backgroundPresetId: WorkspaceBackgroundPresetId;
+  onBackgroundPresetChange: (presetId: WorkspaceBackgroundPresetId) => void | Promise<void>;
   onBackgroundImageChange: (file: File | null) => void | Promise<void>;
   onBackgroundImageClear: () => void | Promise<void>;
 }
@@ -28,7 +30,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   workspaceViewMode, onWorkspaceViewModeChange, dashboardWidgetOrder,
   visibleDashboardWidgetIds, onDashboardWidgetToggle, onDashboardWidgetMove,
   dashboardWidgetSizes, onDashboardWidgetSizeChange,
-  backgroundImage, onBackgroundImageChange, onBackgroundImageClear,
+  backgroundImage, backgroundPresetId, onBackgroundPresetChange, onBackgroundImageChange, onBackgroundImageClear,
 }) => {
   const orderedWidgets = [...DASHBOARD_WIDGETS].sort(
     (a, b) => dashboardWidgetOrder.indexOf(a.id) - dashboardWidgetOrder.indexOf(b.id),
@@ -162,8 +164,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       <section className="homeos-settings-section">
         <div>
           <div className="homeos-section-kicker">PERSONAL BACKDROP</div>
-          <h2 className="mt-1 text-lg font-semibold">תמונת רקע אישית</h2>
-          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>העלה תמונה שתופיע כרקע עדין מאחורי סביבת העבודה.</p>
+          <h2 className="mt-1 text-lg font-semibold">רקעים לסביבת העבודה</h2>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>בחר רקע מוכן מהגלריה או העלה תמונה אישית משלך.</p>
+        </div>
+        <div className="homeos-background-preset-grid">
+          {BACKGROUND_PRESETS.map((preset) => {
+            const selected = backgroundPresetId === preset.id && !backgroundImage;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => void onBackgroundPresetChange(preset.id)}
+                className={`homeos-background-preset ${selected ? 'is-selected' : ''}`}
+                style={{ backgroundImage: preset.background }}
+              >
+                <span className="homeos-background-preset-label">{preset.nameHe}</span>
+                <small className="homeos-background-preset-description">{preset.description}</small>
+                {selected && <span className="homeos-background-preset-check"><Check className="h-4 w-4" /></span>}
+              </button>
+            );
+          })}
         </div>
         <div className="homeos-background-editor">
           {backgroundImage ? <div className="homeos-background-preview" style={{ backgroundImage: `url("${backgroundImage}")` }}><span>תמונת רקע פעילה</span></div> : <div className="homeos-background-empty"><ImagePlus className="h-6 w-6" /><span>לא נבחרה תמונת רקע</span></div>}
@@ -174,7 +195,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </label>
             {backgroundImage && <button type="button" className="homeos-secondary-action" onClick={() => void onBackgroundImageClear()}><Trash2 className="h-4 w-4" /> הסרת תמונה</button>}
           </div>
-          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>קובצי JPG, PNG או WebP עד 3MB. התמונה נשמרת מקומית במכשיר.</p>
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>קובצי JPG, PNG או WebP עד 3MB. תמונה אישית תחליף זמנית את הרקע המוכן; הסרתה תחזיר את הרקע שבחרת. הקובץ נשמר מקומית במכשיר.</p>
         </div>
       </section>
 

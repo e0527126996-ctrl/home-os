@@ -96,7 +96,7 @@ export const PermissionsModal: React.FC<PermissionsModalProps> = ({
   const isOwner = membership.role === 'owner';
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div className="homeos-themed-modal homeos-permissions-modal fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
       <div
         className="w-full max-w-2xl rounded-xl border shadow-xl flex flex-col max-h-[90vh] overflow-hidden"
         style={{

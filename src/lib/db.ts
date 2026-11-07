@@ -2076,7 +2076,13 @@ class HomeOSIndexedDB {
           if (existing && existing.id !== targetHouseholdId) throw new Error('מזהה משק הבית בגיבוי אינו תואם');
           await this.reqToPromise(hStore.put(h));
         }
-        for (const u of backupUsers) await this.reqToPromise(uStore.put(u));
+        for (const u of backupUsers) {
+          const existing = await this.reqToPromise<User | undefined>(uStore.get(u.id));
+          if (existing && existing.email.toLowerCase() !== u.email.toLowerCase()) {
+            throw new Error('הגיבוי מכיל מזהה משתמש שכבר משויך לכתובת דוא״ל אחרת');
+          }
+          await this.reqToPromise(uStore.put(u));
+        }
         for (const m of memberships) {
           await assertExistingOwnership(mStore, m.id, 'חברות');
           await this.reqToPromise(mStore.put(m));

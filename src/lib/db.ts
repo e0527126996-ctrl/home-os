@@ -3697,8 +3697,10 @@ class HomeOSIndexedDB {
     try {
       const scaled = formatIngredientQuantity(['שמן זית – 2 כפות', 'קמח – 1/2 כוס'], 2);
       const prefixParsed = splitIngredientName('2 כפות שמן זית') === 'שמן זית';
+      const suffixParsed = splitIngredientName('שמן זית 2 כפות') === 'שמן זית';
+      const suffixQuantity = formatIngredientQuantity(['שמן זית 2 כפות'], 2) === '4 כף';
       const fractionParsed = scaled.includes('4 כף') && scaled.includes('1 כוס');
-      const success = prefixParsed && fractionParsed;
+      const success = prefixParsed && suffixParsed && suffixQuantity && fractionParsed;
       results.push({
         testName: '24. פענוח כמויות מתכונים, תחביר עברי ושברי מנות',
         passed: success,

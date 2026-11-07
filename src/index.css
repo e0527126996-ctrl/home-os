@@ -1345,3 +1345,60 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+
+/* Final responsive shell and navigation refinements. */
+.homeos-app-shell {
+  min-height: 100vh;
+  isolation: isolate;
+}
+.homeos-main-content {
+  min-width: 0;
+}
+.homeos-main-nav {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+.homeos-main-nav .homeos-nav-item {
+  flex: 0 0 auto;
+  min-height: 42px;
+  border: 1px solid transparent;
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.homeos-main-nav .homeos-nav-item:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.homeos-main-nav .homeos-nav-item:not([aria-current="page"]):hover {
+  background: var(--bg-surface) !important;
+  border-color: var(--border-subtle);
+  color: var(--text-primary) !important;
+}
+.homeos-app-shell .homeos-section-kicker {
+  color: var(--text-secondary);
+}
+.homeos-app-shell :where(input, select, textarea):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+.homeos-standalone-export-modal textarea {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+@media (max-width: 720px) {
+  .homeos-main-content {
+    padding-top: 18px;
+  }
+  .homeos-main-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding: 2px 2px 8px;
+    scroll-snap-type: x proximity;
+  }
+  .homeos-main-nav .homeos-nav-item {
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+}

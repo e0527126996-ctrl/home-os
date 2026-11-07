@@ -54,17 +54,20 @@ const cases: Array<{ name: string; run: () => void | Promise<void> }> = [
     name: 'classifies CSV credit and debit columns from their explicit column meaning',
     run: async () => {
       const csv = [
-        '\uFEFFתאריך,תיאור,חובה,זכות',
-        '01/11/2026,העברה נכנסת,,1250.00',
-        '02/11/2026,העברה יוצאת,85.00,',
+        '\uFEFFתאריך,תיאור,חובה,זכות,סכום',
+        '01/11/2026,העברה נכנסת,,1250.00,',
+        '02/11/2026,העברה יוצאת,85.00,,',
+        '03/11/2026,קנייה אונליין,0,0,60.00',
       ].join('\n');
       const file = new File([csv], 'bank-statement.csv', { type: 'text/csv' });
       const result = await parseStatementFileWithDiagnostics(file, []);
-      assert.equal(result.rows.length, 2);
+      assert.equal(result.rows.length, 3);
       assert.equal(result.rows[0].type, 'INCOME');
       assert.equal(result.rows[0].amountCents, 125000);
       assert.equal(result.rows[1].type, 'EXPENSE');
       assert.equal(result.rows[1].amountCents, 8500);
+      assert.equal(result.rows[2].type, 'EXPENSE');
+      assert.equal(result.rows[2].amountCents, 6000);
     },
   },
   {

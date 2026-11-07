@@ -32,13 +32,18 @@ const cases: Array<{ name: string; run: () => void }> = [
   {
     name: 'extracts transaction amount rather than the trailing running balance',
     run: () => {
-      const rows = parsePdfLines('01/11/2026 שופרסל סניף מרכז 125.50 4,875.00');
-      assert.equal(rows.length, 1);
+      const rows = parsePdfLines([
+        '01/11/2026 שופרסל סניף מרכז 125.50 4,875.00',
+        '04/11/2026 סונול דלק 250 4,875.00',
+      ].join('\\n'));
+      assert.equal(rows.length, 2);
       assert.equal(rows[0].date, '2026-11-01');
       assert.equal(rows[0].amountCents, 12550);
       assert.equal(rows[0].type, 'EXPENSE');
       assert.match(rows[0].payee, /שופרסל/);
       assert.doesNotMatch(rows[0].payee, /4,875/);
+      assert.equal(rows[1].amountCents, 25000);
+      assert.match(rows[1].payee, /סונול/);
     },
   },
   {

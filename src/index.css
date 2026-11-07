@@ -1569,3 +1569,46 @@ body {
 .homeos-density-compact .homeos-navigation-shell { padding-block: 10px; }
 .homeos-density-balanced .homeos-navigation-shell { padding-block: 15px; }
 .homeos-density-spacious .homeos-navigation-shell { padding-block: 22px; }
+
+
+/* Home management palette integration, including controls and status accents. */
+.homeos-home-management { color: var(--text-primary); }
+.homeos-home-management .homeos-home-hero {
+  border: 1px solid var(--border-subtle);
+  border-radius: 22px;
+  padding: clamp(20px, 3vw, 30px);
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--text-primary) 5%, transparent);
+}
+.homeos-home-management .homeos-home-tabs {
+  border: 1px solid var(--border-subtle);
+  border-radius: 15px;
+}
+.homeos-home-management :is(input,select,textarea) {
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+}
+.homeos-home-management :is(button,a):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.homeos-home-management :is(.text-emerald-800,.text-emerald-700) { color: var(--accent) !important; }
+.homeos-home-management :is(.border-emerald-200,.border-emerald-300) { border-color: var(--border-subtle) !important; }
+.homeos-home-management :is(.bg-emerald-50,.hover\:bg-emerald-50:hover) {
+  background-color: color-mix(in srgb, var(--accent) 9%, var(--bg-card)) !important;
+}
+.homeos-home-management .homeos-home-panel {
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+.homeos-home-management .homeos-finance-empty,
+.homeos-home-management .homeos-finance-foreign,
+.homeos-home-management .homeos-spending-alerts,
+.homeos-home-management .homeos-home-forecast {
+  border-color: var(--border-subtle);
+}
+@media (max-width: 640px) {
+  .homeos-home-management .homeos-home-hero { border-radius: 16px; }
+  .homeos-home-management .homeos-home-tabs { overflow-x: auto; }
+}

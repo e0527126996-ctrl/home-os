@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { FinancialAccount, LedgerTransaction, HouseholdHomeItem } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
+import { buildFinanceAnalytics } from '../lib/financeAnalytics.ts';
 
 interface DashboardViewProps {
   accounts: FinancialAccount[];
@@ -27,15 +28,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   accounts, transactions, homeItems, householdName, activeTheme, onOpenAccounts, onOpenLedger,
 }) => {
   const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[] } | null>(null);
+  const financeAnalytics = useMemo(() => buildFinanceAnalytics(accounts, transactions), [accounts, transactions]);
   const accountCurrencies = useMemo(() => new Map(accounts.map(account => [account.id, account.currency])), [accounts]);
-  // The dashboard's cash-flow charts are ILS-only until verified FX conversion exists.
-  // Pending imports and malformed amounts are also excluded from confirmed activity.
-  const confirmedTransactions = useMemo(() => transactions.filter(tx =>
-    accountCurrencies.get(tx.accountId) === 'ILS' &&
-    tx.verificationStatus !== 'PENDING' &&
-    Number.isSafeInteger(tx.amountCents) &&
-    tx.amountCents > 0
-  ), [transactions, accountCurrencies]);
+  // All financial views use the same verified transaction selector.
+  const confirmedTransactions = useMemo(
+    () => financeAnalytics.verifiedTransactions.filter(tx => accountCurrencies.get(tx.accountId) === 'ILS'),
+    [financeAnalytics, accountCurrencies],
+  );
 
   useEffect(() => {
     if (!chartDetail) return;
@@ -55,29 +54,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const assets = assetAccounts.reduce((s, a) => s + (a.currentBalanceCents || 0), 0);
     const liabilities = liabilityAccounts.reduce((s, a) => s + Math.abs(a.currentBalanceCents || 0), 0);
     const now = new Date();
-    const months = Array.from({ length: 6 }, (_, index) => {
-      const date = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1);
-      const key = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
-      const monthTx = confirmedTransactions.filter(tx => tx.date && tx.date.slice(0, 7) === key);
-      return {
-        key, label: monthLabel(date),
-        income: monthTx.filter(tx => tx.type === 'INCOME').reduce((s, tx) => s + tx.amountCents, 0),
-        expense: monthTx.filter(tx => tx.type === 'EXPENSE').reduce((s, tx) => s + tx.amountCents, 0),
-      };
-    });
+    const months = financeAnalytics.months.slice(-6).map(month => ({
+      key: month.key, label: month.label, income: month.incomeCents, expense: month.expenseCents,
+    }));
     const currentKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     const current = months.find(m => m.key === currentKey) || { income: 0, expense: 0, label: '' };
-    const foreignTotals = new Map<string, { income: number; expense: number; count: number }>();
-    for (const tx of transactions) {
-      const currencyCode = accountCurrencies.get(tx.accountId);
-      if (!currencyCode || currencyCode === 'ILS' || tx.verificationStatus === 'PENDING' || tx.date?.slice(0, 7) !== currentKey || !Number.isSafeInteger(tx.amountCents) || tx.amountCents <= 0 || (tx.type !== 'INCOME' && tx.type !== 'EXPENSE')) continue;
-      const totals = foreignTotals.get(currencyCode) || { income: 0, expense: 0, count: 0 };
-      if (tx.type === 'INCOME') totals.income += tx.amountCents;
-      else totals.expense += tx.amountCents;
-      totals.count += 1;
-      foreignTotals.set(currencyCode, totals);
-    }
-    const foreignCurrencySummaries = [...foreignTotals.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([currencyCode, totals]) => ({ currencyCode, ...totals }));
+    const foreignCurrencySummaries = financeAnalytics.foreignCurrencySummaries.map(item => ({
+      currencyCode: item.currency, income: item.incomeCents, expense: item.expenseCents, count: item.count,
+    }));
     const previous = months[months.length - 2] || { income: 0, expense: 0, label: '' };
     const currentDay = now.getDate();
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
@@ -94,12 +78,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .reduce((sum, tx) => sum + tx.amountCents, 0);
     const expenseChange = previousExpenseToDate > 0 ? ((expenseToDate - previousExpenseToDate) / previousExpenseToDate) * 100 : null;
     const max = Math.max(1, ...months.flatMap(m => [m.income, m.expense]));
-    const categories = confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date && tx.date.slice(0, 7) === currentKey)
-      .reduce<Record<string, number>>((acc, tx) => {
-        const key = tx.category || 'ללא קטגוריה';
-        acc[key] = (acc[key] || 0) + tx.amountCents;
-        return acc;
-      }, {});
+    const categories = Object.fromEntries(financeAnalytics.categories);
     const topCategories = Object.entries(categories).sort((a, b) => b[1] - a[1]);
     const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
     const completedMonths = months.slice(0, -1).slice(-3);
@@ -110,8 +89,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const baselineTransactionCount = confirmedTransactions.filter(tx => completedMonths.some(m => tx.date?.slice(0, 7) === m.key) && (tx.type === 'INCOME' || tx.type === 'EXPENSE')).length;
     const averageExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
     const cashflow = current.income - current.expense;
-    const pendingReviewCount = transactions.filter(tx => tx.verificationStatus === 'PENDING').length;
-    const pendingReviewAmount = transactions.filter(tx => tx.verificationStatus === 'PENDING' && accountCurrencies.get(tx.accountId) === 'ILS' && Number.isSafeInteger(tx.amountCents) && tx.amountCents > 0).reduce((sum, tx) => sum + tx.amountCents, 0);
+    const pendingReviewCount = financeAnalytics.pendingTransactions.length;
+    const pendingReviewAmount = financeAnalytics.pendingAmountIlsCents;
     const reconciledTransactionCount = transactions.filter(tx => tx.verificationStatus === 'RECONCILED').length;
     const uncategorizedExpenseCount = transactions.filter(tx => tx.type === 'EXPENSE' && (!tx.category?.trim() || tx.category.trim() === 'ללא קטגוריה')).length;
 
@@ -174,7 +153,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .slice(0, 4);
 
     return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, foreignCurrencySummaries, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, pendingReviewAmount, reconciledTransactionCount, uncategorizedExpenseCount };
-  }, [accounts, transactions, confirmedTransactions, accountCurrencies]);
+  }, [accounts, transactions, confirmedTransactions, accountCurrencies, financeAnalytics]);
 
   const today = new Date();
   const todayKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
@@ -343,6 +322,43 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             עדיין אין מספיק היסטוריית עסקאות כדי לחשב תחזית אמינה. לאחר הזנת עסקאות בחודשים קודמים יוצג כאן אומדן הכנסות, הוצאות ותזרים.
           </div>
         )}
+      </section>
+
+      <section className={panel + ' p-5 sm:p-7'}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="homeos-section-kicker">תחזית תזרים רב-חודשית</div>
+            <h2 className="mt-1 text-lg font-bold">מבט קדימה · 12 חודשים</h2>
+            <p className="mt-1 text-xs" style={muted}>תרחיש בסיס לפי ממוצע של שלושת החודשים המלאים האחרונים, ללא הנחת הכנסות או חיובים עתידיים שלא נרשמו.</p>
+          </div>
+          <span className="rounded-full bg-[#547D70]/10 px-3 py-1.5 text-[10px] font-semibold text-[#547D70]">תחזית תרחישית</span>
+        </div>
+        {financeAnalytics.forecast.available ? <>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {financeAnalytics.forecast.horizons.map(item => (
+              <div key={item.months} className="rounded-2xl border p-4" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}>
+                <div className="text-xs" style={muted}>תזרים מצטבר חזוי · {item.months} חודשים</div>
+                <div className={'mt-2 text-xl font-bold tabular-nums ' + (item.netCents >= 0 ? 'text-[#477866]' : 'text-[#B45F56]')}>{currency(item.netCents)}</div>
+                <div className="mt-1 text-[10px]" style={muted}>הכנסות {currency(item.incomeCents)} · הוצאות {currency(item.expenseCents)}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 grid grid-cols-6 gap-2 sm:grid-cols-12">
+            {financeAnalytics.forecast.monthly.map(month => {
+              const maxCumulative = Math.max(1, ...financeAnalytics.forecast.monthly.map(point => Math.abs(point.cumulativeNetCents)));
+              const height = Math.max(4, Math.abs(month.cumulativeNetCents) / maxCumulative * 100);
+              return <div key={month.key} className="flex min-w-0 flex-col items-center gap-2" title={month.label + ': ' + currency(month.cumulativeNetCents)}>
+                <div className="flex h-28 w-full items-end justify-center rounded-lg px-1" style={{backgroundColor:activeTheme.bgSurface}}>
+                  <div className="w-full rounded-t-md" style={{height:height + '%',background:month.cumulativeNetCents >= 0 ? 'linear-gradient(180deg,#6F9B83,#477866)' : 'linear-gradient(180deg,#D08A7D,#B45F56)'}}/>
+                </div>
+                <span className="text-[9px] whitespace-nowrap" style={muted}>{month.label}</span>
+              </div>;
+            })}
+          </div>
+          <p className="mt-3 text-[10px] leading-5" style={muted}>רמת ביטחון: {financeAnalytics.forecast.confidence === 'good' ? 'טובה' : 'בינונית'} · מבוסס על {financeAnalytics.forecast.historyTransactions} עסקאות מאומתות בשלושה חודשים מלאים. זהו תרחיש קבוע ולא תחזית עונתית; יש להוסיף ידנית התחייבויות, שינויים בשכר והוצאות חריגות כדי לדייק אותו.</p>
+        </> : <div className="mt-5 rounded-2xl border p-5 text-sm leading-6" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface,color:activeTheme.textSecondary}}>
+          עדיין אין מספיק היסטוריה רציפה לתחזית אחראית. נדרשות לפחות 9 עסקאות מאומתות הפרוסות על פני שלושת החודשים המלאים האחרונים. בינתיים לא נציג מספרים מומצאים.
+        </div>}
       </section>
 
       <section className={panel + ' p-5 sm:p-7'}>

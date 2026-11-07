@@ -55,8 +55,10 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
   const [dateFilter, setDateFilter] = useState<
     'ALL' | 'THIS_MONTH' | 'LAST_MONTH'
   >('ALL');
+  const [reviewFilter, setReviewFilter] = useState<'ALL' | 'PENDING' | 'UNCATEGORIZED'>('ALL');
   const [deletingTx, setDeletingTx] = useState<LedgerTransaction | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   // מיפוי חשבונות לצורך הצגת שמות
   const accountsMap = useMemo(() => {
@@ -148,6 +150,9 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
         return false;
       }
 
+      if (reviewFilter === 'PENDING' && tx.verificationStatus !== 'PENDING') return false;
+      if (reviewFilter === 'UNCATEGORIZED' && (tx.type !== 'EXPENSE' || Boolean(tx.category?.trim()))) return false;
+
       if (searchTerm.trim()) {
         const query = searchTerm.toLowerCase();
         const payeeMatch = tx.payee.toLowerCase().includes(query);
@@ -179,6 +184,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
     typeFilter,
     categoryFilter,
     dateFilter,
+    reviewFilter,
     searchTerm,
     accountsMap,
     thisMonthPrefix,
@@ -192,13 +198,14 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
     return totals;
   }, { incomeCents: 0, expenseCents: 0, transferCents: 0 }), [filteredTransactions]);
 
-  const hasActiveFilters = Boolean(searchTerm.trim()) || typeFilter !== 'ALL' || accountFilter !== 'ALL' || categoryFilter !== 'ALL' || dateFilter !== 'ALL';
+  const hasActiveFilters = Boolean(searchTerm.trim()) || typeFilter !== 'ALL' || accountFilter !== 'ALL' || categoryFilter !== 'ALL' || dateFilter !== 'ALL' || reviewFilter !== 'ALL';
   const clearFilters = () => {
     setSearchTerm('');
     setTypeFilter('ALL');
     setAccountFilter('ALL');
     setCategoryFilter('ALL');
     setDateFilter('ALL');
+    setReviewFilter('ALL');
     onSelectAccount?.(null);
   };
 
@@ -210,8 +217,10 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
     try {
       await onDeleteTransaction(deletingTx.id);
       setDeletingTx(null);
+      setDeleteError('');
     } catch (err) {
       console.error(err);
+      setDeleteError(err instanceof Error ? err.message : 'מחיקת העסקה נכשלה. הנתונים לא שונו.');
     } finally {
       setIsDeleting(false);
     }
@@ -386,7 +395,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
           </div>
 
           {/* סרגל סינון */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2.5 pt-2 border-t border-stone-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-2.5 pt-2 border-t border-stone-100">
             {/* חיפוש */}
             <div className="relative md:col-span-2">
               <input
@@ -452,6 +461,19 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
                 <option value="EXPENSE">הוצאות בלבד</option>
                 <option value="INCOME">הכנסות בלבד</option>
                 <option value="TRANSFER">העברות פנימיות</option>
+              </select>
+            </div>
+
+            {/* סינון לפי סטטוס בדיקה */}
+            <div>
+              <select
+                value={reviewFilter}
+                onChange={(e) => setReviewFilter(e.target.value as 'ALL' | 'PENDING' | 'UNCATEGORIZED')}
+                className="w-full px-2.5 py-2 rounded-xl border border-stone-200 text-xs font-sans bg-stone-50/50 focus:bg-white focus:outline-none focus:border-amber-700"
+              >
+                <option value="ALL">כל סטטוסי הבדיקה</option>
+                <option value="PENDING">ממתינות לאימות</option>
+                <option value="UNCATEGORIZED">הוצאות ללא קטגוריה</option>
               </select>
             </div>
 
@@ -672,7 +694,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
 
                           <button
                             type="button"
-                            onClick={() => setDeletingTx(tx)}
+                            onClick={() => { setDeleteError(''); setDeletingTx(tx); }}
                             disabled={!canEdit}
                             title="מחיקת עסקה"
                             className="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-30"
@@ -728,6 +750,8 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
                 מבית עסק <strong>{deletingTx.payee}</strong>.
               </div>
             )}
+
+            {deleteError && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs leading-5 text-rose-800">{deleteError}</div>}
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-100">
               <button

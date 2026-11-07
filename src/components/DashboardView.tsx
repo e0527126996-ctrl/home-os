@@ -274,7 +274,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <div className="flex items-center gap-2 text-sm font-semibold"><Lightbulb className="h-4 w-4 shrink-0 text-[#B98B58]" />{item.category}</div>
                 <div className="mt-3 text-xs" style={muted}>תחזית לסוף החודש</div>
                 <div className="mt-1 text-xl font-bold tabular-nums">{currency(item.projected)}</div>
-                <div className="mt-2 text-xs leading-5" style={muted}>לעומת ממוצע חודשי של {currency(item.historicalAverage)} בשלושת החודשים המלאים הקודמים — פער צפוי של {currency(item.increase)}.</div>
+                <div className="mt-2 text-xs leading-5" style={muted}>לעומת ממוצע חודשי של {currency(item.historicalAverage)} בשלושת החודשים המלאים הקודמים — פער צפוי של {currency(item.increase)}. הסעיף הופיע ב-{item.historicalMonthsPresent} מתוך 3 חודשים, ונרשמו בו {item.transactionCount} עסקאות החודש.</div>
                 <button type="button" onClick={() => setChartDetail({ title: "בדיקת הוצאות: " + item.category, subtitle: "עסקאות בקטגוריה בחודש הנוכחי", items: transactions.filter(tx => tx.type === 'EXPENSE' && (tx.category || 'ללא קטגוריה') === item.category && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-text-link mt-3">בדיקת העסקאות <ArrowLeft className="h-4 w-4" /></button>
               </div>
             ))}

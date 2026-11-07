@@ -56,7 +56,7 @@ const cases: Array<{ name: string; run: () => void | Promise<void> }> = [
         'תאריך,תיאור,חובה,זכות',
         '01/11/2026,העברה נכנסת,,1250.00',
         '02/11/2026,העברה יוצאת,85.00,',
-      ].join('\\n');
+      ].join('\n');
       const file = new File([csv], 'bank-statement.csv', { type: 'text/csv' });
       const result = await parseStatementFileWithDiagnostics(file, []);
       assert.equal(result.rows.length, 2);

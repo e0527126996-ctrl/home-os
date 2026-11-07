@@ -3,6 +3,7 @@ import { CalendarDays, ChefHat, ClipboardCheck, ShoppingBasket, Plus, Trash2, Ch
 import { db } from '../lib/db.ts';
 import { FinancialAccount, Household, HouseholdHomeItem, LedgerTransaction, User } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
+import { buildFinanceAnalytics } from '../lib/financeAnalytics.ts';
 
 type Props = { household: Household; currentUser: User | null; activeTheme: ThemeConfig; canRead: boolean; canWrite: boolean; accounts: FinancialAccount[]; transactions: LedgerTransaction[]; onOpenLedger: () => void; onItemsChange: (items: HouseholdHomeItem[]) => void };
 type Recipe = { name: string; ingredients: string[]; instructions: string; category: string };
@@ -32,38 +33,18 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
   const shopping=useMemo(()=>items.filter(x=>x.kind==='shopping').sort((a,b)=>Number(Boolean((a.data as Shopping).checked))-Number(Boolean((b.data as Shopping).checked))),[items]);
   const tasks=useMemo(()=>items.filter(x=>x.kind==='task').sort((a,b)=>Number(Boolean((a.data as Task).done))-Number(Boolean((b.data as Task).done))||String(a.data.dueDate||'').localeCompare(String(b.data.dueDate||''))),[items]);
   const weekDays=useMemo(()=>Array.from({length:7},(_,i)=>{const d=new Date(week);d.setDate(d.getDate()+i);return iso(d);}),[week]);
-  const finance = useMemo(() => {
-    const currencies = new Map(accounts.map(account => [account.id, account.currency]));
-    const monthKey = iso(new Date()).slice(0, 7);
-    const verified = transactions.filter(tx => currencies.get(tx.accountId) === 'ILS' && tx.verificationStatus !== 'PENDING' && Number.isSafeInteger(tx.amountCents) && tx.amountCents > 0 && (tx.type === 'INCOME' || tx.type === 'EXPENSE'));
-    const month = verified.filter(tx => tx.date?.slice(0, 7) === monthKey);
-    const expenses = month.filter(tx => tx.type === 'EXPENSE');
-    const income = month.filter(tx => tx.type === 'INCOME').reduce((sum, tx) => sum + tx.amountCents, 0);
-    const expenseTotal = expenses.reduce((sum, tx) => sum + tx.amountCents, 0);
-    const byCategory = new Map<string, number>();
-    for (const tx of expenses) {
-      const label = tx.category?.trim() || 'ללא קטגוריה';
-      byCategory.set(label, (byCategory.get(label) || 0) + tx.amountCents);
-    }
-    return {
-      income, expenseTotal,
-      pending: transactions.filter(tx => tx.verificationStatus === 'PENDING').length,
-      pendingAmount: transactions.filter(tx => tx.verificationStatus === 'PENDING' && currencies.get(tx.accountId) === 'ILS' && Number.isSafeInteger(tx.amountCents) && tx.amountCents > 0).reduce((sum, tx) => sum + tx.amountCents, 0),
-      foreignAccounts: accounts.filter(account => account.status === 'ACTIVE' && account.currency !== 'ILS').length,
-      foreignCurrencies: (() => {
-        const totals = new Map<string, { income: number; expense: number }>();
-        for (const tx of transactions) {
-          const currencyCode = currencies.get(tx.accountId);
-          if (!currencyCode || currencyCode === 'ILS' || tx.verificationStatus === 'PENDING' || tx.date?.slice(0, 7) !== monthKey || !Number.isSafeInteger(tx.amountCents) || tx.amountCents <= 0 || (tx.type !== 'INCOME' && tx.type !== 'EXPENSE')) continue;
-          const value = totals.get(currencyCode) || { income: 0, expense: 0 };
-          if (tx.type === 'INCOME') value.income += tx.amountCents; else value.expense += tx.amountCents;
-          totals.set(currencyCode, value);
-        }
-        return [...totals.entries()].map(([currency, value]) => ({ currency, ...value }));
-      })(),
-      categories: [...byCategory.entries()].sort((a, b) => b[1] - a[1]),
-    };
-  }, [accounts, transactions]);
+  const financeAnalytics = useMemo(() => buildFinanceAnalytics(accounts, transactions), [accounts, transactions]);
+  const finance = useMemo(() => ({
+    income: financeAnalytics.currentMonth.incomeCents,
+    expenseTotal: financeAnalytics.currentMonth.expenseCents,
+    pending: financeAnalytics.pendingTransactions.length,
+    pendingAmount: financeAnalytics.pendingAmountIlsCents,
+    foreignAccounts: accounts.filter(account => account.status === 'ACTIVE' && account.currency !== 'ILS').length,
+    foreignCurrencies: financeAnalytics.foreignCurrencySummaries.map(item => ({
+      currency: item.currency, income: item.incomeCents, expense: item.expenseCents,
+    })),
+    categories: financeAnalytics.categories,
+  }), [financeAnalytics, accounts]);
   const money = (cents: number) => new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(cents / 100);
   const save=async(kind:HouseholdHomeItem['kind'],data:Record<string,unknown>,id=uid(kind))=>{
     if(!currentUser||!canWrite)return; setBusy(true);

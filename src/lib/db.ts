@@ -1614,15 +1614,23 @@ class HomeOSIndexedDB {
       updatedAt: now,
       createdBy: actorUserId,
     }));
-    await this.transaction(['ledger_transactions'], 'readwrite', async tx => {
+    const auditLog: AuditLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      householdId,
+      userId: actorUserId,
+      userEmail: actorEmail,
+      action: 'IMPORT_STATEMENT_BATCH',
+      domain: 'FINANCE',
+      details: `ייבוא אטומי של ${importedRows.length} עסקאות מקובץ דף חשבון לחשבון ${account.name}; כל העסקאות ממתינות לאימות`,
+      timestamp: now,
+    };
+    await this.transaction(['ledger_transactions', 'audit_logs'], 'readwrite', async tx => {
       const store = tx.objectStore('ledger_transactions');
+      const auditStore = tx.objectStore('audit_logs');
       const writes = importedRows.map(item => this.reqToPromise(store.add(item)));
       await Promise.all(writes);
+      await this.reqToPromise(auditStore.add(auditLog));
     });
-    await this.recordAuditLog(
-      householdId, actorUserId, actorEmail, 'IMPORT_STATEMENT_BATCH', 'FINANCE',
-      `ייבוא אטומי של ${importedRows.length} עסקאות מקובץ דף חשבון לחשבון ${account.name}; כל העסקאות ממתינות לאימות`
-    );
     return importedRows;
   }
 

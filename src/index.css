@@ -1991,3 +1991,4 @@ body {
   .homeos-main-nav .homeos-nav-item { min-height: 42px; padding: 9px 11px; }
   .homeos-dashboard > header { padding: 20px 17px; border-radius: 17px; }
 }
+.homeos-main-content > :not([hidden]) ~ :not([hidden]) { margin-block-start: 0; }

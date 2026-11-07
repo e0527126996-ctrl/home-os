@@ -258,6 +258,43 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
+      <section className={panel + ' p-5 sm:p-7'}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="homeos-section-kicker">תחזית תזרים רב-חודשית</div>
+            <h2 className="mt-1 text-lg font-bold">מבט קדימה · 12 חודשים</h2>
+            <p className="mt-1 text-xs" style={muted}>תרחיש בסיס לפי ממוצע של שלושת החודשים המלאים האחרונים, ללא הנחת הכנסות או חיובים עתידיים שלא נרשמו.</p>
+          </div>
+          <span className="rounded-full bg-[#547D70]/10 px-3 py-1.5 text-[10px] font-semibold text-[#547D70]">תחזית תרחישית</span>
+        </div>
+        {financeAnalytics.forecast.available ? <>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {financeAnalytics.forecast.horizons.map(item => (
+              <div key={item.months} className="rounded-2xl border p-4" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}>
+                <div className="text-xs" style={muted}>תזרים מצטבר חזוי · {item.months} חודשים</div>
+                <div className={'mt-2 text-xl font-bold tabular-nums ' + (item.netCents >= 0 ? 'text-[#477866]' : 'text-[#B45F56]')}>{currency(item.netCents)}</div>
+                <div className="mt-1 text-[10px]" style={muted}>הכנסות {currency(item.incomeCents)} · הוצאות {currency(item.expenseCents)}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 grid grid-cols-6 gap-2 sm:grid-cols-12">
+            {financeAnalytics.forecast.monthly.map(month => {
+              const maxCumulative = Math.max(1, ...financeAnalytics.forecast.monthly.map(point => Math.abs(point.cumulativeNetCents)));
+              const height = Math.max(4, Math.abs(month.cumulativeNetCents) / maxCumulative * 100);
+              return <div key={month.key} className="flex min-w-0 flex-col items-center gap-2" title={month.label + ': ' + currency(month.cumulativeNetCents)}>
+                <div className="flex h-28 w-full items-end justify-center rounded-lg px-1" style={{backgroundColor:activeTheme.bgSurface}}>
+                  <div className="w-full rounded-t-md" style={{height:height + '%',background:month.cumulativeNetCents >= 0 ? 'linear-gradient(180deg,#6F9B83,#477866)' : 'linear-gradient(180deg,#D08A7D,#B45F56)'}}/>
+                </div>
+                <span className="text-[9px] whitespace-nowrap" style={muted}>{month.label}</span>
+              </div>;
+            })}
+          </div>
+          <p className="mt-3 text-[10px] leading-5" style={muted}>רמת ביטחון: {financeAnalytics.forecast.confidence === 'good' ? 'טובה' : 'בינונית'} · מבוסס על {financeAnalytics.forecast.historyTransactions} עסקאות מאומתות בשלושה חודשים מלאים. זהו תרחיש קבוע ולא תחזית עונתית; יש להוסיף ידנית התחייבויות, שינויים בשכר והוצאות חריגות כדי לדייק אותו.</p>
+        </> : <div className="mt-5 rounded-2xl border p-5 text-sm leading-6" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface,color:activeTheme.textSecondary}}>
+          עדיין אין מספיק היסטוריה רציפה לתחזית אחראית. נדרשות לפחות 9 עסקאות מאומתות הפרוסות על פני שלושת החודשים המלאים האחרונים. בינתיים לא נציג מספרים מומצאים.
+        </div>}
+      </section>
+
       <details className="homeos-advanced-details">
         <summary>
           <span className="homeos-advanced-title">ניתוח מתקדם</span>
@@ -322,43 +359,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             עדיין אין מספיק היסטוריית עסקאות כדי לחשב תחזית אמינה. לאחר הזנת עסקאות בחודשים קודמים יוצג כאן אומדן הכנסות, הוצאות ותזרים.
           </div>
         )}
-      </section>
-
-      <section className={panel + ' p-5 sm:p-7'}>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="homeos-section-kicker">תחזית תזרים רב-חודשית</div>
-            <h2 className="mt-1 text-lg font-bold">מבט קדימה · 12 חודשים</h2>
-            <p className="mt-1 text-xs" style={muted}>תרחיש בסיס לפי ממוצע של שלושת החודשים המלאים האחרונים, ללא הנחת הכנסות או חיובים עתידיים שלא נרשמו.</p>
-          </div>
-          <span className="rounded-full bg-[#547D70]/10 px-3 py-1.5 text-[10px] font-semibold text-[#547D70]">תחזית תרחישית</span>
-        </div>
-        {financeAnalytics.forecast.available ? <>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            {financeAnalytics.forecast.horizons.map(item => (
-              <div key={item.months} className="rounded-2xl border p-4" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}>
-                <div className="text-xs" style={muted}>תזרים מצטבר חזוי · {item.months} חודשים</div>
-                <div className={'mt-2 text-xl font-bold tabular-nums ' + (item.netCents >= 0 ? 'text-[#477866]' : 'text-[#B45F56]')}>{currency(item.netCents)}</div>
-                <div className="mt-1 text-[10px]" style={muted}>הכנסות {currency(item.incomeCents)} · הוצאות {currency(item.expenseCents)}</div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-6 grid grid-cols-6 gap-2 sm:grid-cols-12">
-            {financeAnalytics.forecast.monthly.map(month => {
-              const maxCumulative = Math.max(1, ...financeAnalytics.forecast.monthly.map(point => Math.abs(point.cumulativeNetCents)));
-              const height = Math.max(4, Math.abs(month.cumulativeNetCents) / maxCumulative * 100);
-              return <div key={month.key} className="flex min-w-0 flex-col items-center gap-2" title={month.label + ': ' + currency(month.cumulativeNetCents)}>
-                <div className="flex h-28 w-full items-end justify-center rounded-lg px-1" style={{backgroundColor:activeTheme.bgSurface}}>
-                  <div className="w-full rounded-t-md" style={{height:height + '%',background:month.cumulativeNetCents >= 0 ? 'linear-gradient(180deg,#6F9B83,#477866)' : 'linear-gradient(180deg,#D08A7D,#B45F56)'}}/>
-                </div>
-                <span className="text-[9px] whitespace-nowrap" style={muted}>{month.label}</span>
-              </div>;
-            })}
-          </div>
-          <p className="mt-3 text-[10px] leading-5" style={muted}>רמת ביטחון: {financeAnalytics.forecast.confidence === 'good' ? 'טובה' : 'בינונית'} · מבוסס על {financeAnalytics.forecast.historyTransactions} עסקאות מאומתות בשלושה חודשים מלאים. זהו תרחיש קבוע ולא תחזית עונתית; יש להוסיף ידנית התחייבויות, שינויים בשכר והוצאות חריגות כדי לדייק אותו.</p>
-        </> : <div className="mt-5 rounded-2xl border p-5 text-sm leading-6" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface,color:activeTheme.textSecondary}}>
-          עדיין אין מספיק היסטוריה רציפה לתחזית אחראית. נדרשות לפחות 9 עסקאות מאומתות הפרוסות על פני שלושת החודשים המלאים האחרונים. בינתיים לא נציג מספרים מומצאים.
-        </div>}
       </section>
 
       <section className={panel + ' p-5 sm:p-7'}>

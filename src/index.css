@@ -607,3 +607,58 @@ body {
   main:has(> .homeos-navigation-shell) > * + * { margin-top: 0 !important; }
   .homeos-navigation-shell { position: static; }
 }
+
+
+/* Editorial dashboard: fewer boxes, clearer hierarchy, progressive disclosure. */
+.homeos-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border-block: 1px solid var(--border-subtle);
+  background: transparent;
+}
+.homeos-kpi-item {
+  min-width: 0;
+  padding: 1.15rem 1.35rem;
+  text-align: right;
+  background: transparent;
+  border: 0;
+  border-inline-start: 1px solid var(--border-subtle);
+  transition: background-color .18s ease;
+}
+.homeos-kpi-item:last-child { border-inline-start: 0; }
+.homeos-kpi-item:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.homeos-kpi-item .homeos-icon-tile { display: none; }
+.homeos-kpi-item .homeos-card-top { min-height: 1.4rem; color: var(--text-secondary); font-size: .78rem; }
+.homeos-kpi-item .homeos-kpi-value { margin-top: .45rem; font-size: clamp(1.35rem, 2vw, 1.9rem); letter-spacing: -.035em; }
+.homeos-kpi-item .homeos-card-foot { margin-top: .35rem; color: var(--text-secondary); font-size: .68rem; }
+.homeos-advanced-details {
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.35rem;
+  background: var(--bg-card);
+}
+.homeos-advanced-details > summary {
+  display: flex;
+  min-height: 4.25rem;
+  align-items: center;
+  gap: .85rem;
+  padding: 1rem 1.35rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.homeos-advanced-details > summary::-webkit-details-marker { display: none; }
+.homeos-advanced-title { font-weight: 750; font-size: .92rem; color: var(--text-primary); }
+.homeos-advanced-description { flex: 1; color: var(--text-secondary); font-size: .75rem; }
+.homeos-advanced-chevron { color: var(--text-secondary); transition: transform .18s ease; }
+.homeos-advanced-details[open] > summary { border-bottom: 1px solid var(--border-subtle); }
+.homeos-advanced-details[open] .homeos-advanced-chevron { transform: rotate(-90deg); }
+.homeos-advanced-content { padding: 1.15rem; }
+@media (max-width: 760px) {
+  .homeos-kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .homeos-kpi-item:nth-child(2) { border-inline-start: 0; }
+  .homeos-kpi-item:nth-child(-n+2) { border-bottom: 1px solid var(--border-subtle); }
+  .homeos-advanced-details > summary { flex-wrap: wrap; gap: .45rem .7rem; }
+  .homeos-advanced-description { flex-basis: calc(100% - 2rem); order: 3; }
+}

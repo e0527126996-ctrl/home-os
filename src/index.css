@@ -712,3 +712,13 @@ body {
  .homeos-home-snapshot-metrics > div { border-inline-start:0; border-bottom:1px solid var(--homeos-border); }
  .homeos-home-snapshot-metrics > div:last-child { border-bottom:0; }
 }
+
+
+/* Foreign-currency activity is reported in native currency, never mixed into ILS totals. */
+.homeos-foreign-currency { padding:1.3rem 1.4rem; border:1px solid var(--homeos-border); border-radius:1rem; background:var(--homeos-card); }
+.homeos-foreign-row { display:grid; gap:.75rem; padding:.9rem 0; border-bottom:1px solid var(--homeos-border); }
+.homeos-foreign-row:last-child { border-bottom:0; }
+.homeos-finance-track span.income { background:#527A68; }
+.homeos-finance-track span.expense { background:#C49A69; }
+.homeos-lux-panel { border-radius: 14px; box-shadow: 0 4px 18px rgba(34,47,39,.035), inset 0 1px 0 rgba(255,255,255,.65); }
+.homeos-lux-panel:hover { box-shadow: 0 8px 24px rgba(34,47,39,.055), inset 0 1px 0 rgba(255,255,255,.72); }

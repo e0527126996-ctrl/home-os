@@ -422,7 +422,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           {(type === 'CREDIT_CARD' || type === 'CHECKING') && (
             <div>
               <label className="block text-xs font-medium mb-1">
-                {type === 'CREDIT_CARD' ? 'מסגרת אשראי חודשית (₪)' : 'מסגרת משיכת יתר / אוברדרפט (₪)'}
+                {type === 'CREDIT_CARD' ? 'מסגרת אשראי חודשית (' + currency + ')' : 'מסגרת משיכת יתר / אוברדרפט (' + currency + ')'}
               </label>
               <input
                 type="number"

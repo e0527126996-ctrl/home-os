@@ -22,6 +22,7 @@ import {
 } from '../types.ts';
 import { formatCents, fromCents, parseCurrencyInput, toCents } from './currency.ts';
 import { buildFinanceAnalytics } from './financeAnalytics.ts';
+import { classifyShoppingCategory, formatIngredientQuantity, mergeQuantityTexts, normalizeShoppingName, splitIngredientName } from './shoppingIntelligence.ts';
 
 const DB_NAME = 'home_os_db';
 const DB_VERSION = 5;
@@ -3689,6 +3690,56 @@ class HomeOSIndexedDB {
         message: e.message,
         durationMs: Math.round(performance.now() - t23Start),
       });
+    }
+
+    // Test 24: Hebrew ingredient parser handles scaled quantities and fractions.
+    const t24Start = performance.now();
+    try {
+      const scaled = formatIngredientQuantity(['שמן זית – 2 כפות', 'קמח – 1/2 כוס'], 2);
+      const prefixParsed = splitIngredientName('2 כפות שמן זית') === 'שמן זית';
+      const fractionParsed = scaled.includes('4 כף') && scaled.includes('1 כוס');
+      const success = prefixParsed && fractionParsed;
+      results.push({
+        testName: '24. פענוח כמויות מתכונים, תחביר עברי ושברי מנות',
+        passed: success,
+        message: success ? 'זוהו כמויות לפני ואחרי שם המצרך, הכפילויות הומרו לשמות יחידה אחידים ושברים חושבו נכון' : 'כשל בפענוח כמות לפני שם המצרך או בהמרת כמויות ושברים',
+        durationMs: Math.round(performance.now() - t24Start),
+      });
+    } catch (e: any) {
+      results.push({ testName: '24. פענוח כמויות מתכונים, תחביר עברי ושברי מנות', passed: false, message: e.message, durationMs: Math.round(performance.now() - t24Start) });
+    }
+
+    // Test 25: Repeated quantities merge only when their units match.
+    const t25Start = performance.now();
+    try {
+      const merged = mergeQuantityTexts('2 כף', '3 כפות');
+      const separateUnits = mergeQuantityTexts('500 גרם', '1 ק״ג');
+      const success = merged === '5 כף' && separateUnits.includes('500 גרם') && separateUnits.includes('1 ק״ג');
+      results.push({
+        testName: '25. איחוד כמויות זהות ללא המרה שגויה בין יחידות',
+        passed: success,
+        message: success ? 'יחידות זהות אוחדו; גרמים וקילוגרמים נשמרו בנפרד ללא המרת יחידות לא מבוססת' : 'כשל באיחוד כמויות או בהפרדת יחידות שונות',
+        durationMs: Math.round(performance.now() - t25Start),
+      });
+    } catch (e: any) {
+      results.push({ testName: '25. איחוד כמויות זהות ללא המרה שגויה בין יחידות', passed: false, message: e.message, durationMs: Math.round(performance.now() - t25Start) });
+    }
+
+    // Test 26: Hebrew plural aliases and grocery categories.
+    const t26Start = performance.now();
+    try {
+      const sameProduce = normalizeShoppingName('עגבניות') === normalizeShoppingName('עגבנייה');
+      const produceCategory = classifyShoppingCategory('עגבניות') === 'ירקות ופירות';
+      const dairyCategory = classifyShoppingCategory('גבינה לבנה') === 'מוצרי חלב וביצים';
+      const success = sameProduce && produceCategory && dairyCategory;
+      results.push({
+        testName: '26. נרמול שמות מצרכים וקיטלוג רשימת הקניות',
+        passed: success,
+        message: success ? 'שמות נפוצים בזכר/נקבה/רבים נורמלו וקטגוריות מזון זוהו' : 'כשל בנרמול שמות או בסיווג קטגוריות קניות',
+        durationMs: Math.round(performance.now() - t26Start),
+      });
+    } catch (e: any) {
+      results.push({ testName: '26. נרמול שמות מצרכים וקיטלוג רשימת הקניות', passed: false, message: e.message, durationMs: Math.round(performance.now() - t26Start) });
     }
 
     const allPassed = results.every((r) => r.passed);

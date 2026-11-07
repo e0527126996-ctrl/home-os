@@ -2069,11 +2069,18 @@ class HomeOSIndexedDB {
     }
     const backupAccountsById = new Map((backup.accounts || []).map(account => [account.id, account]));
     const backupTransactionsById = new Map(backupTransactions.map(transaction => [transaction.id, transaction]));
-    if (backupTransactions.some(transaction =>
+    const transferLegCounts = new Map<string, number>();
+    for (const transaction of backupTransactions) {
+      if (transaction.type === 'TRANSFER' && transaction.transferId) {
+        transferLegCounts.set(transaction.transferId, (transferLegCounts.get(transaction.transferId) || 0) + 1);
+      }
+    }
+    if ([...transferLegCounts.values()].some(count => count !== 2) || backupTransactions.some(transaction =>
       transaction.type === 'TRANSFER' &&
       (!transaction.transferId ||
         !transaction.linkedTransactionId ||
         !transaction.counterpartyAccountId ||
+        !['OUT', 'IN'].includes(transaction.transferDirection || '') ||
         backupAccountsById.get(transaction.accountId)?.currency !== backupAccountsById.get(transaction.counterpartyAccountId)?.currency ||
         (() => {
           const counterpart = backupTransactionsById.get(transaction.linkedTransactionId!);
@@ -2086,6 +2093,7 @@ class HomeOSIndexedDB {
             counterpart.amountCents !== transaction.amountCents ||
             counterpart.date !== transaction.date ||
             counterpart.verificationStatus !== transaction.verificationStatus ||
+            !['OUT', 'IN'].includes(counterpart.transferDirection || '') ||
             counterpart.transferDirection === transaction.transferDirection;
         })())
     )) {

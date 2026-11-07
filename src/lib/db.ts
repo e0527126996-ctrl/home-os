@@ -2041,20 +2041,44 @@ class HomeOSIndexedDB {
     if ((backup.permissions || []).some(rule => !membershipIds.has(rule.membershipId))) {
       throw new Error('הגיבוי מכיל הרשאה שאינה משויכת לחברות קיימת');
     }
+    const backupTransactions = backup.transactions || [];
+    if (backupTransactions.some(transaction =>
+      !isValidISODate(transaction.date) ||
+      !Number.isSafeInteger(transaction.amountCents) ||
+      transaction.amountCents <= 0 ||
+      (transaction.valueDate !== undefined && !isValidISODate(transaction.valueDate))
+    )) {
+      throw new Error('הגיבוי מכיל עסקה עם תאריך או סכום שאינם תקינים');
+    }
     const accountIds = new Set((backup.accounts || []).map(account => account.id));
-    if ((backup.transactions || []).some(transaction =>
+    if (backupTransactions.some(transaction =>
       !accountIds.has(transaction.accountId) ||
       Boolean(transaction.counterpartyAccountId && !accountIds.has(transaction.counterpartyAccountId))
     )) {
       throw new Error('הגיבוי מכיל עסקה המשויכת לחשבון מקור או יעד שאינו כלול בגיבוי');
     }
     const backupAccountsById = new Map((backup.accounts || []).map(account => [account.id, account]));
-    if ((backup.transactions || []).some(transaction =>
+    const backupTransactionsById = new Map(backupTransactions.map(transaction => [transaction.id, transaction]));
+    if (backupTransactions.some(transaction =>
       transaction.type === 'TRANSFER' &&
-      transaction.counterpartyAccountId &&
-      backupAccountsById.get(transaction.accountId)?.currency !== backupAccountsById.get(transaction.counterpartyAccountId)?.currency
+      (!transaction.transferId ||
+        !transaction.linkedTransactionId ||
+        !transaction.counterpartyAccountId ||
+        backupAccountsById.get(transaction.accountId)?.currency !== backupAccountsById.get(transaction.counterpartyAccountId)?.currency ||
+        (() => {
+          const counterpart = backupTransactionsById.get(transaction.linkedTransactionId!);
+          return !counterpart ||
+            counterpart.type !== 'TRANSFER' ||
+            counterpart.linkedTransactionId !== transaction.id ||
+            counterpart.transferId !== transaction.transferId ||
+            counterpart.counterpartyAccountId !== transaction.accountId ||
+            counterpart.amountCents !== transaction.amountCents ||
+            counterpart.date !== transaction.date ||
+            counterpart.verificationStatus !== transaction.verificationStatus ||
+            counterpart.transferDirection === transaction.transferDirection;
+        })())
     )) {
-      throw new Error('הגיבוי מכיל העברה בין מטבעות שונים ללא שער המרה מאומת');
+      throw new Error('הגיבוי מכיל העברה לא תקינה או בין מטבעות שונים; יש לתקן את הזוג המקושר לפני השחזור');
     }
 
     await this.transaction(

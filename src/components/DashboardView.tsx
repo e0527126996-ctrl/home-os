@@ -154,7 +154,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const muted = { color: activeTheme.textSecondary };
   const panel = 'homeos-lux-panel';
   const categoryTotal = data.topCategories.reduce((sum, item) => sum + item[1], 0);
-  const categoryColors = [activeTheme.accent, activeTheme.accentMuted, '#8295A7', '#A97972', '#9C9A7D'];
+  const categoryColors = [activeTheme.accent, activeTheme.isDark ? '#A3B7C8' : activeTheme.accentMuted, '#8295A7', '#A97972', '#9C9A7D'];
   const monthName = new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' }).format(new Date());
   const hasActivity = data.current.income > 0 || data.current.expense > 0;
 

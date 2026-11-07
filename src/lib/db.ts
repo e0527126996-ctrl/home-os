@@ -1554,19 +1554,20 @@ class HomeOSIndexedDB {
       createdBy: actorUserId,
     };
 
-    await this.transaction(['ledger_transactions'], 'readwrite', async (tx) => {
-      const store = tx.objectStore('ledger_transactions');
-      await this.reqToPromise(store.put(newTx));
-    });
-
-    await this.recordAuditLog(
+    const auditLog: AuditLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       householdId,
-      actorUserId,
-      actorEmail,
-      'CREATE_TRANSACTION',
-      'FINANCE',
-      `רישום עסקה: ${newTx.type === 'INCOME' ? 'הכנסה' : 'הוצאה'} ע"ס ${formatCents(newTx.amountCents, account.currency)} בחשבון ${account.name} (${newTx.payee})`
-    );
+      userId: actorUserId,
+      userEmail: actorEmail,
+      action: 'CREATE_TRANSACTION',
+      domain: 'FINANCE',
+      details: `רישום עסקה: ${newTx.type === 'INCOME' ? 'הכנסה' : 'הוצאה'} ע"ס ${formatCents(newTx.amountCents, account.currency)} בחשבון ${account.name} (${newTx.payee})`,
+      timestamp: now,
+    };
+    await this.transaction(['ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
+      await this.reqToPromise(tx.objectStore('ledger_transactions').put(newTx));
+      await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
+    });
 
     return newTx;
   }
@@ -1736,21 +1737,23 @@ class HomeOSIndexedDB {
       createdBy: actorUserId,
     };
 
-    // ATOMIC WRITE: Both legs written in the exact same transaction
-    await this.transaction(['ledger_transactions'], 'readwrite', async (tx) => {
+    // Both transfer legs and their audit entry commit or roll back together.
+    const auditLog: AuditLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      householdId,
+      userId: actorUserId,
+      userEmail: actorEmail,
+      action: 'CREATE_TRANSFER',
+      domain: 'FINANCE',
+      details: `ביצוע העברה פנימית ע"ס ${formatCents(data.amountCents, fromAccount.currency)} מחשבון ${fromAccount.name} אל ${toAccount.name}`,
+      timestamp: now,
+    };
+    await this.transaction(['ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
       const store = tx.objectStore('ledger_transactions');
       await this.reqToPromise(store.put(outgoingLeg));
       await this.reqToPromise(store.put(incomingLeg));
+      await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
     });
-
-    await this.recordAuditLog(
-      householdId,
-      actorUserId,
-      actorEmail,
-      'CREATE_TRANSFER',
-      'FINANCE',
-      `ביצוע העברה פנימית ע"ס ${formatCents(data.amountCents, fromAccount.currency)} מחשבון ${fromAccount.name} אל ${toAccount.name}`
-    );
 
     return { outgoingLeg, incomingLeg };
   }

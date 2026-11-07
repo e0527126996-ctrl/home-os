@@ -1,5 +1,5 @@
 /**
- * HOME OS ג€” IndexedDB Core Data Store & Tenant-Isolation Layer
+ * HOME OS — IndexedDB Core Data Store & Tenant-Isolation Layer
  * Single Source of Truth for local-first operations.
  */
 
@@ -619,7 +619,7 @@ class HomeOSIndexedDB {
     const actorMembership = memberships.find((m) => m.userId === actorUserId);
 
     if (!actorMembership) {
-      throw new Error('הכנסה ����: ���� ��� ���� ��� �� (Tenant Isolation Violation).');
+      throw new Error('דחיית הרשאה: המשתמש אינו חבר במשק הבית הפעיל (הפרת בידוד משקי בית).');
     }
 
     if (actorMembership.role === 'owner') return;
@@ -627,7 +627,7 @@ class HomeOSIndexedDB {
     if (actorMembership.role === 'admin') return;
 
     if (actorMembership.role === 'read_only' && (requiredAction === 'write' || requiredAction === 'approve')) {
-      throw new Error("דחיית הרשאה: משתמש בתפקיד 'הוצאה ����' (Read-Only) אינו רשאי לבצע שינויים.");
+      throw new Error("דחיית הרשאה: משתמש בתפקיד 'צפייה בלבד' (Read-Only) אינו רשאי לבצע שינויים.");
     }
 
     const rules = await this.getPermissionsByMembership(actorMembership.id);

@@ -96,23 +96,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
     // Compare the current month's category run-rate with the average of the prior
     // three complete months. This is a review signal, not a promised saving.
-    const savingsInsights = projectionReady && completedMonths.length === 3
-      ? Object.entries(categories).map(([category, currentAmount]) => {
-          const categoryTransactions = currentMonthTransactions.filter(tx => tx.type === 'EXPENSE' && (tx.category || 'ללא קטגוריה') === category);
-          const categoryHistory = completedMonths.map(month => confirmedTransactions
-            .filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === month.key && (tx.category || 'ללא קטגוריה') === category)
-            .reduce((monthSum, tx) => monthSum + tx.amountCents, 0));
-          const historicalTotal = categoryHistory.reduce((sum, amount) => sum + amount, 0);
-          const historicalMonthsPresent = categoryHistory.filter(amount => amount > 0).length;
-          const historicalAverage = historicalTotal / 3;
-          const projected = Math.round(currentAmount * paceFactor);
-          const increase = projected - historicalAverage;
-          return { category, currentAmount, projected, historicalAverage, historicalMonthsPresent, increase, transactionCount: categoryTransactions.length };
-        })
-        .filter(item => item.transactionCount >= 2 && item.historicalMonthsPresent >= 2 && item.historicalAverage > 0 && item.increase >= 5000 && item.projected >= item.historicalAverage * 1.2)
-        .sort((a, b) => b.increase - a.increase)
-        .slice(0, 3)
-      : [];
+    const savingsInsights = financeAnalytics.spendingAlerts;
     // Surface possible recurring expense patterns from repeated merchant/category activity.
     // This is deliberately a review signal, not proof of a subscription or fixed bill.
     const monthKeys = new Set(months.map(month => month.key));

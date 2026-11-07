@@ -114,6 +114,7 @@ function rowFromValues(values: unknown[], headers: string[], index: number): Imp
   };
   const date = parseDate(find(['תאריךעסקה','תאריךתנועה','תאריך','date','transactiondate','valuedate','תאריךערך']));
   const payee = clean(find(['תיאורעסקה','תיאור','פרטי','פרטים','שםביתעסק','ביתעסק','שםמוטב','מוטב','שםפעולה','פעולה','description','details','payee','merchant','transactiondetails']));
+  const direction = clean(find(['סוגתנועה','סוגפעולה','חובהזכות','סוג','type','transactiontype','debitcredit'])).toLowerCase();
   const debit = parseAmount(find(['חובה','סכוםלחיוב','סכוםחובה','בחובה','חיוב','debit','withdrawal']));
   const credit = parseAmount(find(['זכות','סכוםלזכות','סכוםזכות','בזכות','זיכוי','credit','deposit']));
   const amountCell = parseAmount(find(['סכום','amount','סכוםהתנועה','תנועה']));
@@ -123,9 +124,18 @@ function rowFromValues(values: unknown[], headers: string[], index: number): Imp
       debit !== null && Math.abs(debit) > 0 ? -Math.abs(debit) : 0;
   }
   if (!date || !payee || amount === null || amount === 0) return null;
-  const type = amount > 0 ? 'INCOME' : 'EXPENSE';
+  const directionIsIncome = /זכות|זיכוי|הפקדה|קבלה|credit|deposit|income|כניסה/.test(direction);
+  const directionIsExpense = /חובה|חיוב|משיכה|תשלום|debit|withdrawal|expense|יציאה/.test(direction);
+  const payeeSuggestsIncome = INCOME_RULES.some(([pattern]) => pattern.test(payee));
+  const payeeSuggestsExpense = EXPENSE_RULES.some(([pattern]) => pattern.test(payee));
+  const type = amount < 0 || (directionIsExpense && !directionIsIncome)
+    ? 'EXPENSE'
+    : directionIsIncome || (payeeSuggestsIncome && !payeeSuggestsExpense) ? 'INCOME' : 'EXPENSE';
   const suggestion = categorize(payee, type);
-  return { id: `row_${index}_${date}_${Math.abs(amount)}`, date, payee, amountCents: Math.abs(amount), type, category: suggestion.category, confidence: suggestion.confidence, duplicate: false, sourceText: values.map(clean).join(' | ') };
+  const confidence = directionIsIncome || directionIsExpense || payeeSuggestsIncome || payeeSuggestsExpense
+    ? 'high' as const
+    : 'low' as const;
+  return { id: `row_${index}_${date}_${Math.abs(amount)}`, date, payee, amountCents: Math.abs(amount), type, category: suggestion.category, confidence, duplicate: false, sourceText: values.map(clean).join(' | ') };
 }
 
 function parseTabularRows(rows: unknown[][]): ImportedStatementRow[] {

@@ -53,6 +53,7 @@ import {
   LedgerTransaction,
   Role,
   User,
+  HouseholdHomeItem,
 } from './types.ts';
 
 export default function App() {
@@ -67,6 +68,7 @@ export default function App() {
   const [persons, setPersons] = useState<HouseholdPerson[]>([]);
   const [accounts, setAccounts] = useState<FinancialAccount[]>([]);
   const [transactions, setTransactions] = useState<LedgerTransaction[]>([]);
+  const [homeItems, setHomeItems] = useState<HouseholdHomeItem[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   // Navigation & Theme
@@ -120,7 +122,7 @@ export default function App() {
       setActiveTheme(initialTheme);
 
       if (initialHhd) {
-        await reloadHouseholdData(initialHhd.id);
+        await reloadHouseholdData(initialHhd.id, initialUser?.id);
       }
     } catch (err: any) {
       console.error('Failed to initialize local database:', err);
@@ -130,19 +132,21 @@ export default function App() {
     }
   };
 
-  const reloadHouseholdData = async (householdId: string) => {
-    const [mems, prs, logs, accs, txs] = await Promise.all([
+  const reloadHouseholdData = async (householdId: string, actorUserId = currentUser?.id) => {
+    const [mems, prs, logs, accs, txs, home] = await Promise.all([
       db.getMembershipsByHousehold(householdId),
       db.getPersonsByHousehold(householdId),
       db.getAuditLogs(householdId, 100),
       db.getAccountsByHousehold(householdId),
       db.getTransactionsByHousehold(householdId),
+      actorUserId ? db.getHomeItemsByHousehold(householdId, actorUserId) : Promise.resolve([] as HouseholdHomeItem[]),
     ]);
     setMemberships(mems);
     setPersons(prs);
     setAuditLogs(logs);
     setAccounts(accs);
     setTransactions(txs);
+    setHomeItems(home);
   };
 
   useEffect(() => {
@@ -597,6 +601,7 @@ export default function App() {
           <DashboardView
             accounts={accounts}
             transactions={transactions}
+            homeItems={homeItems}
             householdName={activeHousehold.name}
             activeTheme={activeTheme}
             onOpenAccounts={() => setActiveTab('accounts')}
@@ -624,6 +629,10 @@ export default function App() {
             activeTheme={activeTheme}
             canRead={Boolean(currentMembership)}
             canWrite={canPerformFinance}
+            accounts={accounts}
+            transactions={transactions}
+            onOpenLedger={() => setActiveTab('ledger')}
+            onItemsChange={setHomeItems}
           />
         )}
 

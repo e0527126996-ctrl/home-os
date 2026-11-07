@@ -1536,3 +1536,24 @@ body {
   .homeos-topbar > div { gap: 8px; }
   .homeos-household-switch { max-width: 42vw; margin-right: 0; padding: 8px 10px; }
 }
+
+
+/* Dashboard semantic text tokens for palette-specific accents. */
+.homeos-dashboard [class~="text-[#477866]"],
+.homeos-dashboard [class~="text-[#547D70]"] { color: var(--accent) !important; }
+.homeos-dashboard [class~="text-[#B45F56]"] { color: #C05A58 !important; }
+.homeos-dashboard [class~="text-[#9B7549]"] { color: var(--text-secondary) !important; }
+.homeos-dashboard [class~="bg-[#547D70]/10"] { background-color: color-mix(in srgb, var(--accent) 10%, transparent) !important; }
+.homeos-dashboard [class~="focus:ring-[#547D70]"]:focus-visible { --tw-ring-color: var(--focus-ring) !important; }
+.homeos-accounts-view .homeos-account-summary,
+.homeos-accounts-view .homeos-account-item {
+  border-color: var(--border-subtle);
+}
+.homeos-accounts-view :is(input,select,textarea) {
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
+  border-color: var(--border-subtle);
+}
+.homeos-accounts-view :is(.text-stone-500,.text-stone-600,.text-slate-500) { color: var(--text-secondary); }
+.homeos-accounts-view :is(.bg-white,.bg-stone-50,.bg-stone-100) { background-color: var(--bg-card); }
+:root.dark .homeos-accounts-view :is(.bg-white,.bg-stone-50,.bg-stone-100) { background-color: var(--bg-surface); }

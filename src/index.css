@@ -1039,3 +1039,68 @@ body {
 .homeos-nav-item[aria-current="page"]:hover { color:#fff!important; background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 78%,#17231d),var(--accent))!important; }
 .homeos-nav-item:focus-visible,.homeos-toolbar-button:focus-visible,.homeos-household-switch:focus-visible { outline:3px solid color-mix(in srgb,var(--accent) 58%,transparent); outline-offset:2px; }
 .homeos-navigation-shell { backdrop-filter:blur(16px); }
+
+
+/* Semantic theme tokens: every shared surface follows the selected personal theme. */
+.homeos-settings {
+  --accent:var(--homeos-accent);
+  --accent-muted:var(--homeos-accent-muted);
+  --bg-canvas:var(--homeos-canvas);
+  --bg-surface:var(--homeos-surface);
+  --bg-card:var(--homeos-card);
+  --border-subtle:var(--homeos-border);
+  --text-primary:var(--homeos-text);
+  --text-secondary:var(--homeos-muted);
+}
+.homeos-topbar {
+  border-bottom-color:var(--border-subtle);
+  background:color-mix(in srgb,var(--bg-card) 91%,transparent);
+  color:var(--text-primary);
+}
+.homeos-brand-mark {
+  background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 72%,#17231d),var(--accent));
+  box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 18%,transparent),inset 0 1px 0 rgba(255,255,255,.24);
+}
+.homeos-household-switch { border-color:var(--border-subtle); background:var(--bg-card); color:var(--text-primary); }
+.homeos-toolbar-button { border-color:var(--border-subtle); background:var(--bg-card); color:var(--text-primary); }
+.homeos-export-button,.homeos-primary-action {
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 78%,#17231d),var(--accent));
+  box-shadow:0 7px 18px color-mix(in srgb,var(--accent) 18%,transparent);
+}
+.homeos-secondary-action { border-color:var(--border-subtle); background:var(--bg-card); color:var(--text-primary); }
+.homeos-secondary-action:hover { background:var(--bg-surface); }
+.homeos-nav-item[aria-current="page"] {
+  color:#fff!important;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 76%,#17231d),var(--accent))!important;
+  border-color:color-mix(in srgb,var(--accent) 52%,transparent)!important;
+  box-shadow:0 7px 18px color-mix(in srgb,var(--accent) 22%,transparent)!important;
+}
+.homeos-nav-item:not([aria-current="page"]) { color:var(--text-secondary)!important; }
+.homeos-nav-item:not([aria-current="page"]):hover {
+  color:var(--text-primary)!important;
+  background:color-mix(in srgb,var(--accent) 8%,var(--bg-card))!important;
+  border-color:color-mix(in srgb,var(--accent) 24%,var(--border-subtle))!important;
+}
+.homeos-dashboard { color:var(--text-primary); }
+.homeos-date-chip { border-color:var(--border-subtle); background:var(--bg-card); color:var(--text-secondary); }
+.homeos-lux-panel { border-color:var(--border-subtle); background:color-mix(in srgb,var(--bg-card) 94%,transparent); }
+.homeos-wealth-hero {
+  background:
+    radial-gradient(ellipse at 12% 10%,color-mix(in srgb,var(--accent) 24%,transparent),transparent 35%),
+    linear-gradient(118deg,color-mix(in srgb,var(--accent) 24%,#101a16),color-mix(in srgb,var(--accent) 17%,#1b2b23) 56%,color-mix(in srgb,var(--accent) 34%,#253b30));
+}
+.homeos-insight { border-color:color-mix(in srgb,var(--accent) 24%,var(--border-subtle)); background:linear-gradient(105deg,color-mix(in srgb,var(--accent) 8%,var(--bg-card)),var(--bg-card)); }
+.homeos-insight-icon { color:var(--accent); background:var(--accent-muted); }
+.homeos-text-link { color:var(--accent); }
+.homeos-text-link:hover,.homeos-wide-link:hover { color:var(--text-primary); }
+.homeos-wide-link { border-color:var(--border-subtle); color:var(--accent); }
+.homeos-settings-hero { border-color:var(--border-subtle); background:linear-gradient(115deg,color-mix(in srgb,var(--accent) 8%,var(--bg-card)),var(--bg-card)); }
+.homeos-settings-icon { color:var(--accent); background:var(--accent-muted); }
+.homeos-settings-current,.homeos-settings-count { border-color:var(--border-subtle); background:var(--bg-card); color:var(--text-secondary); }
+.homeos-theme-option { border-color:var(--border-subtle); background:var(--bg-card); color:var(--text-primary); }
+.homeos-theme-option.is-selected { border-color:var(--accent); }
+.homeos-theme-check { border-color:var(--border-subtle); }
+.homeos-theme-option.is-selected .homeos-theme-check { border-color:var(--accent); background:var(--accent); }
+@media (prefers-reduced-motion:reduce) {
+  .homeos-theme-option,.homeos-nav-item,.homeos-toolbar-button { transition:none!important; transform:none!important; }
+}

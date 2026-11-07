@@ -812,6 +812,7 @@ export default function App() {
             activeTheme={activeTheme}
             onOpenAccounts={() => setActiveTab('accounts')}
             onOpenLedger={() => setActiveTab('ledger')}
+            onOpenHome={() => setActiveTab('home')}
             viewMode={workspaceViewMode}
             dashboardWidgetOrder={dashboardWidgetOrder}
             visibleDashboardWidgetIds={visibleDashboardWidgetIds}

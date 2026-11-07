@@ -504,6 +504,14 @@ export default function App() {
       style={{
         backgroundColor: activeTheme.bgCanvas,
         color: activeTheme.textPrimary,
+        ['--homeos-accent' as any]: activeTheme.accent,
+        ['--homeos-accent-muted' as any]: activeTheme.accentMuted,
+        ['--homeos-canvas' as any]: activeTheme.bgCanvas,
+        ['--homeos-surface' as any]: activeTheme.bgSurface,
+        ['--homeos-card' as any]: activeTheme.bgCard,
+        ['--homeos-border' as any]: activeTheme.borderSubtle,
+        ['--homeos-text' as any]: activeTheme.textPrimary,
+        ['--homeos-muted' as any]: activeTheme.textSecondary,
       }}
       dir="rtl"
     >

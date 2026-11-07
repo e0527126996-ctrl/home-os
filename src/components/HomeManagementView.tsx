@@ -72,7 +72,7 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
   const primary='inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold text-white disabled:opacity-40'; const prim={background:'linear-gradient(135deg,#24483C,#527A68)'};
   const tabs=[['planner','תפריט שבועי',CalendarDays],['recipes','ספר מתכונים',ChefHat],['shopping','רשימת קניות',ShoppingBasket],['tasks','משימות הבית',ClipboardCheck],['finance','תקציב והוצאות',TrendingDown]] as const;
   if(!canRead)return <div className={panel} style={ps}>אין הרשאת צפייה בניהול הבית.</div>;
-  return <div dir="rtl" className="space-y-6">
+  return <div dir="rtl" className="homeos-home-management space-y-6">
     <header className="homeos-home-hero" style={{background:'radial-gradient(circle at 10% 0%,rgba(205,180,135,.24),transparent 34%),linear-gradient(120deg,#172D25,#315746)'}}>
       <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><div className="mb-2 text-[10px] font-bold tracking-[.18em] text-emerald-100/70">תפעול הבית</div><h1 className="font-serif text-3xl font-bold">ניהול הבית</h1><p className="mt-2 max-w-xl text-sm leading-7 text-white/70">מתכננים את השבוע, מרכזים מתכונים, יוצרים רשימת קניות ומנהלים משימות — במקום אחד.</p></div><div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{[['ארוחות',meals.length],['מתכונים',recipes.length],['לקנייה',shopping.filter(x=>!(x.data as Shopping).checked).length],['משימות פתוחות',tasks.filter(x=>!(x.data as Task).done).length]].map(([l,v])=><div key={String(l)} className="rounded-xl border border-white/10 bg-white/10 px-4 py-3"><div className="text-[10px] text-white/60">{l}</div><div className="mt-1 text-xl font-bold">{v}</div></div>)}</div></div>
     </header>

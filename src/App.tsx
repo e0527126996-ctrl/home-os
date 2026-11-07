@@ -634,7 +634,7 @@ export default function App() {
                   className="homeos-nav-item"
                   style={{
                     color: selected ? '#FFFFFF' : activeTheme.textSecondary,
-                    background: selected ? 'linear-gradient(135deg,#24483C,#527A68)' : 'transparent',
+                    background: selected ? `linear-gradient(135deg, color-mix(in srgb, ${activeTheme.accent} 78%, #17231d), ${activeTheme.accent})` : 'transparent',
                     boxShadow: selected ? '0 7px 18px rgba(36,72,60,.18)' : 'none',
                   }}
                 >

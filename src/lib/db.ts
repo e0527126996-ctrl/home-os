@@ -1572,6 +1572,60 @@ class HomeOSIndexedDB {
   }
 
   /**
+   * Imports a statement batch atomically. Every row is validated before the
+   * single IndexedDB write, so a malformed row cannot leave a half-imported file.
+   */
+  async createImportedTransactionsBatch(
+    householdId: string,
+    rows: Array<{
+      accountId: string; date: string; amountCents: number; type: 'INCOME' | 'EXPENSE';
+      category: string; payee: string; notes?: string;
+    }>,
+    actorUserId: string,
+    actorEmail: string
+  ): Promise<LedgerTransaction[]> {
+    await this.assertPermission(householdId, actorUserId, 'finance', 'write');
+    if (!rows.length) return [];
+    const accountIds = [...new Set(rows.map(row => row.accountId))];
+    if (accountIds.length !== 1 || !accountIds[0]) throw new Error('ייבוא דף חשבון חייב להיות משויך לחשבון אחד בלבד');
+    const account = await this.getAccountById(accountIds[0], householdId);
+    if (!account || account.status !== 'ACTIVE') throw new Error('החשבון אינו פעיל או אינו שייך למשק הבית');
+    for (let index = 0; index < rows.length; index++) {
+      const row = rows[index];
+      if (!isValidISODate(row.date)) throw new Error(`שורה ${index + 1}: תאריך העסקה אינו תקין`);
+      if (!Number.isSafeInteger(row.amountCents) || row.amountCents <= 0) throw new Error(`שורה ${index + 1}: הסכום חייב להיות מספר חיובי שלם באגורות`);
+      if (!row.payee?.trim() || !row.category?.trim()) throw new Error(`שורה ${index + 1}: חסרים תיאור או קטגוריה`);
+      if (row.type !== 'INCOME' && row.type !== 'EXPENSE') throw new Error(`שורה ${index + 1}: סוג התנועה אינו תקין`);
+    }
+    const now = new Date().toISOString();
+    const importedRows: LedgerTransaction[] = rows.map((row, index) => ({
+      id: `tx_import_${Date.now()}_${index}_${Math.random().toString(36).slice(2, 8)}`,
+      householdId,
+      accountId: row.accountId,
+      date: row.date,
+      amountCents: row.amountCents,
+      type: row.type,
+      category: row.category.trim(),
+      payee: row.payee.trim(),
+      notes: row.notes?.trim() || 'יובא מדף חשבון · נדרש אימות מול המסמך המקורי',
+      source: 'IMPORT',
+      verificationStatus: 'PENDING',
+      createdAt: now,
+      updatedAt: now,
+      createdBy: actorUserId,
+    }));
+    await this.transaction(['ledger_transactions'], 'readwrite', async tx => {
+      const store = tx.objectStore('ledger_transactions');
+      for (const item of importedRows) await this.reqToPromise(store.add(item));
+    });
+    await this.recordAuditLog(
+      householdId, actorUserId, actorEmail, 'IMPORT_STATEMENT_BATCH', 'FINANCE',
+      `ייבוא אטומי של ${importedRows.length} עסקאות מקובץ דף חשבון לחשבון ${account.name}; כל העסקאות ממתינות לאימות`
+    );
+    return importedRows;
+  }
+
+  /**
    * Creates an Account-to-Account Transfer atomically with linked 2 legs.
    * Both legs share the same `transferId` and point to each other via `linkedTransactionId`.
    * Internal transfers are NOT treated as household income or expenses.

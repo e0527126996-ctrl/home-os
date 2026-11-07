@@ -1104,3 +1104,52 @@ body {
 @media (prefers-reduced-motion:reduce) {
   .homeos-theme-option,.homeos-nav-item,.homeos-toolbar-button { transition:none!important; transform:none!important; }
 }
+
+
+/* Ledger workspace — readable data-first surface, adapted to every selected theme. */
+.homeos-ledger-view { color:var(--text-primary); }
+.homeos-ledger-view .bg-white,
+.homeos-ledger-view .bg-white\/70,
+.homeos-ledger-view .bg-white\/80 { background-color:var(--bg-card)!important; }
+.homeos-ledger-view .bg-stone-50,
+.homeos-ledger-view .bg-stone-50\/50,
+.homeos-ledger-view .bg-stone-50\/70,
+.homeos-ledger-view .bg-stone-50\/80 { background-color:var(--bg-surface)!important; }
+.homeos-ledger-view .border-stone-100,
+.homeos-ledger-view .border-stone-200,
+.homeos-ledger-view .border-stone-200\/80,
+.homeos-ledger-view .border-stone-300 { border-color:var(--border-subtle)!important; }
+.homeos-ledger-view .text-stone-900,
+.homeos-ledger-view .text-stone-800,
+.homeos-ledger-view .text-stone-700 { color:var(--text-primary)!important; }
+.homeos-ledger-view .text-stone-600,
+.homeos-ledger-view .text-stone-500,
+.homeos-ledger-view .text-stone-400 { color:var(--text-secondary)!important; }
+.homeos-ledger-view input,
+.homeos-ledger-view select {
+  border-color:var(--border-subtle)!important;
+  background-color:var(--bg-surface)!important;
+  color:var(--text-primary)!important;
+}
+.homeos-ledger-view input::placeholder { color:var(--text-secondary); opacity:.75; }
+.homeos-ledger-view input:focus,
+.homeos-ledger-view select:focus {
+  border-color:var(--accent)!important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 14%,transparent);
+}
+.homeos-ledger-view table { color:var(--text-primary); border-collapse:separate; border-spacing:0; }
+.homeos-ledger-view thead { background:var(--bg-surface)!important; color:var(--text-secondary)!important; }
+.homeos-ledger-view tbody tr { background:var(--bg-card); transition:background .15s ease; }
+.homeos-ledger-view tbody tr:hover { background:color-mix(in srgb,var(--accent) 5%,var(--bg-card)); }
+.homeos-ledger-view tbody td { border-color:var(--border-subtle); }
+.homeos-ledger-view button:focus-visible { outline-color:var(--accent); }
+.dark .homeos-ledger-view .text-emerald-700,
+.dark .homeos-ledger-view .text-emerald-800 { color:#8FC6A6!important; }
+.dark .homeos-ledger-view .text-blue-700,
+.dark .homeos-ledger-view .text-blue-800 { color:#9BC6E8!important; }
+.dark .homeos-ledger-view .text-rose-700,
+.dark .homeos-ledger-view .text-rose-800 { color:#E7A6A0!important; }
+@media(max-width:760px) {
+  .homeos-ledger-view { overflow-wrap:anywhere; }
+  .homeos-ledger-view table { min-width:760px; }
+}

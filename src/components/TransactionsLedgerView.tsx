@@ -76,35 +76,33 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
     return Array.from(set).sort();
   }, [transactions]);
 
-  // סיכום תזרים מזומנים - העברות אינן נכללות בהכנסות ובהוצאות
+  // Household-wide headline totals are shown in ILS only. Pending imports
+  // remain visible in the ledger but do not affect confirmed financial totals.
   const summary = useMemo(() => {
     let incomeCents = 0;
     let expenseCents = 0;
     let transferVolumeCents = 0;
+    const confirmedIlsTransactions = transactions.filter(tx =>
+      accountsMap.get(tx.accountId)?.currency === 'ILS' &&
+      tx.verificationStatus !== 'PENDING' &&
+      Number.isSafeInteger(tx.amountCents) &&
+      tx.amountCents > 0
+    );
 
-    transactions.forEach((tx) => {
-      if (tx.type === 'INCOME') {
-        incomeCents += tx.amountCents;
-      } else if (tx.type === 'EXPENSE') {
-        expenseCents += tx.amountCents;
-      } else if (
-        tx.type === 'TRANSFER' &&
-        tx.transferDirection === 'OUT'
-      ) {
-        transferVolumeCents += tx.amountCents;
-      }
+    confirmedIlsTransactions.forEach((tx) => {
+      if (tx.type === 'INCOME') incomeCents += tx.amountCents;
+      else if (tx.type === 'EXPENSE') expenseCents += tx.amountCents;
+      else if (tx.type === 'TRANSFER' && tx.transferDirection === 'OUT') transferVolumeCents += tx.amountCents;
     });
-
-    const netCashflowCents = incomeCents - expenseCents;
 
     return {
       incomeCents,
       expenseCents,
-      netCashflowCents,
+      netCashflowCents: incomeCents - expenseCents,
       transferVolumeCents,
-      count: transactions.length,
+      count: confirmedIlsTransactions.length,
     };
-  }, [transactions]);
+  }, [transactions, accountsMap]);
 
   // גבולות תאריכים לסינון
   const now = new Date();
@@ -192,12 +190,25 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
     lastMonthPrefix,
   ]);
 
-  const filteredSummary = useMemo(() => filteredTransactions.reduce((totals, tx) => {
-    if (tx.type === 'INCOME') totals.incomeCents += tx.amountCents;
-    if (tx.type === 'EXPENSE') totals.expenseCents += tx.amountCents;
-    if (tx.type === 'TRANSFER' && tx.transferDirection === 'OUT') totals.transferCents += tx.amountCents;
-    return totals;
-  }, { incomeCents: 0, expenseCents: 0, transferCents: 0 }), [filteredTransactions]);
+  const selectedSummaryCurrency = accountFilter === 'ALL'
+    ? 'ILS'
+    : accountsMap.get(accountFilter)?.currency || 'ILS';
+  const filteredSummary = useMemo(() => {
+    const totals = filteredTransactions
+      .filter(tx =>
+        (accountsMap.get(tx.accountId)?.currency || 'ILS') === selectedSummaryCurrency &&
+        tx.verificationStatus !== 'PENDING' &&
+        Number.isSafeInteger(tx.amountCents) &&
+        tx.amountCents > 0
+      )
+      .reduce((result, tx) => {
+        if (tx.type === 'INCOME') result.incomeCents += tx.amountCents;
+        if (tx.type === 'EXPENSE') result.expenseCents += tx.amountCents;
+        if (tx.type === 'TRANSFER' && tx.transferDirection === 'OUT') result.transferCents += tx.amountCents;
+        return result;
+      }, { incomeCents: 0, expenseCents: 0, transferCents: 0 });
+    return { ...totals, currency: selectedSummaryCurrency };
+  }, [filteredTransactions, accountsMap, selectedSummaryCurrency]);
 
   const hasActiveFilters = Boolean(searchTerm.trim()) || typeFilter !== 'ALL' || accountFilter !== 'ALL' || categoryFilter !== 'ALL' || dateFilter !== 'ALL' || reviewFilter !== 'ALL';
   const clearFilters = () => {
@@ -250,7 +261,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
           </div>
 
           <span className="text-[11px] text-stone-400 mt-1 block">
-            מכלל חשבונות משק הבית
+            חשבונות בשקלים בלבד · ללא המרות מטבע
           </span>
         </div>
 
@@ -499,10 +510,10 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-200 bg-stone-50/70 px-4 py-3">
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px]">
               <span className="font-semibold text-stone-600">תוצאות הסינון: {filteredTransactions.length} תנועות</span>
-              <span className="text-emerald-700">הכנסות: <strong>{formatCents(filteredSummary.incomeCents)}</strong></span>
-              <span className="text-stone-700">הוצאות: <strong>{formatCents(filteredSummary.expenseCents)}</strong></span>
-              <span className="text-blue-700">העברות יוצאות: <strong>{formatCents(filteredSummary.transferCents)}</strong></span>
-              <span className="font-bold text-stone-800">תזרים מסונן: {formatCents(filteredSummary.incomeCents - filteredSummary.expenseCents)}</span>
+              <span className="text-emerald-700">הכנסות: <strong>{formatCents(filteredSummary.incomeCents, filteredSummary.currency)}</strong></span>
+              <span className="text-stone-700">הוצאות: <strong>{formatCents(filteredSummary.expenseCents, filteredSummary.currency)}</strong></span>
+              <span className="text-blue-700">העברות יוצאות: <strong>{formatCents(filteredSummary.transferCents, filteredSummary.currency)}</strong></span>
+              <span className="font-bold text-stone-800">תזרים מסונן: {formatCents(filteredSummary.incomeCents - filteredSummary.expenseCents, filteredSummary.currency)}</span>
             </div>
             {hasActiveFilters && <button type="button" onClick={clearFilters} className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-[11px] font-semibold text-stone-700 transition hover:bg-stone-100">נקה את כל הסינונים</button>}
           </div>
@@ -682,7 +693,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
                           {isIncome && '+ '}
                           {isExpense && '- '}
                           {isTransfer && (isTransferIn ? '+ ' : '- ')}
-                          {formatCents(tx.amountCents)}
+                          {formatCents(tx.amountCents, accountsMap.get(tx.accountId)?.currency || 'ILS')}
                         </span>
                       </td>
 
@@ -753,7 +764,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
             ) : (
               <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-xs text-stone-700">
                 מחיקת עסקה ע"ס{' '}
-                <strong>{formatCents(deletingTx.amountCents)}</strong>{' '}
+                <strong>{formatCents(deletingTx.amountCents, accountsMap.get(deletingTx.accountId)?.currency || 'ILS')}</strong>{' '}
                 מבית עסק <strong>{deletingTx.payee}</strong>.
               </div>
             )}

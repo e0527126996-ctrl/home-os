@@ -39,9 +39,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const detailItems = chartDetail?.items.filter(tx => detailFilter === 'ALL' || tx.type === detailFilter) || [];
   const detailIncome = detailItems.filter(tx => tx.type === 'INCOME').reduce((sum, tx) => sum + tx.amountCents, 0);
   const detailExpense = detailItems.filter(tx => tx.type === 'EXPENSE').reduce((sum, tx) => sum + tx.amountCents, 0);
-  const detailCurrency = detailItems.length ? (accountCurrencies.get(detailItems[0].accountId) || 'ILS') : 'ILS';
   const financeAnalytics = useMemo(() => buildFinanceAnalytics(accounts, transactions), [accounts, transactions]);
   const accountCurrencies = useMemo(() => new Map(accounts.map(account => [account.id, account.currency])), [accounts]);
+  const detailCurrency = detailItems.length ? (accountCurrencies.get(detailItems[0].accountId) || 'ILS') : 'ILS';
   // All financial views use the same verified transaction selector.
   const confirmedTransactions = useMemo(
     () => financeAnalytics.verifiedTransactions.filter(tx => accountCurrencies.get(tx.accountId) === 'ILS'),

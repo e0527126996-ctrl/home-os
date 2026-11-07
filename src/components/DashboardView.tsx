@@ -100,6 +100,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const averageExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
     const cashflow = current.income - current.expense;
     const pendingReviewCount = transactions.filter(tx => tx.verificationStatus === 'PENDING').length;
+    const pendingReviewAmount = transactions.filter(tx => tx.verificationStatus === 'PENDING' && accountCurrencies.get(tx.accountId) === 'ILS' && Number.isSafeInteger(tx.amountCents) && tx.amountCents > 0).reduce((sum, tx) => sum + tx.amountCents, 0);
     const reconciledTransactionCount = transactions.filter(tx => tx.verificationStatus === 'RECONCILED').length;
     const uncategorizedExpenseCount = transactions.filter(tx => tx.type === 'EXPENSE' && (!tx.category?.trim() || tx.category.trim() === 'ללא קטגוריה')).length;
 
@@ -161,7 +162,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .sort((a, b) => b.averageAmount - a.averageAmount)
       .slice(0, 4);
 
-    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, reconciledTransactionCount, uncategorizedExpenseCount };
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, pendingReviewAmount, reconciledTransactionCount, uncategorizedExpenseCount };
   }, [accounts, transactions, confirmedTransactions, accountCurrencies]);
 
   const today = new Date();
@@ -221,7 +222,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="homeos-hero-metric"><span className="homeos-metric-icon blue"><Activity className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">תזרים החודש</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.cashflow)}</div></div><span className="text-[10px] text-white/35">הכנסות פחות הוצאות</span></div>
           </div>
         </div>
-        <div className="homeos-hero-footer"><span>HOUSEHOLD WEALTH OVERVIEW</span><span>01 — FINANCIAL POSITION</span></div>
+        <div className="homeos-hero-footer"><span>תמונת ההון של משק הבית</span><span>01 — מצב פיננסי</span></div>
       </section>
 
       <section className="homeos-kpi-strip" aria-label="מדדי החודש">
@@ -234,7 +235,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {data.pendingReviewCount > 0 && (
         <aside className="homeos-data-notice" role="status">
           <strong>יש {data.pendingReviewCount} עסקאות שממתינות לאימות.</strong>
-          {' '}העסקאות נשמרו בפנקס, אך לא ייכנסו לגרפים, לתחזיות וליתרות עד לאימות. לאחר האימות הנתונים יתעדכנו אוטומטית בכל התצוגות.
+          {' '}סכום ממתין בשקלים: <strong>{currency(data.pendingReviewAmount)}</strong>. העסקאות נשמרו בפנקס, אך לא ייכנסו לגרפים, לתחזיות וליתרות עד לאימות. לאחר האימות הנתונים יתעדכנו אוטומטית בכל התצוגות.
         </aside>
       )}
 
@@ -336,7 +337,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section className={panel + ' p-5 sm:p-7'}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div className="homeos-section-kicker">SMART SAVINGS REVIEW</div>
+            <div className="homeos-section-kicker">בדיקת הזדמנויות לחיסכון</div>
             <h2 className="mt-1 text-lg font-bold">הזדמנויות לבדיקה ולייעול</h2>
             <p className="mt-1 text-xs" style={muted}>איתור סעיפים שקצב ההוצאה בהם גבוה מהממוצע ההיסטורי</p>
           </div>

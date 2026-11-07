@@ -70,24 +70,25 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     } else if (acc.type === 'SAVINGS') {
       savingsCount++;
       if (acc.currency !== 'ILS') continue;
-      if (bal >= 0) {
-        totalAssets = Math.round((totalAssets + bal) * 100) / 100;
-      }
+      if (bal >= 0) totalAssets = Math.round((totalAssets + bal) * 100) / 100;
+      else totalLiabilities = Math.round((totalLiabilities + Math.abs(bal)) * 100) / 100;
     } else if (acc.type === 'CREDIT_CARD') {
       creditCount++;
       if (acc.currency !== 'ILS') continue;
-      totalLiabilities = Math.round((totalLiabilities + Math.abs(bal)) * 100) / 100;
+      if (bal >= 0) totalAssets = Math.round((totalAssets + bal) * 100) / 100;
+      else totalLiabilities = Math.round((totalLiabilities + Math.abs(bal)) * 100) / 100;
     } else if (acc.type === 'LOAN_MORTGAGE') {
       loansCount++;
       if (acc.currency !== 'ILS') continue;
-      totalLiabilities = Math.round((totalLiabilities + Math.abs(bal)) * 100) / 100;
+      if (bal >= 0) totalAssets = Math.round((totalAssets + bal) * 100) / 100;
+      else totalLiabilities = Math.round((totalLiabilities + Math.abs(bal)) * 100) / 100;
     }
   }
 
   const netWorth = Math.round((totalAssets - totalLiabilities) * 100) / 100;
   const foreignAccountCount = accounts.filter(a => a.status === 'ACTIVE' && a.currency !== 'ILS').length;
-  const assetAccountCount = accounts.filter(a => a.status === 'ACTIVE' && a.currency === 'ILS' && !a.isLiability && (a.currentBalanceCents || 0) > 0).length;
-  const liabilityAccountCount = accounts.filter(a => a.status === 'ACTIVE' && a.currency === 'ILS' && (a.isLiability || (a.type === 'CHECKING' && (a.currentBalanceCents || 0) < 0))).length;
+  const assetAccountCount = accounts.filter(a => a.status === 'ACTIVE' && a.currency === 'ILS' && (a.currentBalanceCents || 0) > 0).length;
+  const liabilityAccountCount = accounts.filter(a => a.status === 'ACTIVE' && a.currency === 'ILS' && (a.currentBalanceCents || 0) < 0).length;
 
   // Filter accounts
   const displayedAccounts = accounts.filter((acc) => {

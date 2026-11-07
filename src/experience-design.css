@@ -1,6 +1,13 @@
 /* HOME OS — Experience Design System
    Purpose-built layouts for each workspace. Theme palette remains data-driven. */
 :root {
+  --ux-radius: 18px;
+  --ux-shadow: 0 12px 34px rgba(31, 40, 33, .045);
+}
+
+/* Resolve theme bridge variables on the app shell, where the selected theme
+   is applied inline. Defining these aliases on :root freezes them to defaults. */
+.homeos-app-shell {
   --ux-ink: var(--homeos-text, #211F1B);
   --ux-muted: var(--homeos-muted, #6B645C);
   --ux-canvas: var(--homeos-canvas, #FAF8F5);
@@ -8,10 +15,6 @@
   --ux-card: var(--homeos-card, #FFFFFF);
   --ux-border: var(--homeos-border, #E6E0D8);
   --ux-accent: var(--homeos-accent, #547D70);
-  --ux-radius: 18px;
-  --ux-shadow: 0 12px 34px rgba(31, 40, 33, .045);
-}
-.homeos-app-shell {
   color: var(--ux-ink);
   background-color: var(--ux-canvas);
 }

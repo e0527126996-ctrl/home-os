@@ -1032,3 +1032,10 @@ body {
   .homeos-theme-grid { grid-template-columns:1fr; gap:.75rem; }
   .homeos-theme-preview { height:100px; }
 }
+
+/* Theme-aware navigation and focus states */
+.homeos-nav-item { border:1px solid transparent; transition:background .18s ease,color .18s ease,box-shadow .18s ease,border-color .18s ease,transform .18s ease; }
+.homeos-nav-item:hover { border-color:color-mix(in srgb,var(--accent) 24%,var(--border-subtle)); background:color-mix(in srgb,var(--accent) 7%,transparent)!important; color:var(--text-primary)!important; }
+.homeos-nav-item[aria-current="page"]:hover { color:#fff!important; background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 78%,#17231d),var(--accent))!important; }
+.homeos-nav-item:focus-visible,.homeos-toolbar-button:focus-visible,.homeos-household-switch:focus-visible { outline:3px solid color-mix(in srgb,var(--accent) 58%,transparent); outline-offset:2px; }
+.homeos-navigation-shell { backdrop-filter:blur(16px); }

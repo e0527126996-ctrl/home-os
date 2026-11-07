@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowDownLeft, ArrowUpLeft, Wallet, Landmark, Activity, TrendingUp,
   TrendingDown, Lightbulb, CalendarDays, Sparkles, ArrowUpRight,
-  ArrowDownRight, ArrowLeftRight, ChartNoAxesCombined, ReceiptText, ArrowLeft,
+  ArrowDownRight, ArrowLeftRight, ChartNoAxesCombined, ReceiptText, ArrowLeft, CheckCircle2,
   PiggyBank, ShieldCheck, ChevronLeft, CircleDollarSign
 } from 'lucide-react';
 import { FinancialAccount, LedgerTransaction } from '../types.ts';
@@ -90,6 +90,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const averageExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
     const cashflow = current.income - current.expense;
     const pendingReviewCount = transactions.filter(tx => tx.verificationStatus === 'PENDING').length;
+    const reconciledTransactionCount = transactions.filter(tx => tx.verificationStatus === 'RECONCILED').length;
     const uncategorizedExpenseCount = transactions.filter(tx => tx.type === 'EXPENSE' && (!tx.category?.trim() || tx.category.trim() === 'ללא קטגוריה')).length;
 
     // Compare the current month's category run-rate with the average of the prior
@@ -150,7 +151,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .sort((a, b) => b.averageAmount - a.averageAmount)
       .slice(0, 4);
 
-    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, uncategorizedExpenseCount };
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, reconciledTransactionCount, uncategorizedExpenseCount };
   }, [accounts, transactions]);
 
   const currency = (cents: number) => money(cents / 100);
@@ -366,7 +367,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <span className="rounded-full bg-[#547D70]/10 px-3 py-1.5 text-[10px] font-semibold text-[#547D70]">בדיקה אוטומטית</span>
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <button type="button" onClick={onOpenLedger} className="flex items-center justify-between gap-3 rounded-2xl border p-4 text-right transition hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
             <span><span className="block text-xs" style={muted}>עסקאות שממתינות לאימות</span><strong className="mt-1 block text-2xl tabular-nums">{data.pendingReviewCount}</strong><span className="mt-1 block text-[10px]" style={muted}>בדוק ואמת נתונים שיובאו</span></span>
             <span className="rounded-xl bg-[#B98B58]/10 p-3 text-[#B98B58]"><ShieldCheck className="h-5 w-5" /></span>
@@ -374,6 +375,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <button type="button" onClick={onOpenLedger} className="flex items-center justify-between gap-3 rounded-2xl border p-4 text-right transition hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
             <span><span className="block text-xs" style={muted}>הוצאות ללא קטגוריה</span><strong className="mt-1 block text-2xl tabular-nums">{data.uncategorizedExpenseCount}</strong><span className="mt-1 block text-[10px]" style={muted}>סיווג משפר את ניתוח ההוצאות</span></span>
             <span className="rounded-xl bg-[#547D70]/10 p-3 text-[#547D70]"><ReceiptText className="h-5 w-5" /></span>
+          </button>
+          <button type="button" onClick={onOpenLedger} className="flex items-center justify-between gap-3 rounded-2xl border p-4 text-right transition hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+            <span><span className="block text-xs" style={muted}>עסקאות מותאמות לדף חשבון</span><strong className="mt-1 block text-2xl tabular-nums">{data.reconciledTransactionCount}</strong><span className="mt-1 block text-[10px]" style={muted}>התאמה ואימות מול מסמך חיצוני</span></span>
+            <span className="rounded-xl bg-blue-500/10 p-3 text-blue-700"><CheckCircle2 className="h-5 w-5" /></span>
           </button>
         </div>
         <p className="mt-3 text-[10px] leading-5" style={muted}>הספירה מבוססת על סטטוס האימות ושדה הקטגוריה ברשומות הקיימות. פתיחת הפנקס מאפשרת לבדוק את העסקאות; הנתונים אינם משתנים אוטומטית.</p>

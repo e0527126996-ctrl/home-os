@@ -73,7 +73,7 @@ const cases: Array<{ name: string; run: () => void | Promise<void> }> = [
       const rows = parsePdfLines([
         'תאריך פרטים חובה זכות יתרה',
         '2026-11-06 סונול דלק 125,50 4.875,00',
-      ].join('\\n'));
+      ].join('\n'));
       assert.equal(rows.length, 1);
       assert.equal(rows[0].date, '2026-11-06');
       assert.equal(rows[0].amountCents, 12550);

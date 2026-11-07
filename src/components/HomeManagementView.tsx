@@ -45,6 +45,7 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
     })),
     categories: financeAnalytics.categories,
     forecast: financeAnalytics.forecast,
+    spendingAlerts: financeAnalytics.spendingAlerts,
   }), [financeAnalytics, accounts]);
   const money = (cents: number) => new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(cents / 100);
   const save=async(kind:HouseholdHomeItem['kind'],data:Record<string,unknown>,id=uid(kind))=>{
@@ -109,7 +110,14 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
       </section>
       {finance.pending>0&&<div className="homeos-data-notice">יש {finance.pending} עסקאות שיובאו מדפי חשבון וממתינות לאימות. הן מוצגות כאן כממתינות, ולא נכללות בסיכומי ההוצאות, בגרפים או ביתרות עד לאימות.</div>}
       {finance.foreignAccounts>0&&<div className="homeos-data-notice muted">קיימים {finance.foreignAccounts} חשבונות במטבע זר. הסיכומים הכספיים כאן מוצגים בשקלים בלבד, ללא המרת מטבע לא מאומתת.</div>}
-      {finance.foreignCurrencies.length>0&&<div className="homeos-finance-foreign">
+      {finance.spendingAlerts.length>0&&<section className="homeos-spending-alerts">
+        <div className="flex items-start gap-3"><span className="homeos-spending-alert-icon"><TrendingDown size={18}/></span><div><div className="homeos-section-kicker">בקרת הוצאות חכמה</div><h3 className="mt-1 text-base font-bold">סעיפים שדורשים בדיקה</h3><p className="mt-1 text-xs" style={{color:activeTheme.textSecondary}}>המערכת מזהה קצב הוצאה גבוה מהממוצע ההיסטורי באותה קטגוריה.</p></div></div>
+        <div className="homeos-spending-alert-grid">
+          {finance.spendingAlerts.map(item=><article key={item.category}><div className="text-xs font-bold">{item.category}</div><strong>{money(item.projected)}</strong><div className="text-[10px]" style={{color:activeTheme.textSecondary}}>תחזית חודשית · לעומת ממוצע {money(item.historicalAverage)}</div><span>פער משוער: +{money(item.increase)}</span></article>)}
+        </div>
+        <p className="mt-3 text-[10px]" style={{color:activeTheme.textSecondary}}>התרעות לבדיקה בלבד, לא קביעה שמדובר בחריגה שגויה. מבוססות על עסקאות מאומתות וקצב ההוצאה עד היום.</p>
+      </section>}
+            {finance.foreignCurrencies.length>0&&<div className="homeos-finance-foreign">
         <h3 className="text-sm font-bold">פעילות בחשבונות במטבע זר</h3>
         <p className="mt-1 text-xs" style={{color:activeTheme.textSecondary}}>הנתונים מוצגים לכל מטבע בנפרד, ללא המרה משוערת</p>
         {finance.foreignCurrencies.map(item=><div key={item.currency} className="mt-3 flex flex-wrap items-center justify-between gap-2 border-b pb-2 text-sm" style={{borderColor:activeTheme.borderSubtle}}>

@@ -56,7 +56,10 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
   const [statementQueue, setStatementQueue] = useState<File[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const refresh = async () => setDocuments(await db.getDocumentsByHousehold(household.id));
+  const refresh = async () => {
+    if (!currentUser) { setDocuments([]); return; }
+    setDocuments(await db.getDocumentsByHousehold(household.id, currentUser.id));
+  };
   const notifyDocumentsChanged = () => {
     if (typeof BroadcastChannel !== 'undefined') {
       const channel = new BroadcastChannel('homeos-documents-v1');
@@ -119,7 +122,8 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
           uploadedBy: currentUser?.id || 'unknown',
           blob: file,
         };
-        await db.saveDocument(doc);
+        if (!currentUser || !canWrite) throw new Error('אין לך הרשאה לשמור מסמכים במשק הבית');
+        await db.saveDocument(doc, currentUser.id);
         saved++;
         if (category === 'BANK' && /\.(pdf|xlsx?|csv)$/i.test(file.name)) statementsToImport.push(file);
       }
@@ -170,7 +174,8 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
   const handleDelete = async (doc: HouseholdDocument) => {
     if (!window.confirm(`למחוק את המסמך "${doc.name}"?`)) return;
     try {
-      await db.deleteDocument(doc.id, household.id);
+      if (!currentUser || !canWrite) throw new Error('אין לך הרשאה למחוק מסמכים במשק הבית');
+      await db.deleteDocument(doc.id, household.id, currentUser.id);
       await refresh();
       notifyDocumentsChanged();
     } catch (e: any) { setError(e.message || 'לא ניתן למחוק את המסמך'); }

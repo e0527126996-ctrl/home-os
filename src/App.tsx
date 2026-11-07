@@ -755,25 +755,39 @@ export default function App() {
               { id: 'households', label: 'משקי בית', icon: House, count: households.length },
               { id: 'audit', label: 'יומן ביקורת', icon: ClipboardList, count: auditLogs.length },
               { id: 'settings', label: 'הגדרות אישיות', icon: Settings },
-            ] as const).map((item) => {
+            ] as const).map((item, index) => {
               const selected = activeTab === item.id;
               const Icon = item.icon;
+              const sectionLabel = index === 0
+                ? { title: 'כספים', subtitle: 'FINANCIAL CONTROL' }
+                : index === 3
+                  ? { title: 'ניהול הבית', subtitle: 'HOME OPERATIONS' }
+                  : index === 5
+                    ? { title: 'מערכת ומשפחה', subtitle: 'PEOPLE & SYSTEM' }
+                    : null;
               return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  aria-current={selected ? 'page' : undefined}
-                  className="homeos-nav-item"
-                  style={{
-                    color: selected ? '#FFFFFF' : activeTheme.textSecondary,
-                    background: selected ? `linear-gradient(135deg, color-mix(in srgb, ${activeTheme.accent} 78%, #17231d), ${activeTheme.accent})` : 'transparent',
-                    boxShadow: selected ? '0 7px 18px rgba(36,72,60,.18)' : 'none',
-                  }}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                  {'count' in item && <span className="rounded-md px-1.5 py-0.5 text-[10px] tabular-nums" style={{ backgroundColor: selected ? 'rgba(255,255,255,.16)' : activeTheme.bgSurface }}>{item.count}</span>}
-                </button>
+                <React.Fragment key={item.id}>
+                  {sectionLabel && (
+                    <div className="homeos-nav-section-label">
+                      <span>{sectionLabel.title}</span>
+                      <small>{sectionLabel.subtitle}</small>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setActiveTab(item.id)}
+                    aria-current={selected ? 'page' : undefined}
+                    className="homeos-nav-item"
+                    style={{
+                      color: selected ? '#FFFFFF' : activeTheme.textSecondary,
+                      background: selected ? `linear-gradient(135deg, color-mix(in srgb, ${activeTheme.accent} 78%, #17231d), ${activeTheme.accent})` : 'transparent',
+                      boxShadow: selected ? '0 7px 18px rgba(36,72,60,.18)' : 'none',
+                    }}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                    {'count' in item && <span className="rounded-md px-1.5 py-0.5 text-[10px] tabular-nums" style={{ backgroundColor: selected ? 'rgba(255,255,255,.16)' : activeTheme.bgSurface }}>{item.count}</span>}
+                  </button>
+                </React.Fragment>
               );
             })}
           </nav>

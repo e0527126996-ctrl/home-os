@@ -179,7 +179,9 @@ function parsePdfLines(text: string): ImportedStatementRow[] {
       .filter(item => item.value !== null && item.value !== 0);
     if (!candidates.length) continue;
     const marked = candidates.filter(item => /₪|\.\d{1,2}/.test(item.raw));
-    const selected = (marked.length ? marked : candidates).at(-1)!;
+    // If a running balance is printed after the transaction amount, prefer the
+    // previous currency/decimal value instead of importing the balance itself.
+    const selected = marked.length >= 2 ? marked[marked.length - 2] : (marked[0] || candidates.at(-1)!);
     const rawAmount = selected.value!;
     const before = rest.slice(0, selected.index);
     const after = rest.slice(selected.index + selected.raw.length);

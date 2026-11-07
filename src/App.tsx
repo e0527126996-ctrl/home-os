@@ -294,6 +294,7 @@ export default function App() {
   const handleSwitchUser = async (user: User) => {
     // Clear the previous user's household state before awaiting any new data.
     clearHouseholdData();
+    setHouseholds([]);
     setCurrentUser(user);
     await db.setSetting('current_user_id', user.id);
 
@@ -1232,7 +1233,13 @@ export default function App() {
             // but never leave their records visible after the session is locked.
             await db.setSetting('current_user_id', null);
             clearHouseholdData();
+            setHouseholds([]);
             setCurrentUser(null);
+            setShowHouseholdsModal(false);
+            setShowAuditModal(false);
+            setShowTestsModal(false);
+            setShowBackupModal(false);
+            setShowExportHtmlModal(false);
             setShowAuthModal(true);
             showToast('הסשן ננעל והנתונים המקומיים הוסתרו');
           }}

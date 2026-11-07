@@ -2036,6 +2036,16 @@ class HomeOSIndexedDB {
     assertHousehold(backup.auditLogs, 'יומן פעולות');
     assertHousehold(backup.accounts, 'חשבונות');
     assertHousehold(backup.transactions, 'עסקאות');
+    if ((backup.accounts || []).some(account =>
+      !(['ILS', 'USD', 'EUR', 'GBP'] as string[]).includes(account.currency) ||
+      (account.openingBalanceCents !== undefined
+        ? !Number.isSafeInteger(account.openingBalanceCents)
+        : !parseCurrencyInput(String(account.openingBalance)).valid) ||
+      (account.creditLimitCents !== undefined && (!Number.isSafeInteger(account.creditLimitCents) || account.creditLimitCents < 0)) ||
+      (account.interestRate !== undefined && (!Number.isFinite(account.interestRate) || account.interestRate < 0))
+    )) {
+      throw new Error('הגיבוי מכיל חשבון עם מטבע או נתוני יתרה שאינם תקינים');
+    }
     assertHousehold(backup.documents, 'מסמכים');
     assertHousehold(backup.homeItems, 'ניהול הבית');
     if ((backup.permissions || []).some(rule => !membershipIds.has(rule.membershipId))) {

@@ -1612,3 +1612,19 @@ body {
   .homeos-home-management .homeos-home-hero { border-radius: 16px; }
   .homeos-home-management .homeos-home-tabs { overflow-x: auto; }
 }
+
+
+/* Document center controls inherit the active editorial palette. */
+.homeos-document-center .homeos-document-dropzone:hover {
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-card));
+}
+.homeos-document-center :is(.bg-emerald-50,.dark\:bg-emerald-950) {
+  background-color: color-mix(in srgb, var(--accent) 10%, var(--bg-card)) !important;
+}
+.homeos-document-center .text-emerald-800 { color: var(--accent) !important; }
+.homeos-document-center .border-emerald-200 { border-color: var(--border-subtle) !important; }
+.homeos-document-center :is(.bg-rose-50,.dark\:bg-rose-950) {
+  background-color: color-mix(in srgb, #C05A58 9%, var(--bg-card)) !important;
+}
+.homeos-document-center :is(.text-rose-800,.text-rose-700) { color: #C05A58 !important; }
+.homeos-document-center .border-rose-200 { border-color: color-mix(in srgb, #C05A58 35%, var(--border-subtle)) !important; }

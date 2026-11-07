@@ -27,7 +27,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[] } | null>(null);
   // Pending imports are review candidates, not confirmed financial activity.
-  const confirmedTransactions = useMemo(() => confirmedTransactions.filter(tx => tx.verificationStatus !== 'PENDING' && Number.isSafeInteger(tx.amountCents) && tx.amountCents > 0), [transactions]);
+  const confirmedTransactions = useMemo(() => transactions.filter(tx => tx.verificationStatus !== 'PENDING' && Number.isSafeInteger(tx.amountCents) && tx.amountCents > 0), [transactions]);
 
   useEffect(() => {
     if (!chartDetail) return;
@@ -100,7 +100,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const savingsInsights = projectionReady && completedMonths.length === 3
       ? Object.entries(categories).map(([category, currentAmount]) => {
           const categoryTransactions = currentMonthTransactions.filter(tx => tx.type === 'EXPENSE' && (tx.category || 'ללא קטגוריה') === category);
-          const categoryHistory = completedMonths.map(month => transactions
+          const categoryHistory = completedMonths.map(month => confirmedTransactions
             .filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === month.key && (tx.category || 'ללא קטגוריה') === category)
             .reduce((monthSum, tx) => monthSum + tx.amountCents, 0));
           const historicalTotal = categoryHistory.reduce((sum, amount) => sum + amount, 0);

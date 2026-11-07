@@ -29,7 +29,11 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <div className="homeos-brand-mark"><Home className="h-5 w-5" /></div>
           <div className="min-w-0"><div className="flex items-center gap-2"><span className="text-xl font-extrabold tracking-[-.06em]">HOME OS</span><span className="hidden rounded-full border border-[#547D70]/20 bg-[#547D70]/[.07] px-2 py-0.5 text-[9px] font-bold tracking-wider text-[#547D70] sm:inline-flex">מרכז הבית</span></div><div className="mt-0.5 text-[9px] font-semibold tracking-[.22em]" style={{ color: activeTheme.textSecondary }}>מערכת ניהול משק הבית</div></div>
-          {household && <button onClick={onOpenHouseholds} className="homeos-household-switch"><span className="homeos-live-dot" /><span className="max-w-36 truncate">{household.name}</span><ChevronDown className="h-3.5 w-3.5 opacity-50" /></button>}
+          <button onClick={onOpenHouseholds} className="homeos-household-switch">
+            <span className="homeos-live-dot" />
+            <span className="max-w-36 truncate">{household?.name || 'בחירת משק בית'}</span>
+            <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+          </button>
           <div className="homeos-sync-state" role="status" title="הנתונים נשמרים בדפדפן הנוכחי. סנכרון בין מכשירים עדיין לא הוגדר."><CloudOff aria-hidden="true" /><span>מקומי בלבד</span><small>ענן לא מחובר</small></div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -87,7 +91,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button onClick={onOpenAuth} className="homeos-user-button" style={controlStyle} title={currentUser?.fullName || 'משתמש'}>{currentUser?.fullName?.charAt(0) || <Users className="h-4 w-4" />}</button>
         </div>
       </div>
-      {household && <div className="border-t px-4 py-2 md:hidden" style={{ borderColor: activeTheme.borderSubtle }}><button onClick={onOpenHouseholds} className="flex items-center gap-2 text-xs font-semibold" style={{ color: activeTheme.textSecondary }}><Home className="h-3.5 w-3.5" /> {household.name} · החלפת משק בית</button></div>}
+      <div className="border-t px-4 py-2 md:hidden" style={{ borderColor: activeTheme.borderSubtle }}><button onClick={onOpenHouseholds} className="flex items-center gap-2 text-xs font-semibold" style={{ color: activeTheme.textSecondary }}><Home className="h-3.5 w-3.5" /> {household?.name || 'בחירת משק בית'} · ניהול משקי בית</button></div>
     </header>
   );
 };

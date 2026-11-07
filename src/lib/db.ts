@@ -51,6 +51,14 @@ const isValidISODate = (value: string): boolean => {
 
 class HomeOSIndexedDB {
   private dbPromise: Promise<IDBDatabase> | null = null;
+  private readonly changeChannel = typeof BroadcastChannel !== 'undefined'
+    ? new BroadcastChannel('home-os-data')
+    : null;
+  private readonly synchronizedStores = new Set([
+    'households', 'household_memberships', 'household_persons',
+    'household_permissions', 'financial_accounts', 'ledger_transactions',
+    'household_documents', 'household_home_items',
+  ]);
 
   private getDB(): Promise<IDBDatabase> {
     if (this.dbPromise) return this.dbPromise;
@@ -178,6 +186,18 @@ class HomeOSIndexedDB {
       // Request success is not the same as a committed transaction. Resolve
       // only after IndexedDB confirms the complete transaction was committed.
       await completion;
+      // Notify other open HOME OS tabs only after a successful commit. The
+      // receiving tab reloads its active household from the durable database.
+      if (mode === 'readwrite') {
+        const changedStores = storeNames.filter(name => this.synchronizedStores.has(name));
+        if (changedStores.length) {
+          try {
+            this.changeChannel?.postMessage({ type: 'data-changed', stores: changedStores, emittedAt: Date.now() });
+          } catch {
+            // Cross-tab notifications are best-effort; the committed write remains authoritative.
+          }
+        }
+      }
       return result;
     } catch (err) {
       try { tx.abort(); } catch { /* The transaction may already be inactive. */ }

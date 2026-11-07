@@ -1223,9 +1223,15 @@ class HomeOSIndexedDB {
       throw new Error('המטבע שנבחר אינו נתמך');
     }
     if (patch.currency !== undefined && patch.currency !== existing.currency) {
+      const originalOpeningBalanceCents = existing.openingBalanceCents !== undefined
+        ? existing.openingBalanceCents
+        : toCents(existing.openingBalance);
+      if (originalOpeningBalanceCents !== 0) {
+        throw new Error('לא ניתן לשנות מטבע של חשבון עם יתרת פתיחה. יש ליצור חשבון חדש במטבע הרצוי כדי למנוע שינוי משמעות של סכומים קיימים.');
+      }
       const linkedTransactions = await this.getTransactionsByAccount(householdId, accountId);
       if (linkedTransactions.length > 0) {
-        throw new Error('לא ניתן לשנות מטבע של חשבון שכבר קיימות בו עסקאות. יש לפתוח חשבון חדש במטבע הרצוי כדי לשמור על דיוק הנתונים.');
+        throw new Error('לא ניתן לשנות מטבע של חשבון שכבר קיימות בו עסקאות. יש ליצור חשבון חדש במטבע הרצוי כדי לשמור על דיוק הנתונים.');
       }
     }
 

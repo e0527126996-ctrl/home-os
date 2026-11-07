@@ -1992,3 +1992,228 @@ body {
   .homeos-dashboard > header { padding: 20px 17px; border-radius: 17px; }
 }
 .homeos-main-content > :not([hidden]) ~ :not([hidden]) { margin-block-start: 0; }
+
+
+/* ─────────────────────────────────────────────────────────────
+   HOME OS — Ultra-Luxury Executive Finish
+   Presentation-only. Uses the active theme tokens; no data or
+   workflow behavior is changed.
+   ───────────────────────────────────────────────────────────── */
+.homeos-app-shell {
+  --homeos-metal: #C7A56B;
+  --homeos-metal-soft: color-mix(in srgb, #C7A56B 18%, transparent);
+  --homeos-glass: color-mix(in srgb, var(--bg-card) 86%, transparent);
+  --homeos-elevation: 0 18px 48px color-mix(in srgb, var(--text-primary) 7%, transparent);
+  isolation: isolate;
+}
+.homeos-app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 4% 4%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 34%),
+    radial-gradient(ellipse at 96% 42%, color-mix(in srgb, var(--homeos-metal) 5%, transparent), transparent 30%);
+}
+.homeos-topbar {
+  border-bottom: 1px solid color-mix(in srgb, var(--homeos-metal) 22%, var(--border-subtle));
+  background: color-mix(in srgb, var(--bg-canvas) 82%, transparent);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+}
+.homeos-brand-mark {
+  border-color: color-mix(in srgb, var(--homeos-metal) 52%, var(--accent));
+  background: linear-gradient(145deg,
+    color-mix(in srgb, var(--accent) 82%, #101820),
+    var(--accent) 68%,
+    color-mix(in srgb, var(--homeos-metal) 72%, var(--accent)));
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 22%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.3);
+}
+.homeos-navigation-shell {
+  border: 1px solid color-mix(in srgb, var(--homeos-metal) 18%, var(--border-subtle));
+  border-radius: 22px;
+  background: var(--homeos-glass);
+  box-shadow: var(--homeos-elevation), inset 0 1px 0 color-mix(in srgb, white 55%, transparent);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+}
+.homeos-navigation-shell > div:first-child {
+  border-bottom-color: color-mix(in srgb, var(--homeos-metal) 18%, var(--border-subtle));
+}
+.homeos-workspace-stat {
+  border-color: color-mix(in srgb, var(--homeos-metal) 18%, var(--border-subtle)) !important;
+}
+.homeos-main-nav .homeos-nav-item {
+  min-height: 48px;
+  border-radius: 12px;
+  letter-spacing: -.01em;
+}
+.homeos-main-nav .homeos-nav-item[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--homeos-metal) 54%, var(--accent)) !important;
+  background: linear-gradient(115deg,
+    color-mix(in srgb, var(--accent) 88%, #111b22),
+    color-mix(in srgb, var(--accent) 90%, #263b34)) !important;
+  box-shadow: 0 9px 22px color-mix(in srgb, var(--accent) 23%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+.homeos-main-nav .homeos-nav-item[aria-current="page"]::before {
+  background: var(--homeos-metal);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--homeos-metal) 65%, transparent);
+}
+.homeos-dashboard > header {
+  border-color: color-mix(in srgb, var(--homeos-metal) 22%, var(--border-subtle));
+  border-radius: 26px;
+  background:
+    radial-gradient(ellipse at 10% 0%, color-mix(in srgb, var(--homeos-metal) 11%, transparent), transparent 40%),
+    linear-gradient(128deg, var(--bg-card), color-mix(in srgb, var(--bg-surface) 78%, var(--bg-card)));
+  box-shadow: 0 16px 42px color-mix(in srgb, var(--text-primary) 5%, transparent);
+}
+.homeos-dashboard > header .homeos-kicker { letter-spacing: .2em; }
+.homeos-wealth-hero {
+  border: 1px solid color-mix(in srgb, var(--homeos-metal) 44%, rgba(255,255,255,.12));
+  border-radius: 28px;
+  background:
+    radial-gradient(ellipse at 84% 12%, color-mix(in srgb, var(--homeos-metal) 20%, transparent), transparent 34%),
+    radial-gradient(ellipse at 8% 90%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 42%),
+    linear-gradient(118deg, #101A22 0%, #172B32 48%, #263D3A 100%);
+  box-shadow: 0 26px 70px rgba(8,17,20,.23),
+    inset 0 1px 0 rgba(255,255,255,.16);
+}
+.homeos-net-worth {
+  text-shadow: 0 5px 28px rgba(0,0,0,.2);
+  letter-spacing: -.065em;
+}
+.homeos-hero-metric {
+  border-color: rgba(221,195,151,.2);
+  background: linear-gradient(135deg, rgba(255,255,255,.105), rgba(255,255,255,.045));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 8px 22px rgba(0,0,0,.08);
+  backdrop-filter: blur(16px);
+}
+.homeos-hero-button {
+  border: 1px solid rgba(255,255,255,.25);
+  background: linear-gradient(135deg, #E6D2AD, #B9925D);
+  box-shadow: 0 8px 24px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.5);
+}
+.homeos-dashboard .homeos-kpi-item,
+.homeos-lux-panel,
+.homeos-home-panel,
+.homeos-settings-hero,
+.homeos-density-section {
+  border: 1px solid color-mix(in srgb, var(--homeos-metal) 14%, var(--border-subtle));
+  background: var(--homeos-glass);
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--text-primary) 5%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 45%, transparent);
+  backdrop-filter: blur(12px) saturate(130%);
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
+}
+.homeos-dashboard .homeos-kpi-item {
+  border-radius: 19px;
+}
+.homeos-dashboard .homeos-kpi-item:hover,
+.homeos-lux-panel:hover,
+.homeos-home-panel:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--homeos-metal) 36%, var(--accent));
+  box-shadow: 0 20px 42px color-mix(in srgb, var(--text-primary) 9%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 55%, transparent);
+}
+.homeos-kpi-value {
+  font-size: clamp(1.55rem, 2.5vw, 2.15rem);
+  letter-spacing: -.055em;
+}
+.homeos-section-kicker,
+.homeos-kicker {
+  color: color-mix(in srgb, var(--accent) 78%, var(--homeos-metal));
+}
+.homeos-primary-action,
+.homeos-export-button {
+  border: 1px solid color-mix(in srgb, var(--homeos-metal) 38%, var(--accent));
+  background: linear-gradient(125deg,
+    color-mix(in srgb, var(--accent) 82%, #101a1c),
+    var(--accent) 74%,
+    color-mix(in srgb, var(--homeos-metal) 34%, var(--accent)));
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 22%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.16);
+}
+.homeos-secondary-action,
+.homeos-date-chip,
+.homeos-toolbar-button,
+.homeos-household-switch {
+  border-color: color-mix(in srgb, var(--homeos-metal) 17%, var(--border-subtle));
+  background: var(--homeos-glass);
+  backdrop-filter: blur(10px);
+}
+.homeos-theme-option {
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--bg-card);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--text-primary) 4%, transparent);
+}
+.homeos-theme-preview {
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+}
+.homeos-settings-current {
+  border: 1px solid color-mix(in srgb, var(--homeos-metal) 34%, var(--border-subtle));
+  background: color-mix(in srgb, var(--homeos-metal) 9%, var(--bg-card));
+  border-radius: 999px;
+  padding: 9px 14px;
+}
+.homeos-app-shell :is(input, select, textarea) {
+  border-radius: 12px;
+}
+.homeos-app-shell :is(button, a, [role="button"]) {
+  transition:
+    transform .22s cubic-bezier(.2,.75,.25,1),
+    box-shadow .22s ease,
+    border-color .22s ease,
+    background-color .22s ease,
+    color .22s ease;
+}
+.homeos-app-shell button:active:not(:disabled) { transform: translateY(0) scale(.985); }
+.homeos-app-shell :is(.homeos-transaction-icon, .homeos-icon-tile, .homeos-metric-icon) {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+}
+.homeos-app-shell table {
+  border-radius: 14px;
+  overflow: hidden;
+}
+.homeos-app-shell thead th {
+  padding-block: 13px;
+  font-weight: 800;
+  letter-spacing: .025em;
+}
+.homeos-app-shell tbody td { padding-block: 12px; }
+.dark .homeos-navigation-shell,
+.dark .homeos-dashboard .homeos-kpi-item,
+.dark .homeos-lux-panel,
+.dark .homeos-home-panel,
+.dark .homeos-settings-hero,
+.dark .homeos-density-section {
+  background: color-mix(in srgb, var(--bg-card) 82%, transparent);
+  border-color: color-mix(in srgb, var(--homeos-metal) 20%, var(--border-subtle));
+  box-shadow: 0 18px 46px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.055);
+}
+.dark .homeos-dashboard > header {
+  background:
+    radial-gradient(ellipse at 10% 0%, color-mix(in srgb, var(--accent) 17%, transparent), transparent 42%),
+    linear-gradient(128deg, var(--bg-card), var(--bg-surface));
+}
+.dark .homeos-main-nav .homeos-nav-item[aria-current="page"] {
+  color: #fff !important;
+}
+.dark .homeos-app-shell :is(input, select, textarea) {
+  background: color-mix(in srgb, var(--bg-surface) 90%, #000);
+}
+@media (max-width: 980px) {
+  .homeos-navigation-shell { border-radius: 18px; }
+}
+@media (max-width: 600px) {
+  .homeos-wealth-hero { border-radius: 20px; }
+  .homeos-dashboard .homeos-kpi-item { min-height: 132px; padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .homeos-app-shell :is(button, a, [role="button"]) { transition: none !important; }
+}

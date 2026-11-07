@@ -50,7 +50,18 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
       pending: transactions.filter(tx => tx.verificationStatus === 'PENDING').length,
       pendingAmount: transactions.filter(tx => tx.verificationStatus === 'PENDING' && currencies.get(tx.accountId) === 'ILS' && Number.isSafeInteger(tx.amountCents) && tx.amountCents > 0).reduce((sum, tx) => sum + tx.amountCents, 0),
       foreignAccounts: accounts.filter(account => account.status === 'ACTIVE' && account.currency !== 'ILS').length,
-      categories: [...byCategory.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8),
+      foreignCurrencies: (() => {
+        const totals = new Map<string, { income: number; expense: number }>();
+        for (const tx of transactions) {
+          const currencyCode = currencies.get(tx.accountId);
+          if (!currencyCode || currencyCode === 'ILS' || tx.verificationStatus === 'PENDING' || tx.date?.slice(0, 7) !== monthKey || !Number.isSafeInteger(tx.amountCents) || tx.amountCents <= 0 || (tx.type !== 'INCOME' && tx.type !== 'EXPENSE')) continue;
+          const value = totals.get(currencyCode) || { income: 0, expense: 0 };
+          if (tx.type === 'INCOME') value.income += tx.amountCents; else value.expense += tx.amountCents;
+          totals.set(currencyCode, value);
+        }
+        return [...totals.entries()].map(([currency, value]) => ({ currency, ...value }));
+      })(),
+      categories: [...byCategory.entries()].sort((a, b) => b[1] - a[1]),
     };
   }, [accounts, transactions]);
   const money = (cents: number) => new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(cents / 100);
@@ -101,7 +112,14 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
       </div>
       {finance.pending>0&&<div className="homeos-data-notice">יש {finance.pending} עסקאות שיובאו מדפי חשבון וממתינות לאימות. הן מוצגות כאן כממתינות, ולא נכללות בסיכומי ההוצאות, בגרפים או ביתרות עד לאימות.</div>}
       {finance.foreignAccounts>0&&<div className="homeos-data-notice muted">קיימים {finance.foreignAccounts} חשבונות במטבע זר. הסיכומים הכספיים כאן מוצגים בשקלים בלבד, ללא המרת מטבע לא מאומתת.</div>}
-      <div className="homeos-finance-categories">
+      {finance.foreignCurrencies.length>0&&<div className="homeos-finance-foreign">
+        <h3 className="text-sm font-bold">פעילות בחשבונות במטבע זר</h3>
+        <p className="mt-1 text-xs" style={{color:activeTheme.textSecondary}}>הנתונים מוצגים לכל מטבע בנפרד, ללא המרה משוערת</p>
+        {finance.foreignCurrencies.map(item=><div key={item.currency} className="mt-3 flex flex-wrap items-center justify-between gap-2 border-b pb-2 text-sm" style={{borderColor:activeTheme.borderSubtle}}>
+          <strong>{item.currency}</strong><span>הכנסות: {new Intl.NumberFormat('he-IL',{style:'currency',currency:item.currency,maximumFractionDigits:0}).format(item.income/100)}</span><span>הוצאות: {new Intl.NumberFormat('he-IL',{style:'currency',currency:item.currency,maximumFractionDigits:0}).format(item.expense/100)}</span>
+        </div>)}
+      </div>}
+            <div className="homeos-finance-categories">
         <div><div className="homeos-section-kicker">חלוקה חודשית לפי קטגוריה</div><h3 className="mt-1 text-lg font-bold">חלוקת הוצאות לפי קטגוריה</h3></div>
         {finance.categories.length?finance.categories.map(([label,value],index)=>{
           const pct=finance.expenseTotal>0?Math.min(100,value/finance.expenseTotal*100):0;

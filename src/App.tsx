@@ -291,24 +291,63 @@ export default function App() {
     }
   }, [activeTheme, workspaceViewMode]);
 
+  const handleSwitchUser = async (user: User) => {
+    // Clear the previous user's household state before awaiting any new data.
+    clearHouseholdData();
+    setCurrentUser(user);
+    await db.setSetting('current_user_id', user.id);
+
+    const accessibleHouseholds = await getAccessibleHouseholds(user.id);
+    setHouseholds(accessibleHouseholds);
+    const savedHouseholdId = await db.getSetting<string>('active_household_id', '');
+    const nextHousehold = accessibleHouseholds.find(household => household.id === savedHouseholdId)
+      || accessibleHouseholds[0]
+      || null;
+
+    if (nextHousehold) {
+      setActiveHousehold(nextHousehold);
+      await db.setSetting('active_household_id', nextHousehold.id);
+      await reloadHouseholdData(nextHousehold.id, user.id);
+      setShowHouseholdsModal(false);
+    } else {
+      setActiveHousehold(null);
+      await db.setSetting('active_household_id', '');
+      setShowHouseholdsModal(true);
+    }
+    showToast(`מחובר כעת כ-${user.fullName}`);
+  };
+
   // Handlers for Households
   const handleSelectHousehold = async (hhdId: string) => {
-    const target = households.find((h) => h.id === hhdId);
-    if (!target) return;
-    setActiveHousehold(target);
-    await db.setSetting('active_household_id', target.id);
-    await reloadHouseholdData(target.id);
-    showToast(`מעבר למשק בית: ${target.name}`);
-    setShowHouseholdsModal(false);
+    if (!currentUser) return;
+    const target = households.find(household => household.id === hhdId);
+    if (!target) {
+      showToast('משק הבית אינו זמין למשתמש הנוכחי', 'error');
+      return;
+    }
+    clearHouseholdData();
+    try {
+      await reloadHouseholdData(target.id, currentUser.id);
+      setActiveHousehold(target);
+      await db.setSetting('active_household_id', target.id);
+      showToast(`מעבר למשק בית: ${target.name}`);
+      setShowHouseholdsModal(false);
+    } catch (error: any) {
+      clearHouseholdData();
+      showToast(error.message || 'לא ניתן לעבור למשק הבית שנבחר', 'error');
+    }
   };
 
   const handleCreateHousehold = async (name: string, currency: string) => {
     if (!currentUser) return;
     const newHhd = await db.createHousehold(name, currency, currentUser.id, currentUser.email);
-    const updatedHhds = await db.getHouseholds();
-    setHouseholds(updatedHhds);
+    const accessibleHouseholds = await getAccessibleHouseholds(currentUser.id);
+    setHouseholds(accessibleHouseholds);
+    clearHouseholdData();
+    await reloadHouseholdData(newHhd.id, currentUser.id);
     setActiveHousehold(newHhd);
-    await reloadHouseholdData(newHhd.id);
+    await db.setSetting('active_household_id', newHhd.id);
+    setShowHouseholdsModal(false);
     showToast(`משק בית "${name}" נוצר בהצלחה`);
   };
 
@@ -1164,26 +1203,13 @@ export default function App() {
       </main>
 
       {/* Modal Dialogs */}
-      {showAuthModal && (
+      {(showAuthModal || !currentUser) && (
         <AuthModal
           currentUser={currentUser}
           allUsers={allUsers}
           activeTheme={activeTheme}
-          onClose={() => setShowAuthModal(false)}
-          onSwitchUser={async (u) => {
-            setCurrentUser(u);
-            await db.setSetting('current_user_id', u.id);
-            if (activeHousehold) {
-              await reloadHouseholdData(activeHousehold.id);
-            } else {
-              setMemberships([]);
-              setPersons([]);
-              setAuditLogs([]);
-              setAccounts([]);
-              setTransactions([]);
-            }
-            showToast(`מחובר כעת כ-${u.fullName}`);
-          }}
+          onClose={() => { if (currentUser) setShowAuthModal(false); }}
+          onSwitchUser={handleSwitchUser}
           onCreateUser={async (email, fullName, pin) => {
             const u = await db.createUser(email, fullName, pin);
             const updated = await db.getUsers();
@@ -1192,10 +1218,13 @@ export default function App() {
             return u;
           }}
           onLogout={async () => {
-            setCurrentUser(null);
+            // Keep the last household preference so the same user can resume,
+            // but never leave their records visible after the session is locked.
             await db.setSetting('current_user_id', null);
-            setShowAuthModal(false);
-            showToast('סשן ננעל בהצלחה');
+            clearHouseholdData();
+            setCurrentUser(null);
+            setShowAuthModal(true);
+            showToast('הסשן ננעל והנתונים המקומיים הוסתרו');
           }}
         />
       )}

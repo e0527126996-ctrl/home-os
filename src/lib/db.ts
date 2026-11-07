@@ -913,6 +913,10 @@ class HomeOSIndexedDB {
   }
 
   async savePermissionRule(rule: HouseholdPermissionRule): Promise<void> {
+    const memberships = await this.getMembershipsByHousehold(rule.householdId);
+    if (!memberships.some(membership => membership.id === rule.membershipId)) {
+      throw new Error('לא ניתן ליצור הרשאה לחברות שאינה שייכת למשק הבית');
+    }
     return this.transaction(['household_permissions'], 'readwrite', async (tx) => {
       const store = tx.objectStore('household_permissions');
       const existing = await this.reqToPromise<HouseholdPermissionRule | undefined>(store.get(rule.id));

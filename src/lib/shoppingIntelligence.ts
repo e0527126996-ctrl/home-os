@@ -52,7 +52,7 @@ export function classifyShoppingCategory(value: string): ShoppingCategory {
 }
 
 type ParsedQuantity = { value: number; unit: string; label: string };
-const numberPattern = '(\\d+(?:[.,]\\d+)?|\\d+\\s*\\/\\s*\\d+)';
+const numberPattern = '(?:\\d+(?:[.,]\\d+)?|\\d+\\s*\\/\\s*\\d+)';
 
 function parseNumber(value: string): number | null {
   const normalized = value.replace(/\s/g, '').replace(',', '.');

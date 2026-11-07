@@ -744,3 +744,195 @@ body {
 @media (max-width:1179px) {
   .homeos-navigation-shell { border-radius: 0; }
 }
+
+
+/* HOME OS signature design pass — stronger hierarchy, refined navigation, finance intelligence. */
+.homeos-navigation-shell {
+  display: grid;
+  gap: .85rem;
+  border: 1px solid color-mix(in srgb, var(--accent, #547D70) 13%, var(--border-subtle, #E6E0D8));
+  border-radius: 20px;
+  padding: 15px 17px 12px;
+  background: color-mix(in srgb, var(--bg-card, #fff) 91%, transparent);
+  box-shadow: 0 12px 34px rgba(29,43,35,.055), inset 0 1px 0 rgba(255,255,255,.82);
+  backdrop-filter: blur(18px) saturate(145%);
+}
+.homeos-navigation-shell > div:first-child { padding-inline: 3px; }
+.homeos-main-nav { gap: 6px; padding: 2px 1px 5px; }
+.homeos-nav-item {
+  min-height: 43px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 10px 13px;
+  letter-spacing: -.01em;
+}
+.homeos-nav-item:not([aria-current="page"]) {
+  background: color-mix(in srgb, var(--bg-surface, #F3EFEA) 66%, transparent);
+  border-color: color-mix(in srgb, var(--border-subtle, #E6E0D8) 70%, transparent);
+}
+.homeos-nav-item:not([aria-current="page"]):hover {
+  border-color: color-mix(in srgb, var(--accent, #547D70) 28%, transparent);
+  background: color-mix(in srgb, var(--accent, #547D70) 9%, var(--bg-card, #fff));
+}
+.homeos-nav-item[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--accent, #547D70) 35%, transparent);
+  background: linear-gradient(135deg, #18372D, #416B57) !important;
+  box-shadow: 0 7px 18px rgba(31,66,49,.19) !important;
+}
+.homeos-home-hero {
+  isolation: isolate;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 27px;
+  padding: clamp(1.6rem,3.2vw,2.65rem);
+  box-shadow: 0 24px 62px rgba(20,44,33,.19), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.homeos-home-hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -95px;
+  top: -170px;
+  width: 370px;
+  height: 370px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 50%;
+  box-shadow: 0 0 0 42px rgba(255,255,255,.025), 0 0 0 88px rgba(255,255,255,.018);
+  pointer-events: none;
+}
+.homeos-home-hero > div > div:last-child > div {
+  min-width: 100px;
+  border-radius: 14px !important;
+  background: rgba(255,255,255,.085) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.11);
+  backdrop-filter: blur(12px);
+}
+.homeos-home-tabs {
+  position: sticky;
+  top: 76px;
+  z-index: 20;
+  gap: 6px;
+  border: 1px solid var(--border-subtle, #E6E0D8);
+  border-radius: 15px;
+  padding: 6px;
+  background: color-mix(in srgb, var(--bg-card, #fff) 92%, transparent);
+  box-shadow: 0 8px 25px rgba(28,42,34,.055);
+  backdrop-filter: blur(16px);
+}
+.homeos-home-tabs button {
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 10px !important;
+  padding: .7rem 1.05rem !important;
+  font-size: .78rem !important;
+  white-space: nowrap;
+}
+.homeos-home-tabs button[aria-current="page"],
+.homeos-home-tabs button:focus-visible {
+  outline-offset: 2px;
+}
+.homeos-home-tabs button:hover {
+  background: color-mix(in srgb, var(--accent, #547D70) 8%, var(--bg-card, #fff));
+}
+.homeos-home-panel {
+  border-radius: 18px;
+  box-shadow: 0 9px 30px rgba(27,42,33,.045), inset 0 1px 0 rgba(255,255,255,.65);
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.homeos-home-panel:hover {
+  border-color: color-mix(in srgb, var(--accent, #547D70) 28%, var(--border-subtle, #E6E0D8));
+  box-shadow: 0 14px 34px rgba(27,42,33,.065);
+}
+.homeos-home-field {
+  min-height: 46px;
+  border-radius: 12px;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.homeos-home-field:focus {
+  outline: 0;
+  border-color: var(--accent, #547D70);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent, #547D70) 13%, transparent);
+}
+.homeos-finance-overview {
+  gap: 1.6rem;
+  border: 1px solid var(--border-subtle, #E6E0D8);
+  border-radius: 22px;
+  padding: clamp(1.1rem,2.4vw,1.8rem);
+  background: var(--bg-card, #fff);
+  box-shadow: 0 12px 36px rgba(27,42,33,.045);
+}
+.homeos-finance-summary {
+  overflow: hidden;
+  border: 1px solid var(--border-subtle, #E6E0D8);
+  border-radius: 16px;
+  background: var(--bg-surface, #F3EFEA);
+}
+.homeos-finance-summary > div { padding: 1.15rem 1.25rem; }
+.homeos-finance-summary strong { font-size: clamp(1.35rem,2.3vw,1.95rem); letter-spacing: -.045em; }
+.homeos-home-forecast {
+  border: 1px solid color-mix(in srgb, var(--accent, #547D70) 19%, var(--border-subtle, #E6E0D8));
+  border-radius: 19px;
+  padding: clamp(1rem,2.2vw,1.55rem);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--accent, #547D70) 5%, var(--bg-card, #fff)), var(--bg-card, #fff) 68%);
+}
+.homeos-forecast-tag {
+  border: 1px solid color-mix(in srgb, var(--accent, #547D70) 22%, transparent);
+  border-radius: 99px;
+  padding: .45rem .75rem;
+  color: var(--accent, #547D70);
+  background: color-mix(in srgb, var(--accent, #547D70) 8%, transparent);
+  font-size: .68rem;
+  font-weight: 800;
+}
+.homeos-home-forecast-kpis {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: .7rem;
+  margin-top: 1.2rem;
+}
+.homeos-home-forecast-kpis > div {
+  min-width: 0;
+  border: 1px solid var(--border-subtle, #E6E0D8);
+  border-radius: 14px;
+  padding: .9rem 1rem;
+  background: var(--bg-card, #fff);
+}
+.homeos-home-forecast-kpis span,
+.homeos-home-forecast-kpis small { display:block; color: var(--text-secondary, #6B645C); font-size: .68rem; line-height: 1.55; }
+.homeos-home-forecast-kpis strong { display:block; margin: .5rem 0 .3rem; font-size: clamp(1rem,1.8vw,1.45rem); font-variant-numeric: tabular-nums; letter-spacing: -.035em; }
+.homeos-home-forecast-kpis strong.positive { color: #477866; }
+.homeos-home-forecast-kpis strong.negative { color: #B45F56; }
+.homeos-forecast-bars {
+  display: grid;
+  grid-template-columns: repeat(12,minmax(0,1fr));
+  gap: .55rem;
+  align-items: end;
+  height: 145px;
+  margin-top: 1.4rem;
+  padding: .75rem .7rem .35rem;
+  border: 1px solid var(--border-subtle, #E6E0D8);
+  border-radius: 14px;
+  background: repeating-linear-gradient(to bottom, transparent 0, transparent 32%, color-mix(in srgb,var(--border-subtle,#E6E0D8) 55%,transparent) 33%, transparent 34%);
+}
+.homeos-forecast-bars > div { display:flex; min-width:0; height:100%; flex-direction:column; align-items:center; justify-content:flex-end; gap:.45rem; }
+.homeos-forecast-bar-track { display:flex; width:100%; height:100%; align-items:flex-end; justify-content:center; }
+.homeos-forecast-bar-track span { display:block; width:min(100%,22px); min-height:3px; border-radius:6px 6px 2px 2px; }
+.homeos-forecast-bar-track span.positive { background:linear-gradient(180deg,#83A894,#477866); }
+.homeos-forecast-bar-track span.negative { background:linear-gradient(180deg,#D79A8F,#B45F56); }
+.homeos-forecast-bars small { overflow:hidden; max-width:100%; color:var(--text-secondary,#6B645C); font-size:.58rem; white-space:nowrap; text-overflow:ellipsis; }
+.dark .homeos-home-panel, .dark .homeos-finance-overview { background:var(--bg-card,#1E293B); border-color:var(--border-subtle,#334155); box-shadow:0 12px 36px rgba(0,0,0,.16); }
+.dark .homeos-home-forecast { background:linear-gradient(145deg,color-mix(in srgb,var(--accent,#38BDF8) 9%,var(--bg-card,#1E293B)),var(--bg-card,#1E293B) 68%); }
+.dark .homeos-home-forecast-kpis > div, .dark .homeos-forecast-bars { background-color:var(--bg-surface,#111827); border-color:var(--border-subtle,#334155); }
+.dark .homeos-finance-summary { background:var(--bg-surface,#111827); border-color:var(--border-subtle,#334155); }
+@media(max-width:760px) {
+  .homeos-navigation-shell { border-radius:16px; padding:11px 10px 8px; }
+  .homeos-home-tabs { top:64px; }
+  .homeos-home-forecast-kpis { grid-template-columns:1fr; }
+  .homeos-home-forecast-kpis > div { display:grid; grid-template-columns:1fr auto; align-items:center; gap:.15rem .7rem; }
+  .homeos-home-forecast-kpis strong { grid-column:2; grid-row:1 / span 2; margin:0; }
+  .homeos-home-forecast-kpis small { grid-column:1; }
+  .homeos-forecast-bars { gap:.25rem; height:118px; padding-inline:.35rem; }
+  .homeos-forecast-bars small { font-size:.5rem; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .homeos-home-panel, .homeos-nav-item { transition:none !important; }
+}

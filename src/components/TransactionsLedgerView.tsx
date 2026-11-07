@@ -21,6 +21,7 @@ import {
 import { ThemeConfig } from '../lib/themes.ts';
 import { formatCents } from '../lib/currency.ts';
 import { buildFinanceAnalytics } from '../lib/financeAnalytics.ts';
+import { WorkspacePageHeader } from './WorkspacePageHeader.tsx';
 
 // Imported legacy rows can occasionally contain Markdown table syntax instead of plain cell text.
 // Normalize only the presentation layer; never mutate the stored transaction or its audit trail.
@@ -276,9 +277,14 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
   };
 
   return (
-    <div className="homeos-ledger-view space-y-7" dir="rtl">
-      {/* סרגל סיכום פיננסי */}
-      <p className="text-xs leading-5 text-stone-500">הסיכומים כוללים עסקאות מאושרות בשקלים בלבד. עסקאות שממתינות לבדיקה מוצגות בפנקס אך אינן נכללות ביתרות ובסכומים.</p>
+    <div className="homeos-ledger-view homeos-workspace-page space-y-7" dir="rtl">
+      <WorkspacePageHeader
+        eyebrow="FINANCIAL OPERATIONS / LEDGER"
+        title="פנקס העסקאות"
+        description="תנועות הכסף של משק הבית — חיפוש, סינון, אימות ובקרה במקום אחד."
+        meta={<><span>{filteredTransactions.length.toLocaleString('he-IL')} תנועות בתצוגה</span><span>{transactions.filter(tx => tx.verificationStatus === 'PENDING').length} ממתינות לאימות</span><span>{accounts.length} חשבונות מקושרים</span></>}
+      />
+      <p className="homeos-ledger-note">הסיכומים כוללים עסקאות מאושרות בשקלים בלבד. עסקאות שממתינות לבדיקה מוצגות בפנקס אך אינן נכללות ביתרות ובסכומים.</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* סך הכנסות */}
         <div

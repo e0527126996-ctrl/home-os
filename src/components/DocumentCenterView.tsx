@@ -141,6 +141,12 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
         notifyDocumentsChanged();
         setMessage(`${saved} מסמכים נשמרו לפני שההעלאה נעצרה`);
       }
+      // A later invalid file must not silently strand bank statements that
+      // were already saved earlier in the same multi-file upload.
+      if (statementsToImport.length) {
+        setStatementFile(statementsToImport[0]);
+        setStatementQueue(prev => [...prev, ...statementsToImport.slice(1)]);
+      }
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = '';
@@ -166,8 +172,16 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
 
   const handlePreview = (doc: HouseholdDocument) => {
     const url = URL.createObjectURL(doc.blob);
-    const opened = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!opened) handleDownload(doc);
+    // A window opened with noopener/noreferrer may intentionally return null.
+    // Do not interpret that return value as a popup failure and trigger a second download.
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 

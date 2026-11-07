@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Home, Plus, Check, Settings, Shield, UserCheck } from 'lucide-react';
 import { Household, User } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
+import { WorkspacePageHeader } from './WorkspacePageHeader.tsx';
 
 interface HouseholdsViewProps {
   households: Household[];
@@ -56,24 +57,14 @@ export const HouseholdsView: React.FC<HouseholdsViewProps> = ({
   };
 
   return (
-    <div className="homeos-households-view space-y-6">
-      {/* Header section */}
-      <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: activeTheme.borderSubtle }}>
-        <div>
-          <h2 className="font-serif text-xl font-semibold">משקי בית והגדרות סביבה</h2>
-          <p className="text-xs mt-1" style={{ color: activeTheme.textSecondary }}>
-            ניהול משקי הבית המקומיים, הגדרות תצוגה והפרדה מוחלטת של הנתונים
-          </p>
-        </div>
-        <button
-          onClick={() => setIsCreating(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: activeTheme.accent }}
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>משק בית חדש</span>
-        </button>
-      </div>
+    <div className="homeos-households-view homeos-workspace-page space-y-6">
+      <WorkspacePageHeader
+        eyebrow="WORKSPACE / HOUSEHOLDS"
+        title="משקי בית"
+        description="ניהול סביבות הבית, מטבע הבסיס והעדפות התצוגה לכל משק בית."
+        meta={<><span>{households.length} משקי בית במכשיר</span><span>{activeHousehold ? 'פעיל: ' + activeHousehold.name : 'לא נבחר משק בית'}</span></>}
+        actions={<button onClick={() => setIsCreating(true)} className="homeos-primary-action"><Plus className="h-4 w-4" /> משק בית חדש</button>}
+      />
 
       {/* New Household Form */}
       {isCreating && (

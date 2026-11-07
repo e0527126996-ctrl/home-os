@@ -27,18 +27,18 @@ import { buildFinanceAnalytics } from '../lib/financeAnalytics.ts';
 const displayLedgerText = (value: string | undefined | null): string => {
   const raw = String(value ?? '').trim();
   if (!raw) return '—';
-  const lines = raw.split(/\\r?\\n/).map(line => line.trim()).filter(Boolean);
-  const isMarkdownTable = lines.some(line => /^\\|/.test(line)) && lines.some(line => /^\\|?\\s*:?-{3,}/.test(line));
+  const lines = raw.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  const isMarkdownTable = lines.some(line => /^\|/.test(line)) && lines.some(line => /^\|?\s*:?-{3,}/.test(line));
   const cleanCell = (cell: string) => cell
-    .replace(/<br\\s*\\/?\\s*>/gi, ' ')
-    .replace(/\\*\\*(.*?)\\*\\*/g, '$1')
+    .replace(/<br\s*\/?\s*>/gi, ' ')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
     .replace(/__(.*?)__/g, '$1')
-    .replace(/\\s+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
   if (isMarkdownTable) {
     const cells = lines
-      .filter(line => !/^\\|?\\s*:?-{3,}/.test(line))
-      .flatMap(line => line.replace(/^\\|/, '').replace(/\\|$/, '').split('|'))
+      .filter(line => !/^\|?\s*:?-{3,}/.test(line))
+      .flatMap(line => line.replace(/^\|/, '').replace(/\|$/, '').split('|'))
       .map(cleanCell)
       .filter(Boolean);
     if (cells.length) return cells.join(' · ');

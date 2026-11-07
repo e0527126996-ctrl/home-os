@@ -199,4 +199,20 @@ export const MODERN_EDITORIAL_THEMES: ThemeConfig[] = [
     accentMuted: '#1E293B',
     description: 'ניגודיות מרבית לקריאות מושלמת בכל תנאי תאורה',
   },
+  {
+    id: 'carbon_gold_luxury',
+    nameHe: 'פחם וזהב (Carbon Gold Luxury)',
+    nameEn: 'Carbon Gold Luxury',
+    isDark: true,
+    bgCanvas: '#0F1115',
+    bgSurface: '#141820',
+    bgCard: '#181C24',
+    borderSubtle: 'rgba(212, 175, 55, 0.25)',
+    textPrimary: '#F4F1E8',
+    textSecondary: '#A9A69D',
+    accent: '#D4AF37',
+    accentMuted: '#3A321D',
+    description: 'שחור פחם עמוק, משטחי מתכת כהים, זהב מוברש והדגשות אמרלד',
+  },
+
 ];

@@ -1153,3 +1153,84 @@ body {
   .homeos-ledger-view { overflow-wrap:anywhere; }
   .homeos-ledger-view table { min-width:760px; }
 }
+
+
+/* Theme-aware workspace finishing layer: accounts, documents and home operations. */
+.homeos-accounts-view,
+.homeos-document-center,
+.homeos-home-management {
+  color: var(--text-primary);
+}
+.homeos-accounts-view .homeos-lux-panel,
+.homeos-document-center .homeos-lux-panel,
+.homeos-home-management .homeos-home-panel {
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--text-primary) 5%, transparent);
+}
+.homeos-accounts-view input,
+.homeos-accounts-view select,
+.homeos-accounts-view textarea,
+.homeos-document-center input,
+.homeos-document-center select,
+.homeos-document-center textarea,
+.homeos-home-management input,
+.homeos-home-management select,
+.homeos-home-management textarea {
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+.homeos-accounts-view input:not([type="checkbox"]):not([type="radio"]),
+.homeos-accounts-view select,
+.homeos-accounts-view textarea,
+.homeos-document-center input:not([type="checkbox"]):not([type="radio"]),
+.homeos-document-center select,
+.homeos-document-center textarea,
+.homeos-home-management input:not([type="checkbox"]):not([type="radio"]),
+.homeos-home-management select,
+.homeos-home-management textarea {
+  background-color: var(--bg-surface);
+}
+.homeos-accounts-view input::placeholder,
+.homeos-document-center input::placeholder,
+.homeos-home-management input::placeholder,
+.homeos-home-management textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: .72;
+}
+.homeos-accounts-view button:focus-visible,
+.homeos-document-center button:focus-visible,
+.homeos-home-management button:focus-visible {
+  outline-color: var(--focus-ring);
+}
+.homeos-document-center .homeos-lux-panel,
+.homeos-home-management .homeos-home-panel {
+  transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.homeos-document-center [class*="divide-y"] > *,
+.homeos-accounts-view [class*="divide-y"] > * {
+  border-color: var(--border-subtle);
+}
+.homeos-home-management .homeos-home-tabs {
+  border-color: var(--border-subtle);
+  background: var(--bg-card);
+}
+@media (max-width: 640px) {
+  .homeos-accounts-view .homeos-wealth-hero,
+  .homeos-document-center .homeos-wealth-hero,
+  .homeos-home-management .homeos-home-hero {
+    border-radius: 22px;
+    padding: 20px;
+  }
+  .homeos-accounts-view .homeos-wealth-hero .grid,
+  .homeos-document-center .homeos-wealth-hero .grid {
+    min-width: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .homeos-document-center .homeos-lux-panel,
+  .homeos-home-management .homeos-home-panel {
+    transition: none;
+  }
+}

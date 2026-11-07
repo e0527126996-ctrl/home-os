@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { Archive, CloudOff, Download, File as FileIcon, FileImage, FileSpreadsheet, FileText, FolderOpen, Search, ShieldCheck, Trash2, Upload, X } from 'lucide-react';
 import { FinancialAccount, Household, HouseholdDocument, LedgerTransaction, User } from '../types.ts';
 import { ImportedStatementRow } from '../lib/statementImport.ts';
-import { StatementImportModal } from './StatementImportModal.tsx';
+const StatementImportModal = lazy(() => import('./StatementImportModal.tsx').then(({ StatementImportModal }) => ({ default: StatementImportModal })));
 import { ThemeConfig } from '../lib/themes.ts';
 import { db } from '../lib/db.ts';
 
@@ -250,11 +250,13 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
             })}
           </div>}
       </section>
-      {statementFile && <StatementImportModal file={statementFile} accounts={accounts} transactions={transactions} activeTheme={activeTheme} onClose={() => {
-        const [next, ...remaining] = statementQueue;
-        setStatementQueue(remaining);
-        setStatementFile(next || null);
-      }} onImport={onImportTransactions} />}
+      {statementFile && <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"><div className="rounded-2xl border px-6 py-5 text-sm font-semibold shadow-xl" style={{background:activeTheme.bgCard,borderColor:activeTheme.borderSubtle,color:activeTheme.textPrimary}}>טוען כלי ניתוח דף חשבון...</div></div>}>
+        <StatementImportModal file={statementFile} accounts={accounts} transactions={transactions} activeTheme={activeTheme} onClose={() => {
+          const [next, ...remaining] = statementQueue;
+          setStatementQueue(remaining);
+          setStatementFile(next || null);
+        }} onImport={onImportTransactions} />
+      </Suspense>}
     </div>
   );
 };

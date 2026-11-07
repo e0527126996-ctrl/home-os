@@ -1185,19 +1185,20 @@ class HomeOSIndexedDB {
       updatedAt: now,
     };
 
-    await this.transaction(['financial_accounts'], 'readwrite', async (tx) => {
-      const store = tx.objectStore('financial_accounts');
-      await this.reqToPromise(store.put(newAccount));
-    });
-
-    await this.recordAuditLog(
+    const auditLog: AuditLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       householdId,
-      actorUserId,
-      actorEmail,
-      'CREATE_ACCOUNT',
-      'FINANCE',
-      `הקמת חשבון פיננסי: ${newAccount.name} (${newAccount.type}) במוסד ${newAccount.institution}`
-    );
+      userId: actorUserId,
+      userEmail: actorEmail,
+      action: 'CREATE_ACCOUNT',
+      domain: 'FINANCE',
+      details: `הקמת חשבון פיננסי: ${newAccount.name} (${newAccount.type}) במוסד ${newAccount.institution}`,
+      timestamp: now,
+    };
+    await this.transaction(['financial_accounts', 'audit_logs'], 'readwrite', async (tx) => {
+      await this.reqToPromise(tx.objectStore('financial_accounts').put(newAccount));
+      await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
+    });
 
     return newAccount;
   }
@@ -1261,19 +1262,20 @@ class HomeOSIndexedDB {
       updatedAt: new Date().toISOString(),
     };
 
-    await this.transaction(['financial_accounts'], 'readwrite', async (tx) => {
-      const store = tx.objectStore('financial_accounts');
-      await this.reqToPromise(store.put(updated));
-    });
-
-    await this.recordAuditLog(
+    const auditLog: AuditLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       householdId,
-      actorUserId,
-      actorEmail,
-      'UPDATE_ACCOUNT',
-      'FINANCE',
-      `עדכון פרטי חשבון: ${updated.name}`
-    );
+      userId: actorUserId,
+      userEmail: actorEmail,
+      action: 'UPDATE_ACCOUNT',
+      domain: 'FINANCE',
+      details: `עדכון פרטי חשבון: ${updated.name}`,
+      timestamp: updated.updatedAt,
+    };
+    await this.transaction(['financial_accounts', 'audit_logs'], 'readwrite', async (tx) => {
+      await this.reqToPromise(tx.objectStore('financial_accounts').put(updated));
+      await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
+    });
 
     const recomputed = await this.computeAccountBalances(householdId, [updated]);
     return recomputed[0];
@@ -1322,19 +1324,20 @@ class HomeOSIndexedDB {
       throw new Error(`לא ניתן למחוק חשבון זה מכיוון שקיימות עבורו ${txs.length} עסקאות בספר העסקאות. באפשרותך להעבירו לארכיון.`);
     }
 
-    await this.transaction(['financial_accounts'], 'readwrite', async (tx) => {
-      const store = tx.objectStore('financial_accounts');
-      await this.reqToPromise(store.delete(accountId));
-    });
-
-    await this.recordAuditLog(
+    const auditLog: AuditLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       householdId,
-      actorUserId,
-      actorEmail,
-      'DELETE_ACCOUNT',
-      'FINANCE',
-      `מחיקת חשבון פיננסי: ${existing.name} (${existing.institution})`
-    );
+      userId: actorUserId,
+      userEmail: actorEmail,
+      action: 'DELETE_ACCOUNT',
+      domain: 'FINANCE',
+      details: `מחיקת חשבון פיננסי: ${existing.name} (${existing.institution})`,
+      timestamp: new Date().toISOString(),
+    };
+    await this.transaction(['financial_accounts', 'audit_logs'], 'readwrite', async (tx) => {
+      await this.reqToPromise(tx.objectStore('financial_accounts').delete(accountId));
+      await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
+    });
   }
 
   calculateFinancialSummary(accounts: FinancialAccount[]): {

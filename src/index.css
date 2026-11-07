@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Frank+Ruhl+Libre:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -90,3 +91,109 @@
 .homeos-nav-item:hover { transform:translateY(-1px); background:rgba(84,125,112,.08); }
 .homeos-nav-item[aria-current="page"] { color:#fff !important; }
 @media (max-width:639px) { .homeos-navigation-shell { padding:10px; border-radius:16px; } .homeos-nav-item { padding:10px 12px; } }
+
+
+/* HOME OS — Editorial refinement layer */
+:root {
+  --homeos-radius-xl: 24px;
+  --homeos-radius-lg: 18px;
+  --homeos-radius-md: 13px;
+  --homeos-shadow-soft: 0 10px 34px rgba(34,47,39,.055);
+  --homeos-shadow-hover: 0 18px 44px rgba(34,47,39,.095);
+}
+html { scrollbar-gutter: stable; }
+body {
+  background-image: radial-gradient(rgba(84,125,112,.045) .7px, transparent .7px);
+  background-size: 17px 17px;
+}
+::placeholder { color: #9A9F99; opacity: 1; }
+button, a, input, select, textarea { transition-timing-function: cubic-bezier(.2,.75,.25,1); }
+button:disabled { cursor: not-allowed; opacity: .52; transform: none !important; box-shadow: none !important; }
+.homeos-topbar { border-bottom-color: rgba(49,65,57,.13); }
+.homeos-brand-mark { border-radius: 14px; }
+.homeos-navigation-shell {
+  border-radius: 18px;
+  padding: 13px 15px 11px;
+  background: rgba(255,255,255,.78);
+  box-shadow: 0 5px 22px rgba(34,47,39,.035);
+  backdrop-filter: blur(16px);
+}
+.homeos-main-nav { gap: 5px; }
+.homeos-nav-item {
+  position: relative;
+  border-radius: 10px;
+  padding: 10px 13px;
+  font-size: 12px;
+}
+.homeos-nav-item[aria-current="page"] {
+  background: #24483C !important;
+  box-shadow: 0 5px 14px rgba(36,72,60,.16) !important;
+}
+.homeos-nav-item:not([aria-current="page"]):hover { background: rgba(84,125,112,.085); }
+.homeos-wealth-hero {
+  border-radius: 26px;
+  box-shadow: 0 20px 54px rgba(24,49,39,.16), inset 0 1px 0 rgba(255,255,255,.13);
+}
+.homeos-hero-metric {
+  border-radius: 14px;
+  background: rgba(255,255,255,.075);
+  backdrop-filter: blur(8px);
+}
+.homeos-lux-panel {
+  border-radius: 19px;
+  background: rgba(255,255,255,.86);
+  box-shadow: 0 7px 25px rgba(34,47,39,.035);
+  transition: box-shadow .22s ease, border-color .22s ease, transform .22s ease;
+}
+.homeos-lux-panel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 13px 32px rgba(34,47,39,.065);
+}
+.homeos-kpi-value { letter-spacing: -.045em; }
+.homeos-primary-action, .homeos-secondary-action, .homeos-export-button,
+.homeos-toolbar-button, .homeos-wide-link { min-height: 40px; }
+.homeos-primary-action:focus-visible, .homeos-secondary-action:focus-visible,
+.homeos-nav-item:focus-visible, .homeos-toolbar-button:focus-visible {
+  outline: 3px solid rgba(84,125,112,.35);
+  outline-offset: 2px;
+}
+.homeos-insight {
+  border-radius: 17px;
+  background: linear-gradient(105deg, rgba(84,125,112,.075), rgba(255,255,255,.88));
+}
+.homeos-chart-grid { border-radius: 12px; }
+.homeos-transaction-icon { border-radius: 11px; }
+input:not([type="checkbox"]):not([type="radio"]),
+select, textarea {
+  border-radius: 11px;
+  border-color: var(--border-subtle, #E6E0D8);
+  background-color: var(--bg-card, #fff);
+}
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus, textarea:focus {
+  border-color: #6C9581;
+  box-shadow: 0 0 0 3px rgba(84,125,112,.12);
+  outline: none;
+}
+table { border-collapse: separate; border-spacing: 0; }
+thead th { font-size: 11px; font-weight: 700; letter-spacing: .015em; }
+tbody tr { transition: background-color .16s ease; }
+tbody tr:hover { background-color: rgba(84,125,112,.045); }
+[role="dialog"] { overscroll-behavior: contain; }
+@media (min-width: 1280px) {
+  .homeos-dashboard { padding-bottom: 18px; }
+}
+@media (max-width: 760px) {
+  .homeos-navigation-shell { padding: 10px; }
+  .homeos-main-nav {
+    margin-inline: -2px;
+    padding: 3px 2px 7px;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-inline: contain;
+  }
+  .homeos-nav-item { scroll-snap-align: start; padding: 10px 12px; }
+  .homeos-lux-panel { border-radius: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

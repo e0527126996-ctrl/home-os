@@ -218,7 +218,10 @@ export async function parseStatementFile(file: File, existing: LedgerTransaction
     for (const sheetName of workbook.SheetNames) {
       const sheet = workbook.Sheets[sheetName];
       const sheetRows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: '' }) as unknown[][];
-      try { rows.push(...parseTabularRows(sheetRows)); } catch { /* Ignore cover and summary sheets. */ }
+      try {
+        const sheetTransactions = parseTabularRows(sheetRows);
+        rows.push(...sheetTransactions.map(row => ({ ...row, id: sheetName + '_' + row.id })));
+      } catch { /* Ignore cover and summary sheets. */ }
     }
     if (!rows.length) throw new Error('לא נמצאו תנועות באף גיליון בקובץ Excel. ודא שהקובץ כולל טבלת תנועות עם תאריך, תיאור וסכום.');
   } else if (ext === 'csv') {

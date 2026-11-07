@@ -90,7 +90,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const averageExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
     const cashflow = current.income - current.expense;
     const pendingReviewCount = transactions.filter(tx => tx.verificationStatus === 'PENDING').length;
-    const uncategorizedExpenseCount = transactions.filter(tx => tx.type === 'EXPENSE' && !tx.category?.trim()).length;
+    const uncategorizedExpenseCount = transactions.filter(tx => tx.type === 'EXPENSE' && (!tx.category?.trim() || tx.category.trim() === 'ללא קטגוריה')).length;
 
     // Compare the current month's category run-rate with the average of the prior
     // three complete months. This is a review signal, not a promised saving.

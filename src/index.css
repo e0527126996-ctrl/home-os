@@ -314,7 +314,7 @@ body {
   color: var(--homeos-text) !important;
   background: color-mix(in srgb, var(--homeos-accent) 5%, transparent) !important;
 }
-.homeos-nav-item > span:last-child:not(:first-child) {
+.homeos-nav-item > span:nth-child(3) {
   border: 1px solid var(--homeos-border);
   background: var(--homeos-surface) !important;
   color: var(--homeos-muted);

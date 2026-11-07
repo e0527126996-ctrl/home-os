@@ -26,8 +26,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   accounts, transactions, householdName, activeTheme, onOpenAccounts, onOpenLedger,
 }) => {
   const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[] } | null>(null);
-  // Pending imports are review candidates, not confirmed financial activity.
-  const confirmedTransactions = useMemo(() => transactions.filter(tx => tx.verificationStatus !== 'PENDING' && Number.isSafeInteger(tx.amountCents) && tx.amountCents > 0), [transactions]);
+  const accountCurrencies = useMemo(() => new Map(accounts.map(account => [account.id, account.currency])), [accounts]);
+  // The dashboard's cash-flow charts are ILS-only until verified FX conversion exists.
+  // Pending imports and malformed amounts are also excluded from confirmed activity.
+  const confirmedTransactions = useMemo(() => transactions.filter(tx =>
+    accountCurrencies.get(tx.accountId) === 'ILS' &&
+    tx.verificationStatus !== 'PENDING' &&
+    Number.isSafeInteger(tx.amountCents) &&
+    tx.amountCents > 0
+  ), [transactions, accountCurrencies]);
 
   useEffect(() => {
     if (!chartDetail) return;
@@ -92,8 +99,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const averageExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
     const cashflow = current.income - current.expense;
     const pendingReviewCount = transactions.filter(tx => tx.verificationStatus === 'PENDING').length;
-    const reconciledTransactionCount = confirmedTransactions.filter(tx => tx.verificationStatus === 'RECONCILED').length;
-    const uncategorizedExpenseCount = confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && (!tx.category?.trim() || tx.category.trim() === 'ללא קטגוריה')).length;
+    const reconciledTransactionCount = transactions.filter(tx => tx.verificationStatus === 'RECONCILED').length;
+    const uncategorizedExpenseCount = transactions.filter(tx => tx.type === 'EXPENSE' && (!tx.category?.trim() || tx.category.trim() === 'ללא קטגוריה')).length;
 
     // Compare the current month's category run-rate with the average of the prior
     // three complete months. This is a review signal, not a promised saving.
@@ -154,7 +161,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .slice(0, 4);
 
     return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, reconciledTransactionCount, uncategorizedExpenseCount };
-  }, [accounts, transactions, confirmedTransactions]);
+  }, [accounts, transactions, confirmedTransactions, accountCurrencies]);
 
   const currency = (cents: number, currencyCode: string = 'ILS') => money(cents / 100, currencyCode);
   const muted = { color: activeTheme.textSecondary };
@@ -389,7 +396,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]">
         <div className={panel + ' p-5 sm:p-7'}>
           <div className="mb-4 flex items-center justify-between gap-3"><div><div className="homeos-section-kicker">LATEST ACTIVITY</div><h2 className="mt-1 text-lg font-bold">פעילות אחרונה</h2></div><button onClick={onOpenLedger} className="homeos-text-link">לכל העסקאות <ArrowLeft className="h-4 w-4" /></button></div>
-          {data.recent.length ? <div className="divide-y" style={{ borderColor: activeTheme.borderSubtle }}>{data.recent.map(tx => <button type="button" key={tx.id} onClick={onOpenLedger} title="פתיחת פנקס העסקאות" className="flex w-full items-center justify-between gap-3 py-3.5 text-right transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#547D70] dark:hover:bg-white/5"><div className="flex min-w-0 items-center gap-3"><span className={'homeos-transaction-icon ' + (tx.type === 'INCOME' ? 'income' : tx.type === 'TRANSFER' ? '' : 'expense')}>{tx.type === 'INCOME' ? <ArrowDownRight className="h-4 w-4" /> : tx.type === 'TRANSFER' ? <ArrowLeftRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span><div className="min-w-0"><div className="truncate text-sm font-semibold">{tx.payee || tx.category}</div><div className="mt-1 truncate text-[11px]" style={muted}>{tx.category} · {new Date(tx.date + 'T12:00:00').toLocaleDateString('he-IL')}{tx.verificationStatus === 'PENDING' ? ' · ממתינה לבדיקה' : ''}</div></div></div><strong className={'shrink-0 text-sm tabular-nums ' + (tx.type === 'INCOME' ? 'text-[#477866]' : '')}>{tx.type === 'INCOME' ? '+' : tx.type === 'TRANSFER' ? '↔ ' : '−'}{currency(tx.amountCents)}</strong></button>)}</div> : <div className="py-12 text-center text-sm" style={muted}>עדיין לא נרשמו עסקאות. הפעילות שתזין תופיע כאן.</div>}
+          {data.recent.length ? <div className="divide-y" style={{ borderColor: activeTheme.borderSubtle }}>{data.recent.map(tx => <button type="button" key={tx.id} onClick={onOpenLedger} title="פתיחת פנקס העסקאות" className="flex w-full items-center justify-between gap-3 py-3.5 text-right transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#547D70] dark:hover:bg-white/5"><div className="flex min-w-0 items-center gap-3"><span className={'homeos-transaction-icon ' + (tx.type === 'INCOME' ? 'income' : tx.type === 'TRANSFER' ? '' : 'expense')}>{tx.type === 'INCOME' ? <ArrowDownRight className="h-4 w-4" /> : tx.type === 'TRANSFER' ? <ArrowLeftRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span><div className="min-w-0"><div className="truncate text-sm font-semibold">{tx.payee || tx.category}</div><div className="mt-1 truncate text-[11px]" style={muted}>{tx.category} · {new Date(tx.date + 'T12:00:00').toLocaleDateString('he-IL')}{tx.verificationStatus === 'PENDING' ? ' · ממתינה לבדיקה' : ''}</div></div></div><strong className={'shrink-0 text-sm tabular-nums ' + (tx.type === 'INCOME' ? 'text-[#477866]' : '')}>{tx.type === 'INCOME' ? '+' : tx.type === 'TRANSFER' ? '↔ ' : '−'}{currency(tx.amountCents, accountCurrencies.get(tx.accountId) || 'ILS')}</strong></button>)}</div> : <div className="py-12 text-center text-sm" style={muted}>עדיין לא נרשמו עסקאות. הפעילות שתזין תופיע כאן.</div>}
         </div>
         <div className={panel + ' p-5 sm:p-7'}>
           <div className="homeos-section-kicker">PORTFOLIO SNAPSHOT</div><h2 className="mt-1 text-lg font-bold">מבט על החשבונות</h2><p className="mt-1 text-xs" style={muted}>היתרות הפעילות במשק הבית</p>

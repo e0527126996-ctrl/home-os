@@ -151,7 +151,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
       }
 
       if (reviewFilter === 'PENDING' && tx.verificationStatus !== 'PENDING') return false;
-      if (reviewFilter === 'UNCATEGORIZED' && (tx.type !== 'EXPENSE' || Boolean(tx.category?.trim()))) return false;
+      if (reviewFilter === 'UNCATEGORIZED' && (tx.type !== 'EXPENSE' || (Boolean(tx.category?.trim()) && tx.category.trim() !== 'ללא קטגוריה'))) return false;
 
       if (searchTerm.trim()) {
         const query = searchTerm.toLowerCase();

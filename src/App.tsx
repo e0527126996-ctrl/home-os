@@ -843,6 +843,7 @@ export default function App() {
             canWrite={canPerformFood}
             accounts={accounts}
             transactions={transactions}
+            persons={persons}
             onOpenLedger={() => setActiveTab('ledger')}
             initialTab={homeManagementInitialTab}
             onItemsChange={setHomeItems}

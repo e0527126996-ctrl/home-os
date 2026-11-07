@@ -390,8 +390,29 @@ export default function App() {
 
   const handleRemoveMember = async (membershipId: string) => {
     if (!currentUser) return;
+    const targetMembership = memberships.find(membership => membership.id === membershipId);
+    const currentHouseholdId = activeHousehold?.id;
     await db.removeMemberFromHousehold(membershipId, currentUser.id, currentUser.email);
-    if (activeHousehold) await reloadHouseholdData(activeHousehold.id);
+
+    if (targetMembership?.userId === currentUser.id && currentHouseholdId === targetMembership.householdId) {
+      const remainingHouseholds = await getAccessibleHouseholds(currentUser.id);
+      setHouseholds(remainingHouseholds);
+      clearHouseholdData();
+      const nextHousehold = remainingHouseholds[0] || null;
+      if (nextHousehold) {
+        setActiveHousehold(nextHousehold);
+        await db.setSetting('active_household_id', nextHousehold.id);
+        await reloadHouseholdData(nextHousehold.id, currentUser.id);
+        setShowHouseholdsModal(false);
+      } else {
+        await db.setSetting('active_household_id', '');
+        setShowHouseholdsModal(true);
+      }
+      showToast('הוסרת ממשק הבית והנתונים שלו הוסתרו');
+      return;
+    }
+
+    if (currentHouseholdId) await reloadHouseholdData(currentHouseholdId, currentUser.id);
     showToast('משתמש הוסר ממשק הבית');
   };
 

@@ -31,5 +31,7 @@ jobs:
         run: npm run lint
       - name: Shopping logic regression tests
         run: npm run test:shopping
+      - name: Statement parser regression tests
+        run: npm run test:statements
       - name: Production build
         run: npm run build

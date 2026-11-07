@@ -1234,3 +1234,70 @@ body {
     transition: none;
   }
 }
+
+
+/* Consistent semantic theme surfaces for household, membership and audit workspaces. */
+.homeos-households-view,
+.homeos-members-view,
+.homeos-audit-view {
+  color: var(--text-primary);
+}
+.homeos-households-view input,
+.homeos-households-view select,
+.homeos-households-view textarea,
+.homeos-members-view input,
+.homeos-members-view select,
+.homeos-members-view textarea,
+.homeos-audit-view input,
+.homeos-audit-view select,
+.homeos-audit-view textarea {
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+.homeos-households-view input:not([type="checkbox"]):not([type="radio"]),
+.homeos-households-view select,
+.homeos-households-view textarea,
+.homeos-members-view input:not([type="checkbox"]):not([type="radio"]),
+.homeos-members-view select,
+.homeos-members-view textarea,
+.homeos-audit-view input:not([type="checkbox"]):not([type="radio"]),
+.homeos-audit-view select,
+.homeos-audit-view textarea {
+  background-color: var(--bg-surface);
+}
+.homeos-households-view input::placeholder,
+.homeos-members-view input::placeholder,
+.homeos-audit-view input::placeholder {
+  color: var(--text-secondary);
+  opacity: .75;
+}
+.homeos-households-view button:focus-visible,
+.homeos-members-view button:focus-visible,
+.homeos-audit-view button:focus-visible {
+  outline-color: var(--focus-ring);
+}
+.homeos-households-view [class*="rounded"],
+.homeos-members-view [class*="rounded"],
+.homeos-audit-view [class*="rounded"] {
+  border-color: var(--border-subtle);
+}
+.homeos-audit-view table {
+  color: var(--text-primary);
+}
+.homeos-audit-view thead {
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+.homeos-audit-view tbody tr {
+  border-color: var(--border-subtle);
+  transition: background-color .15s ease;
+}
+.homeos-audit-view tbody tr:hover {
+  background: var(--bg-surface);
+}
+@media (max-width: 640px) {
+  .homeos-audit-view { min-width: 0; }
+  .homeos-audit-view > div:last-child { overflow-x: auto; }
+  .homeos-households-view,
+  .homeos-members-view { min-width: 0; }
+}

@@ -219,9 +219,17 @@ export function parsePdfLines(text: string): ImportedStatementRow[] {
     const marked = candidates.filter(item => /₪|\.\d{1,2}/.test(item.raw));
     // In bank PDFs the final numeric column is often a running balance.
     // When two currency/decimal values exist, use the one immediately before it.
-    const selected = marked.length >= 2
-      ? marked[marked.length - 2]
-      : (marked[0] || candidates.at(-1)!);
+    let selected = candidates.at(-1)!;
+    if (marked.length >= 2) {
+      selected = marked[marked.length - 2];
+    } else if (marked.length === 1) {
+      const markedIndex = candidates.indexOf(marked[0]);
+      // If the only decimal/currency value is the final numeric column,
+      // it is commonly the running balance; use the amount immediately before it.
+      selected = markedIndex === candidates.length - 1 && candidates.length > 1
+        ? candidates[markedIndex - 1]
+        : marked[0];
+    }
     const rawAmount = selected.value!;
     const before = rest.slice(0, selected.index);
     const after = rest.slice(selected.index + selected.raw.length);

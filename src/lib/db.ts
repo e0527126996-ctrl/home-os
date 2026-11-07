@@ -2014,9 +2014,6 @@ class HomeOSIndexedDB {
     const membershipIds = new Set(memberships.map(membership => membership.id));
     const membershipUserIds = new Set(memberships.map(membership => membership.userId));
     const backupUsers = (backup.users || []).filter(user => membershipUserIds.has(user.id));
-    if (membershipUserIds.size !== backupUsers.length) {
-      throw new Error('הגיבוי אינו כולל את כל המשתמשים המשויכים לחברות במשק הבית');
-    }
     const assertHousehold = (records: Array<{ householdId: string }> | undefined, label: string) => {
       if (records?.some(record => record.householdId !== targetHouseholdId)) {
         throw new Error('הגיבוי מכיל רשומות ' + label + ' ממשק בית אחר');

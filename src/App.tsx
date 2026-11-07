@@ -760,6 +760,16 @@ export default function App() {
   const canReadAdmin = canReadDomain('admin');
   const canManageSystem = isOwnerOrAdmin;
 
+  useEffect(() => {
+    const financeTabs = activeTab === 'accounts' || activeTab === 'ledger';
+    if ((financeTabs && !canReadFinance) ||
+        (activeTab === 'documents' && !canReadDocuments) ||
+        (activeTab === 'home' && !canReadFood) ||
+        ((activeTab === 'members' || activeTab === 'audit' || activeTab === 'overview') && !canReadAdmin)) {
+      setActiveTab('dashboard');
+    }
+  }, [activeTab, canReadFinance, canReadDocuments, canReadFood, canReadAdmin]);
+
   if (isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAF8F5] text-[#1E1B18] font-serif">

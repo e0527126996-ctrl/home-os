@@ -989,7 +989,7 @@ export default function App() {
           onSaveTransfer={handleSaveTransfer}
           onUpdateTransaction={handleUpdateTransaction}
           initialTransaction={editingTransaction}
-          accounts={accounts.filter((a) => a.status !== 'ARCHIVED')}
+          accounts={accounts.filter((a) => a.status === 'ACTIVE' || a.id === editingTransaction?.accountId)}
           activeTheme={activeTheme}
           canEdit={canPerformFinance}
         />

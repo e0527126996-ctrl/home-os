@@ -30,7 +30,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ themes, activeTheme,
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="homeos-section-kicker">DESIGN COLLECTION · 12 STYLES</div>
+          <div className="homeos-section-kicker">DESIGN COLLECTION · {themes.length} STYLES</div>
           <h2 className="mt-1 text-lg font-semibold">בחר את שפת העיצוב שלך</h2>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>הבחירה נשמרת במכשיר ותישאר גם בכניסה הבאה.</p>
         </div>

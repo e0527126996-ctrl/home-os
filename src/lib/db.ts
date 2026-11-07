@@ -2037,6 +2037,14 @@ class HomeOSIndexedDB {
     )) {
       throw new Error('הגיבוי מכיל עסקה המשויכת לחשבון מקור או יעד שאינו כלול בגיבוי');
     }
+    const backupAccountsById = new Map((backup.accounts || []).map(account => [account.id, account]));
+    if ((backup.transactions || []).some(transaction =>
+      transaction.type === 'TRANSFER' &&
+      transaction.counterpartyAccountId &&
+      backupAccountsById.get(transaction.accountId)?.currency !== backupAccountsById.get(transaction.counterpartyAccountId)?.currency
+    )) {
+      throw new Error('הגיבוי מכיל העברה בין מטבעות שונים ללא שער המרה מאומת');
+    }
 
     await this.transaction(
       [

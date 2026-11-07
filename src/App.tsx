@@ -829,6 +829,7 @@ export default function App() {
         household={activeHousehold}
         currentUser={currentUser}
         activeTheme={activeTheme}
+        canManageSystem={canManageSystem}
         onThemeSelect={handleSelectTheme}
         onOpenHouseholds={() => setShowHouseholdsModal(true)}
         onOpenAuth={() => setShowAuthModal(true)}
@@ -961,7 +962,7 @@ export default function App() {
             canWrite={canWriteDocuments}
             canImportStatements={canPerformFinance}
             accounts={canReadFinance ? accounts : []}
-            transactions={transactions}
+            transactions={canReadFinance ? transactions : []}
             onImportTransactions={handleImportTransactions}
           />
         )}

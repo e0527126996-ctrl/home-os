@@ -176,6 +176,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const monthName = new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' }).format(new Date());
   const viewModeTitle = viewMode === 'executive' ? 'Executive · מנהלים' : viewMode === 'productivity' ? 'Productivity · עבודה שוטפת' : 'Analytics · אנליטיקה';
   const hasActivity = data.current.income > 0 || data.current.expense > 0;
+  const hasVerifiedHistory = data.months.some(month => month.income > 0 || month.expense > 0);
 
   return (
     <div className="homeos-dashboard homeos-command-center space-y-6 pb-10" dir="rtl" data-view-mode={viewMode}>
@@ -239,7 +240,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div><div className="homeos-section-kicker">ניתוח תזרים מזומנים</div><h2 className="mt-1 text-lg font-bold">תנועת הכסף לאורך זמן</h2><p className="mt-1 text-xs" style={muted}>השוואת הכנסות והוצאות · ששת החודשים האחרונים</p></div>
             <div className="flex gap-4 text-[11px]" style={muted}><span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#547D70]" /> הכנסות</span><span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#C49A69]" /> הוצאות</span></div>
           </div>
-          <div className="homeos-chart-grid">
+          {hasVerifiedHistory ? <div className="homeos-chart-grid">
             {data.months.map((month, index) => (
               <button type="button" key={month.key} className="homeos-chart-month cursor-pointer rounded-xl px-1 transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#547D70] dark:hover:bg-white/10" aria-label={"פתיחת פירוט " + month.label} onClick={() => setChartDetail({ title: "פירוט " + month.label, subtitle: "הכנסות " + currency(month.income) + " · הוצאות " + currency(month.expense), items: confirmedTransactions.filter(tx => tx.date && tx.date.slice(0, 7) === month.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })}>
                 <div className="homeos-chart-bars">
@@ -249,7 +250,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span>{month.label}</span>
               </button>
             ))}
-          </div>
+          </div> : <div className="flex min-h-[230px] flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-8 text-center" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}>
+            <ChartNoAxesCombined className="mb-3 h-8 w-8" style={{color:activeTheme.accent}} />
+            <strong className="text-sm">{data.pendingReviewCount > 0 ? 'העסקאות עדיין ממתינות לאימות' : 'עדיין אין נתונים מאומתים להצגת גרף'}</strong>
+            <p className="mt-2 max-w-md text-xs leading-6" style={muted}>{data.pendingReviewCount > 0 ? 'נמצאו ' + data.pendingReviewCount + ' עסקאות ממתינות. פתח את פנקס העסקאות, בדוק כל שורה מול דף החשבון ולחץ על ״אמת״ כדי לכלול אותה ביתרות ובגרפים.' : 'ייבא דף חשבון או הוסף עסקאות, בדוק אותן בפנקס ואמת אותן. לאחר האימות הגרפים יתמלאו אוטומטית.'}</p>
+            <button type="button" onClick={onOpenLedger} className="homeos-primary-action mt-4">מעבר לפנקס ואימות עסקאות <ArrowLeft className="h-4 w-4" /></button>
+          </div>}
           <div className="mt-5 grid grid-cols-2 gap-4 border-t pt-5" style={{ borderColor: activeTheme.borderSubtle }}>
             <div><div className="text-[11px]" style={muted}>מאזן החודש</div><div className="mt-1 text-lg font-bold tabular-nums" style={{ color: data.cashflow >= 0 ? activeTheme.accent : '#B45F56' }}>{currency(data.cashflow)}</div></div>
             <div><div className="text-[11px]" style={muted}>ממוצע הוצאות · 3 חודשים מלאים</div><div className="mt-1 text-lg font-bold tabular-nums">{currency(data.averageExpense)}</div></div>

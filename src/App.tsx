@@ -548,7 +548,7 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen flex flex-col transition-colors duration-200"
+      className="homeos-app-shell min-h-screen flex flex-col transition-colors duration-200"
       style={{
         backgroundColor: activeTheme.bgCanvas,
         backgroundImage: 'radial-gradient(color-mix(in srgb, var(--homeos-accent) 4%, transparent) .7px, transparent .7px)',

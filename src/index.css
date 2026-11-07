@@ -197,3 +197,22 @@ tbody tr:hover { background-color: rgba(84,125,112,.045); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+
+/* Theme-aware surfaces and dark-mode contrast */
+.homeos-nav-item[aria-current="page"] {
+  background: linear-gradient(135deg, var(--accent, #547D70), color-mix(in srgb, var(--accent, #547D70) 76%, #263B32)) !important;
+}
+.homeos-nav-item[aria-current="page"] { box-shadow: 0 6px 16px color-mix(in srgb, var(--accent, #547D70) 22%, transparent) !important; }
+.dark body { background-image: radial-gradient(rgba(210,224,214,.035) .7px, transparent .7px); }
+.dark .homeos-navigation-shell { background: color-mix(in srgb, var(--bg-card, #1E293B) 84%, transparent); border-color: var(--border-subtle, #334155); box-shadow: 0 8px 28px rgba(0,0,0,.12); }
+.dark .homeos-lux-panel { background: var(--bg-card, #1E293B); border-color: var(--border-subtle, #334155); box-shadow: 0 8px 26px rgba(0,0,0,.14); }
+.dark .homeos-lux-panel:hover { border-color: color-mix(in srgb, var(--accent, #38BDF8) 38%, var(--border-subtle, #334155)); box-shadow: 0 14px 34px rgba(0,0,0,.2); }
+.dark .homeos-kpi-value { color: var(--text-primary, #F8FAFC); }
+.dark .homeos-donut > div { background: var(--bg-card, #1E293B); box-shadow: inset 0 0 0 1px var(--border-subtle, #334155); }
+.dark .homeos-donut span, .dark .homeos-card-top, .dark .homeos-card-foot { color: var(--text-secondary, #94A3B8); }
+.dark .homeos-donut strong { color: var(--text-primary, #F8FAFC); }
+.dark .homeos-insight { background: color-mix(in srgb, var(--bg-card, #1E293B) 90%, var(--accent, #38BDF8)); border-color: var(--border-subtle, #334155); }
+.dark .homeos-secondary-action, .dark .homeos-date-chip { color: var(--text-primary, #F8FAFC); background: var(--bg-card, #1E293B); border-color: var(--border-subtle, #334155); }
+.dark input:not([type="checkbox"]):not([type="radio"]), .dark select, .dark textarea { color: var(--text-primary, #F8FAFC); background: var(--bg-card, #1E293B); border-color: var(--border-subtle, #334155); }
+.dark tbody tr:hover { background-color: rgba(255,255,255,.045); }

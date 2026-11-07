@@ -35,7 +35,7 @@ const cases: Array<{ name: string; run: () => void }> = [
       const rows = parsePdfLines([
         '01/11/2026 שופרסל סניף מרכז 125.50 4,875.00',
         '04/11/2026 סונול דלק 250 4,875.00',
-      ].join('\\n'));
+      ].join('\n'));
       assert.equal(rows.length, 2);
       assert.equal(rows[0].date, '2026-11-01');
       assert.equal(rows[0].amountCents, 12550);

@@ -17,7 +17,7 @@ export function toCents(val: number | string | undefined | null): number {
   const str = typeof val === 'number'
     ? (Number.isFinite(val) ? val.toFixed(2) : '')
     : String(val).trim();
-  const match = str.match(/^(-?)(\\d+)(?:\\.(\\d{1,2}))?$/);
+  const match = str.match(/^(-?)(\d+)(?:\.(\d{1,2}))?$/);
   if (!match) return 0;
 
   const wholePart = Number(match[2]);
@@ -59,7 +59,7 @@ export function parseCurrencyInput(input: string): { valid: boolean; cents: numb
   if (!/^-?\d+(\.\d{1,2})?$/.test(trimmed)) {
     return { valid: false, cents: 0, error: 'סכום אינו חוקי (יש להזין ספרות ועד 2 ספרות אחרי הנקודה)' };
   }
-  const match = trimmed.match(/^(-?)(\\d+)(?:\\.(\\d{1,2}))?$/);
+  const match = trimmed.match(/^(-?)(\d+)(?:\.(\d{1,2}))?$/);
   if (!match) {
     return { valid: false, cents: 0, error: 'סכום אינו חוקי (יש להזין ספרות ועד 2 ספרות אחרי הנקודה)' };
   }

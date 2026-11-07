@@ -846,6 +846,7 @@ export default function App() {
             persons={persons}
             onOpenLedger={() => setActiveTab('ledger')}
             initialTab={homeManagementInitialTab}
+            onRequestUserSwitch={() => setShowAuthModal(true)}
             onItemsChange={setHomeItems}
           />
         )}

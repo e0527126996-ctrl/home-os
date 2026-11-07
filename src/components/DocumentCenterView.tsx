@@ -123,7 +123,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
           blob: file,
         };
         if (!currentUser || !canWrite) throw new Error('אין לך הרשאה לשמור מסמכים במשק הבית');
-        await db.saveDocument(doc, currentUser.id);
+        await db.saveDocument(doc, currentUser.id, currentUser.email);
         saved++;
         if (category === 'BANK' && /\.(pdf|xlsx?|csv)$/i.test(file.name)) statementsToImport.push(file);
       }
@@ -175,7 +175,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
     if (!window.confirm(`למחוק את המסמך "${doc.name}"?`)) return;
     try {
       if (!currentUser || !canWrite) throw new Error('אין לך הרשאה למחוק מסמכים במשק הבית');
-      await db.deleteDocument(doc.id, household.id, currentUser.id);
+      await db.deleteDocument(doc.id, household.id, currentUser.id, currentUser.email);
       await refresh();
       notifyDocumentsChanged();
     } catch (e: any) { setError(e.message || 'לא ניתן למחוק את המסמך'); }

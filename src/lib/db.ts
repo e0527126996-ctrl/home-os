@@ -2031,8 +2031,11 @@ class HomeOSIndexedDB {
       throw new Error('הגיבוי מכיל הרשאה שאינה משויכת לחברות קיימת');
     }
     const accountIds = new Set((backup.accounts || []).map(account => account.id));
-    if ((backup.transactions || []).some(transaction => !accountIds.has(transaction.accountId))) {
-      throw new Error('הגיבוי מכיל עסקה המשויכת לחשבון שאינו כלול בגיבוי');
+    if ((backup.transactions || []).some(transaction =>
+      !accountIds.has(transaction.accountId) ||
+      Boolean(transaction.counterpartyAccountId && !accountIds.has(transaction.counterpartyAccountId))
+    )) {
+      throw new Error('הגיבוי מכיל עסקה המשויכת לחשבון מקור או יעד שאינו כלול בגיבוי');
     }
 
     await this.transaction(

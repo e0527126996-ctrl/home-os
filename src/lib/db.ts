@@ -2294,14 +2294,19 @@ class HomeOSIndexedDB {
     }
     const backupAccountsById = new Map((backup.accounts || []).map(account => [account.id, account]));
     const projectedBalances = new Map<string, number>();
+    const pendingCounts = new Map<string, number>();
     for (const account of backup.accounts || []) {
       const opening = account.openingBalanceCents !== undefined
         ? account.openingBalanceCents
         : parseCurrencyInput(String(account.openingBalance)).cents;
       projectedBalances.set(account.id, opening);
+      pendingCounts.set(account.id, 0);
     }
     for (const transaction of backupTransactions) {
-      if (transaction.verificationStatus === 'PENDING') continue;
+      if (transaction.verificationStatus === 'PENDING') {
+        pendingCounts.set(transaction.accountId, (pendingCounts.get(transaction.accountId) || 0) + 1);
+        continue;
+      }
       const current = projectedBalances.get(transaction.accountId);
       if (current === undefined) throw new Error('עסקה בגיבוי מפנה לחשבון חסר');
       let next = current;
@@ -2312,6 +2317,12 @@ class HomeOSIndexedDB {
       }
       if (!Number.isSafeInteger(next)) throw new Error('יתרת חשבון בגיבוי חורגת מטווח האגורות הבטוח');
       projectedBalances.set(transaction.accountId, next);
+    }
+    for (const account of backup.accounts || []) {
+      if ((account.status === 'ARCHIVED' || account.status === 'CLOSED') &&
+          ((projectedBalances.get(account.id) || 0) !== 0 || (pendingCounts.get(account.id) || 0) > 0)) {
+        throw new Error('הגיבוי מכיל חשבון בארכיון או סגור עם יתרה או עסקאות ממתינות');
+      }
     }
 
     const backupTransactionsById = new Map(backupTransactions.map(transaction => [transaction.id, transaction]));

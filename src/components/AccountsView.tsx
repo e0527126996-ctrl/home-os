@@ -84,8 +84,9 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
 
   // Filter accounts
   const displayedAccounts = accounts.filter((acc) => {
-    if (filterType === 'ARCHIVED') return acc.status === 'ARCHIVED';
-    if (acc.status === 'ARCHIVED') return false;
+    const isInactive = acc.status === 'ARCHIVED' || acc.status === 'CLOSED';
+    if (filterType === 'ARCHIVED') return isInactive;
+    if (isInactive) return false;
     if (filterType === 'ALL') return true;
     return acc.type === filterType;
   });
@@ -173,7 +174,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             backgroundColor: filterType === 'ALL' ? activeTheme.accent : 'transparent',
           }}
         >
-          כל החשבונות ({accounts.filter((a) => a.status !== 'ARCHIVED').length})
+          כל החשבונות ({accounts.filter((a) => a.status === 'ACTIVE').length})
         </button>
 
         <button
@@ -233,7 +234,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             backgroundColor: filterType === 'ARCHIVED' ? activeTheme.accent : 'transparent',
           }}
         >
-          ארכיון ({accounts.filter((a) => a.status === 'ARCHIVED').length})
+          ארכיון ({accounts.filter((a) => a.status === 'ARCHIVED' || a.status === 'CLOSED').length})
         </button>
       </div>
 
@@ -296,6 +297,11 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                       {acc.status === 'ARCHIVED' && (
                         <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200">
                           בארכיון
+                        </span>
+                      )}
+                      {acc.status === 'CLOSED' && (
+                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-200">
+                          סגור
                         </span>
                       )}
                     </div>

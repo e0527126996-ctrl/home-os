@@ -1294,6 +1294,8 @@ class HomeOSIndexedDB {
     for (const acc of accounts) {
       if (acc.status === 'ARCHIVED' || acc.status === 'CLOSED') continue;
       activeCount++;
+      // Balances in different currencies must never be added without an FX rate.
+      if (acc.currency !== 'ILS') continue;
 
       const balCents = acc.currentBalanceCents !== undefined
         ? acc.currentBalanceCents

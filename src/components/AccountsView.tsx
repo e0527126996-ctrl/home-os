@@ -61,6 +61,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
 
     if (acc.type === 'CHECKING') {
       checkingCount++;
+      if (acc.currency !== 'ILS') continue;
       if (bal >= 0) {
         totalAssets = Math.round((totalAssets + bal) * 100) / 100;
       } else {
@@ -68,21 +69,25 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       }
     } else if (acc.type === 'SAVINGS') {
       savingsCount++;
+      if (acc.currency !== 'ILS') continue;
       if (bal >= 0) {
         totalAssets = Math.round((totalAssets + bal) * 100) / 100;
       }
     } else if (acc.type === 'CREDIT_CARD') {
       creditCount++;
+      if (acc.currency !== 'ILS') continue;
       totalLiabilities = Math.round((totalLiabilities + Math.abs(bal)) * 100) / 100;
     } else if (acc.type === 'LOAN_MORTGAGE') {
       loansCount++;
+      if (acc.currency !== 'ILS') continue;
       totalLiabilities = Math.round((totalLiabilities + Math.abs(bal)) * 100) / 100;
     }
   }
 
   const netWorth = Math.round((totalAssets - totalLiabilities) * 100) / 100;
-  const assetAccountCount = accounts.filter(a => a.status === 'ACTIVE' && !a.isLiability && (a.currentBalanceCents || 0) > 0).length;
-  const liabilityAccountCount = accounts.filter(a => a.status === 'ACTIVE' && (a.isLiability || (a.type === 'CHECKING' && (a.currentBalanceCents || 0) < 0))).length;
+  const foreignAccountCount = accounts.filter(a => a.status === 'ACTIVE' && a.currency !== 'ILS').length;
+  const assetAccountCount = accounts.filter(a => a.status === 'ACTIVE' && a.currency === 'ILS' && !a.isLiability && (a.currentBalanceCents || 0) > 0).length;
+  const liabilityAccountCount = accounts.filter(a => a.status === 'ACTIVE' && a.currency === 'ILS' && (a.isLiability || (a.type === 'CHECKING' && (a.currentBalanceCents || 0) < 0))).length;
 
   // Filter accounts
   const displayedAccounts = accounts.filter((acc) => {
@@ -133,7 +138,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           <div className="max-w-2xl">
             <div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-[.16em] text-emerald-100/75"><Landmark className="h-4 w-4" /> ניהול פיננסי <span className="opacity-40">/</span> נכסים והתחייבויות</div>
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">החשבונות של הבית</h1>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-emerald-50/75">תמונה מרוכזת של יתרות, חסכונות, אשראי והלוואות. כל הנתונים מתעדכנים מתוך פנקס העסקאות.</p>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-emerald-50/75">סיכומי השווי מחושבים בשקלים בלבד. חשבונות במטבע זר נשארים במטבע המקורי ואינם מומרים ללא שער חליפין מאומת. {foreignAccountCount > 0 ? 'נמצאו ' + foreignAccountCount + ' חשבונות במטבע זר שאינם כלולים בסיכום השקלי.' : ''}</p>
             <div className="mt-5 flex flex-wrap gap-2">
               {canEdit && <button onClick={() => { setEditingAccount(null); setModalOpen(true); }} className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-emerald-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-50"><Plus className="h-4 w-4" /> הוסף חשבון</button>}
               {accounts.length === 0 && canEdit && <button onClick={onSeedDemoAccounts} className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"><Sparkles className="h-4 w-4" /> טען חשבונות לדוגמה</button>}

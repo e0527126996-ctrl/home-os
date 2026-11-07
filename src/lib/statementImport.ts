@@ -1,9 +1,15 @@
-import * as XLSX from 'xlsx';
-import * as pdfjsLib from 'pdfjs-dist';
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import { LedgerTransaction } from '../types.ts';
+type SpreadsheetEngine = typeof import('xlsx');
+type PdfEngine = typeof import('pdfjs-dist');
 
-(pdfjsLib as any).GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+async function loadPdfEngine(): Promise<PdfEngine> {
+  const [pdfjsLib, worker] = await Promise.all([
+    import('pdfjs-dist'),
+    import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
+  ]);
+  (pdfjsLib as any).GlobalWorkerOptions.workerSrc = worker.default;
+  return pdfjsLib;
+}
+import { LedgerTransaction } from '../types.ts';
 
 export interface ImportedStatementRow {
   id: string;
@@ -43,7 +49,7 @@ const clean = (v: unknown) => String(v ?? '').replace(/\s+/g, ' ').trim();
 export const normalizeStatementPayee = (value: string) => value.normalize('NFKC').toLocaleLowerCase('he-IL').replace(/[\u0591-\u05C7]/g, '').replace(/[^\p{L}\p{N}]/gu, '');
 const normalizeHeader = (v: unknown) => clean(v).toLowerCase().replace(/[\s_״"'׳-]/g, '');
 
-function parseDate(value: unknown): string | null {
+function parseDate(value: unknown, xlsx: SpreadsheetEngine): string | null {
   const toIso = (year: number, month: number, day: number): string | null => {
     if (!Number.isInteger(year) || year < 2000 || year > 2100 || month < 1 || month > 12 || day < 1) return null;
     const check = new Date(Date.UTC(year, month - 1, day));
@@ -104,7 +110,7 @@ function categorize(payee: string, type: 'INCOME' | 'EXPENSE') {
     { category: type === 'INCOME' ? 'הכנסה אחרת' : 'הוצאות שונות', confidence: 'low' as const };
 }
 
-function rowFromValues(values: unknown[], headers: string[], index: number): ImportedStatementRow | null {
+function rowFromValues(values: unknown[], headers: string[], index: number, xlsx: SpreadsheetEngine): ImportedStatementRow | null {
   const find = (aliases: string[]) => {
     const exact = headers.findIndex(h => aliases.includes(h));
     const starts = headers.findIndex(h => aliases.some(t => h.startsWith(t)));
@@ -112,7 +118,7 @@ function rowFromValues(values: unknown[], headers: string[], index: number): Imp
     const i = exact >= 0 ? exact : starts >= 0 ? starts : contains;
     return i >= 0 ? values[i] : undefined;
   };
-  const date = parseDate(find(['תאריךעסקה','תאריךתנועה','תאריך','date','transactiondate','valuedate','תאריךערך']));
+  const date = parseDate(find(['תאריךעסקה','תאריךתנועה','תאריך','date','transactiondate','valuedate','תאריךערך']), xlsx);
   const payee = clean(find(['תיאורעסקה','תיאור','פרטי','פרטים','שםביתעסק','ביתעסק','שםמוטב','מוטב','שםפעולה','פעולה','description','details','payee','merchant','transactiondetails']));
   const direction = clean(find(['סוגתנועה','סוגפעולה','חובהזכות','סוג','type','transactiontype','debitcredit'])).toLowerCase();
   const debit = parseAmount(find(['חובה','סכוםלחיוב','סכוםחובה','בחובה','חיוב','debit','withdrawal']));
@@ -138,17 +144,17 @@ function rowFromValues(values: unknown[], headers: string[], index: number): Imp
   return { id: `row_${index}_${date}_${Math.abs(amount)}`, date, payee, amountCents: Math.abs(amount), type, category: suggestion.category, confidence, duplicate: false, sourceText: values.map(clean).join(' | ') };
 }
 
-function parseTabularRows(rows: unknown[][]): ImportedStatementRow[] {
+function parseTabularRows(rows: unknown[][], xlsx: SpreadsheetEngine): ImportedStatementRow[] {
   if (rows.length < 2) return [];
   const headerIndex = rows.findIndex(row => row.some(cell => /תאריך|date/i.test(clean(cell))) && row.some(cell => /סכום|amount|חובה|זכות|debit|credit/i.test(clean(cell))));
   if (headerIndex < 0) throw new Error('לא זוהו כותרות עמודות מוכרות. נדרש קובץ עם עמודות תאריך, תיאור וסכום/חובה/זכות.');
   const headers = rows[headerIndex].map(normalizeHeader);
-  const parsed = rows.slice(headerIndex + 1).map((row, i) => rowFromValues(row, headers, i)).filter((x): x is ImportedStatementRow => Boolean(x));
+  const parsed = rows.slice(headerIndex + 1).map((row, i) => rowFromValues(row, headers, i, xlsx)).filter((x): x is ImportedStatementRow => Boolean(x));
   if (!parsed.length) throw new Error('נמצאו כותרות, אך לא זוהו שורות תנועה תקינות. בדוק שקיימות עמודות תאריך, תיאור וסכום ושפורמט התאריך מוכר.');
   return parsed;
 }
 
-async function extractPdfText(file: File): Promise<string> {
+async function extractPdfText(file: File, pdfjsLib: PdfEngine): Promise<string> {
   const data = new Uint8Array(await file.arrayBuffer());
   const pdf = await pdfjsLib.getDocument({ data, isEvalSupported: false, useSystemFonts: true }).promise;
   const pages: string[] = [];
@@ -214,22 +220,25 @@ export async function parseStatementFile(file: File, existing: LedgerTransaction
   const ext = file.name.toLowerCase().split('.').pop();
   let rows: ImportedStatementRow[] = [];
   if (ext === 'xlsx' || ext === 'xls') {
+    const XLSX = await import('xlsx');
     const workbook = XLSX.read(await file.arrayBuffer(), { cellDates: true, raw: true });
     for (const sheetName of workbook.SheetNames) {
       const sheet = workbook.Sheets[sheetName];
       const sheetRows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: '' }) as unknown[][];
       try {
-        const sheetTransactions = parseTabularRows(sheetRows);
+        const sheetTransactions = parseTabularRows(sheetRows, XLSX);
         rows.push(...sheetTransactions.map(row => ({ ...row, id: sheetName + '_' + row.id })));
       } catch { /* Ignore cover and summary sheets. */ }
     }
     if (!rows.length) throw new Error('לא נמצאו תנועות באף גיליון בקובץ Excel. ודא שהקובץ כולל טבלת תנועות עם תאריך, תיאור וסכום.');
   } else if (ext === 'csv') {
+    const XLSX = await import('xlsx');
     const text = await file.text();
     const workbook = XLSX.read(text, { type: 'string', cellDates: true });
-    rows = parseTabularRows(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1, raw: true, defval: '' }) as unknown[][]);
+    rows = parseTabularRows(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1, raw: true, defval: '' }) as unknown[][], XLSX);
   } else if (ext === 'pdf') {
-    const text = await extractPdfText(file);
+    const pdfjsLib = await loadPdfEngine();
+    const text = await extractPdfText(file, pdfjsLib);
     rows = parsePdfLines(text);
     if (!rows.length) throw new Error('לא נמצאו תנועות קריאות ב-PDF. ייתכן שזה PDF סרוק כתמונה או שהמבנה של הבנק שונה; במקרה כזה נדרש OCR או מיפוי מותאם.');
   } else {

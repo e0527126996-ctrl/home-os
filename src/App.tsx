@@ -141,8 +141,10 @@ export default function App() {
     try {
       await db.initDefaultSeed();
       const usersList = await db.getUsers();
-      const savedUserId = await db.getSetting<string>('current_user_id', usersList[0]?.id || '');
-      const initialUser = usersList.find(user => user.id === savedUserId) || usersList[0] || null;
+      // A stored null means the previous session was explicitly locked. Only
+      // auto-select the first local profile on a genuinely fresh installation.
+      const savedUserId = await db.getSetting<string | null>('current_user_id', usersList[0]?.id || null);
+      const initialUser = savedUserId ? usersList.find(user => user.id === savedUserId) || null : null;
       const [savedHhdId, savedThemeId, savedDensity, savedViewMode, savedWidgetOrder, savedVisibleWidgets, savedWidgetSizes, savedBackgroundImage, savedBackgroundPreset] = await Promise.all([
         db.getSetting<string>('active_household_id', ''),
         db.getSetting<string>('theme', 'warm_editorial'),
@@ -184,6 +186,7 @@ export default function App() {
       setBackgroundPresetId(BACKGROUND_PRESETS.some(preset => preset.id === savedBackgroundPreset) ? savedBackgroundPreset : BACKGROUND_PRESETS[0].id);
 
       if (initialUser) await db.setSetting('current_user_id', initialUser.id);
+      else await db.setSetting('current_user_id', null);
       if (initialHhd && initialUser) {
         await db.setSetting('active_household_id', initialHhd.id);
         await reloadHouseholdData(initialHhd.id, initialUser.id);

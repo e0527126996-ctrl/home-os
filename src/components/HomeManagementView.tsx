@@ -94,6 +94,30 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
       }
     }
     if (grouped.size === 0) { setError('לא נמצאו מצרכים במתכונים שנבחרו. הוסף מצרכים לספר המתכונים ונסה שוב.'); return; }
+    const mergeQuantityText = (existingText: string, addedText: string) => {
+      if (!existingText.trim()) return addedText;
+      if (!addedText.trim()) return existingText;
+      const parseParts = (text: string) => text.split(/\\s*\\+\\s*/).map(part => {
+        const match = part.trim().match(/^(\\d+(?:[.,]\\d+)?)\\s*(.*?)$/);
+        if (!match) return null;
+        const unit = String(match[2] || '').trim();
+        const normalizedUnit = unitAliases[unit] || unit.toLocaleLowerCase('he-IL');
+        return { value: Number(String(match[1]).replace(',', '.')), unit: normalizedUnit, label: unitAliases[unit] || unit };
+      });
+      const parts = [...parseParts(existingText), ...parseParts(addedText)];
+      if (parts.every((part): part is { value: number; unit: string; label: string } => Boolean(part) && Number.isFinite(part.value))) {
+        const totals = new Map<string, { value: number; label: string }>();
+        for (const part of parts) {
+          const old = totals.get(part.unit);
+          totals.set(part.unit, { value: (old?.value || 0) + part.value, label: part.label });
+        }
+        return [...totals.values()].map(part => {
+          const value = Number.isInteger(part.value) ? String(part.value) : String(Number(part.value.toFixed(2)));
+          return [value, part.label].filter(Boolean).join(' ');
+        }).join(' + ');
+      }
+      return [...new Set([existingText.trim(), addedText.trim()])].join(' + ');
+    };
     const existingOpen = new Map(shopping.filter(item => !(item.data as Shopping).checked).map(item => {
       const data = item.data as Shopping;
       const key = String(data.name || '').normalize('NFKC').replace(/[׳״"'’]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('he-IL');
@@ -114,7 +138,7 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
       if (existing) {
         const oldData = existing.data as Shopping;
         const mergedSources = [...new Set([...(oldData.source || '').split(' · ').filter(Boolean), ...group.sources])].join(' · ');
-        const mergedQuantity = [oldData.quantity, quantity].filter(Boolean).filter((value, index, all) => all.indexOf(value) === index).join(' + ');
+        const mergedQuantity = mergeQuantityText(oldData.quantity || '', quantity);
         writes.push({ ...existing, data: { ...oldData, quantity: mergedQuantity, source: mergedSources }, updatedAt: now });
         enriched++;
       } else {

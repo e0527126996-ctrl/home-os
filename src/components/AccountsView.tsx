@@ -81,6 +81,8 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   }
 
   const netWorth = Math.round((totalAssets - totalLiabilities) * 100) / 100;
+  const assetAccountCount = accounts.filter(a => a.status === 'ACTIVE' && !a.isLiability && (a.currentBalanceCents || 0) > 0).length;
+  const liabilityAccountCount = accounts.filter(a => a.status === 'ACTIVE' && (a.isLiability || (a.type === 'CHECKING' && (a.currentBalanceCents || 0) < 0))).length;
 
   // Filter accounts
   const displayedAccounts = accounts.filter((acc) => {
@@ -139,8 +141,8 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           </div>
           <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:min-w-[440px]">
             <div className="rounded-2xl border border-white/10 bg-white/[.08] p-3 sm:p-4"><div className="text-[11px] text-emerald-100/70">שווי נקי</div><div className={`mt-2 text-lg font-bold tabular-nums sm:text-xl ${netWorth >= 0 ? 'text-white' : 'text-rose-200'}`}>{formatCurrency(netWorth)}</div><div className="mt-1 text-[10px] text-emerald-100/55">נכסים פחות חובות</div></div>
-            <div className="rounded-2xl border border-white/10 bg-white/[.08] p-3 sm:p-4"><div className="flex items-center gap-1 text-[11px] text-emerald-100/70"><TrendingUp className="h-3.5 w-3.5" /> נכסים</div><div className="mt-2 text-lg font-bold tabular-nums sm:text-xl">{formatCurrency(totalAssets)}</div><div className="mt-1 text-[10px] text-emerald-100/55">{checkingCount + savingsCount} חשבונות</div></div>
-            <div className="rounded-2xl border border-white/10 bg-white/[.08] p-3 sm:p-4"><div className="flex items-center gap-1 text-[11px] text-emerald-100/70"><TrendingDown className="h-3.5 w-3.5" /> התחייבויות</div><div className="mt-2 text-lg font-bold tabular-nums sm:text-xl">{formatCurrency(totalLiabilities)}</div><div className="mt-1 text-[10px] text-emerald-100/55">{creditCount + loansCount} חשבונות</div></div>
+            <div className="rounded-2xl border border-white/10 bg-white/[.08] p-3 sm:p-4"><div className="flex items-center gap-1 text-[11px] text-emerald-100/70"><TrendingUp className="h-3.5 w-3.5" /> נכסים</div><div className="mt-2 text-lg font-bold tabular-nums sm:text-xl">{formatCurrency(totalAssets)}</div><div className="mt-1 text-[10px] text-emerald-100/55">{assetAccountCount} חשבונות</div></div>
+            <div className="rounded-2xl border border-white/10 bg-white/[.08] p-3 sm:p-4"><div className="flex items-center gap-1 text-[11px] text-emerald-100/70"><TrendingDown className="h-3.5 w-3.5" /> התחייבויות</div><div className="mt-2 text-lg font-bold tabular-nums sm:text-xl">{formatCurrency(totalLiabilities)}</div><div className="mt-1 text-[10px] text-emerald-100/55">{liabilityAccountCount} חשבונות</div></div>
           </div>
         </div>
       </section>

@@ -2770,3 +2770,68 @@ html[data-theme="carbon_gold_luxury"] .homeos-app-shell .homeos-view-mode-chip {
   background: rgba(212,175,55,.09);
   color: #E2C45B;
 }
+
+
+/* Built-in personal workspace background gallery. */
+.homeos-background-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.homeos-background-preset {
+  position: relative;
+  display: flex;
+  min-height: 122px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 5px;
+  overflow: hidden;
+  border: 2px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 12px;
+  background-size: cover;
+  background-position: center;
+  text-align: right;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.homeos-background-preset:hover { transform: translateY(-2px); }
+.homeos-background-preset.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent), 0 10px 24px rgba(0,0,0,.12);
+}
+.homeos-background-preset-label {
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(255,255,255,.88);
+  color: #20251f;
+  font-size: 11px;
+  font-weight: 850;
+  backdrop-filter: blur(8px);
+}
+.homeos-background-preset-description {
+  border-radius: 8px;
+  padding: 3px 7px;
+  background: rgba(255,255,255,.76);
+  color: #343a34;
+  font-size: 9px;
+  backdrop-filter: blur(8px);
+}
+.homeos-background-preset-check {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+}
+@media (max-width: 760px) {
+  .homeos-background-preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 420px) {
+  .homeos-background-preset-grid { grid-template-columns: 1fr; }
+}

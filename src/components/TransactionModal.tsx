@@ -121,7 +121,11 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedCurrency = accounts.find(account => account.id === (mode === 'TRANSFER' ? fromAccountId : accountId))?.currency || 'ILS';
-  const selectedCurrencySymbol = selectedCurrency;
+  const selectedCurrencySymbol = new Intl.NumberFormat('he-IL', {
+    style: 'currency',
+    currency: selectedCurrency,
+    currencyDisplay: 'narrowSymbol',
+  }).formatToParts(1).find(part => part.type === 'currency')?.value || selectedCurrency;
 
   if (!isOpen) return null;
 

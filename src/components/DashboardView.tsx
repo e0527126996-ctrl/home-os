@@ -117,7 +117,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const recurringGroups = new Map<string, { payee: string; category: string; monthlyAmounts: Map<string, number>; items: LedgerTransaction[] }>();
     for (const tx of transactions) {
       if (tx.type !== 'EXPENSE' || !tx.date || !monthKeys.has(tx.date.slice(0, 7)) || !tx.payee?.trim()) continue;
-      const payee = tx.payee.trim().replace(/\\s+/g, ' ');
+      const payee = tx.payee.trim().replace(/\s+/g, ' ');
       const normalizedPayee = payee.toLocaleLowerCase('he-IL');
       const category = tx.category?.trim() || 'ללא קטגוריה';
       const key = normalizedPayee + '|' + category;

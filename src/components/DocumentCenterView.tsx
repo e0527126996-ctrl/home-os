@@ -56,7 +56,30 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = async () => setDocuments(await db.getDocumentsByHousehold(household.id));
-  useEffect(() => { refresh().catch((e) => setError(e.message)); }, [household.id]);
+  useEffect(() => {
+    let active = true;
+    const refreshSafely = () => { if (active) refresh().catch((e) => setError(e.message)); };
+    const onVisibility = () => { if (document.visibilityState === 'visible') refreshSafely(); };
+    const onLocalChange = (event: Event) => {
+      const detail = (event as CustomEvent<{ householdId?: string }>).detail;
+      if (!detail?.householdId || detail.householdId === household.id) refreshSafely();
+    };
+    const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('homeos-documents-v1') : null;
+    channel?.addEventListener('message', event => {
+      if (!event.data?.householdId || event.data.householdId === household.id) refreshSafely();
+    });
+    window.addEventListener('focus', refreshSafely);
+    window.addEventListener('homeos:documents-changed', onLocalChange as EventListener);
+    document.addEventListener('visibilitychange', onVisibility);
+    refreshSafely();
+    return () => {
+      active = false;
+      channel?.close();
+      window.removeEventListener('focus', refreshSafely);
+      window.removeEventListener('homeos:documents-changed', onLocalChange as EventListener);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [household.id]);
 
   const visibleDocuments = useMemo(() => documents.filter((doc) => {
     const matchesText = !query || doc.name.toLowerCase().includes(query.toLowerCase());
@@ -92,6 +115,12 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
         if (!statementToImport && category === 'BANK' && /\.(pdf|xlsx?|csv)$/i.test(file.name)) statementToImport = file;
       }
       await refresh();
+      if (typeof BroadcastChannel !== 'undefined') {
+        const channel = new BroadcastChannel('homeos-documents-v1');
+        channel.postMessage({ householdId: household.id, changedAt: Date.now() });
+        channel.close();
+      }
+      window.dispatchEvent(new CustomEvent('homeos:documents-changed', { detail: { householdId: household.id } }));
       setMessage(`${saved} מסמכים נשמרו בכספת המקומית`);
       if (statementToImport) setStatementFile(statementToImport);
     } catch (e: any) {
@@ -132,6 +161,12 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
     try {
       await db.deleteDocument(doc.id, household.id);
       await refresh();
+      if (typeof BroadcastChannel !== 'undefined') {
+        const channel = new BroadcastChannel('homeos-documents-v1');
+        channel.postMessage({ householdId: household.id, changedAt: Date.now() });
+        channel.close();
+      }
+      window.dispatchEvent(new CustomEvent('homeos:documents-changed', { detail: { householdId: household.id } }));
     } catch (e: any) { setError(e.message || 'לא ניתן למחוק את המסמך'); }
   };
 
@@ -150,7 +185,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
             <h1 className="text-3xl font-bold sm:text-4xl">מרכז המסמכים</h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-emerald-50/75">כל המסמכים הפיננסיים של הבית במקום אחד, עם חיפוש, סיווג ושמירה מקומית מאובטחת בדפדפן.</p>
             <div className="mt-5 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] text-white"><CloudOff className="h-3.5 w-3.5" /> אחסון מקומי · סנכרון ענן יוגדר בשלב הבא</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] text-white"><CloudOff className="h-3.5 w-3.5" /> אחסון מקומי · עדכון אוטומטי בין חלונות במחשב הזה</span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] text-white"><ShieldCheck className="h-3.5 w-3.5" /> הפרדה לפי משק בית</span>
             </div>
           </div>
@@ -181,7 +216,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
 
       <section className="homeos-lux-panel space-y-4 border p-5 sm:p-6" style={panel}>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div><h2 className="text-lg font-bold">ארכיון המסמכים</h2><p className="mt-1 text-xs" style={muted}>המסמכים נשמרים בדפדפן במחשב הזה. הם עדיין אינם מסתנכרנים למכשירים אחרים.</p></div>
+          <div><h2 className="text-lg font-bold">ארכיון המסמכים</h2><p className="mt-1 text-xs" style={muted}>המסמכים מתעדכנים אוטומטית בין חלונות פתוחים במחשב הזה. סנכרון בין מכשירים ידרוש חיבור שרת מאובטח.</p></div>
           <div className="relative min-w-[220px]"><Search className="absolute right-3 top-2.5 h-4 w-4 opacity-40" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="חיפוש לפי שם מסמך..." className="w-full rounded-xl border py-2 pr-9 pl-3 text-xs" style={panel} /></div>
         </div>
         <div className="flex flex-wrap gap-2">

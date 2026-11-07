@@ -71,7 +71,7 @@ const INCOME_RULES: Array<[RegExp, string]> = [
 
 const clean = (v: unknown) => String(v ?? '').replace(/\s+/g, ' ').trim();
 export const normalizeStatementPayee = (value: string) => value.normalize('NFKC').toLocaleLowerCase('he-IL').replace(/[\u0591-\u05C7]/g, '').replace(/[^\p{L}\p{N}]/gu, '');
-const normalizeHeader = (v: unknown) => clean(v).toLowerCase().replace(/[\s_״"'׳-]/g, '');
+const normalizeHeader = (v: unknown) => clean(v).replace(/^\uFEFF/, '').toLowerCase().replace(/[\s_״"'׳-]/g, '');
 
 function parseDate(value: unknown, xlsx?: SpreadsheetEngine): string | null {
   const toIso = (year: number, month: number, day: number): string | null => {
@@ -128,6 +128,9 @@ export function parseStatementAmount(value: unknown): number | null {
     }
   } else if (!s.includes('.')) {
     s = s.replace(/,(\d{1,2})$/, '.$1');
+  } else if (/^\d{1,3}(?:\.\d{3})+$/.test(s)) {
+    // European thousands separator without a decimal fraction, e.g. 1.234.
+    s = s.replace(/\./g, '');
   }
   if (!/^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?$/.test(s)) return null;
   const cents = Math.round(Number(s.replace(/,/g, '')) * 100);
@@ -236,7 +239,7 @@ export function parsePdfLines(text: string): ImportedStatementRow[] {
       .map(match => ({ raw: match[0], index: match.index ?? 0, value: parseStatementAmount(match[0]) }))
       .filter(item => item.value !== null && item.value !== 0);
     if (!candidates.length) continue;
-    const marked = candidates.filter(item => /₪|\.\d{1,2}/.test(item.raw));
+    const marked = candidates.filter(item => /₪|[.,]\d{1,2}/.test(item.raw));
     // In bank PDFs the final numeric column is often a running balance.
     // When two currency/decimal values exist, use the one immediately before it.
     let selected = candidates.at(-1)!;

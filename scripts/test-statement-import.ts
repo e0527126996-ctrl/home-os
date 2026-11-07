@@ -10,7 +10,8 @@ const cases: Array<{ name: string; run: () => void }> = [
     name: 'parses Israeli shekel amounts with thousands and decimal separators',
     run: () => {
       assert.equal(parseStatementAmount('₪ 1,234.56'), 123456);
-      assert.equal(parseStatementAmount('1.234,56'), null);
+      assert.equal(parseStatementAmount('1.234,56'), 123456);
+      assert.equal(parseStatementAmount('-12.345,67'), -1234567);
       assert.equal(parseStatementAmount('(75.40)'), -7540);
     },
   },
@@ -33,8 +34,9 @@ const cases: Array<{ name: string; run: () => void }> = [
     name: 'extracts transaction amount rather than the trailing running balance',
     run: () => {
       const rows = parsePdfLines([
+        'תאריך פרטים חובה זכות יתרה',
         '01/11/2026 שופרסל סניף מרכז 125.50 4,875.00',
-        '04/11/2026 סונול דלק 250 4,875.00',
+        '04/11/2026 סונול דלק 250 4,875',
       ].join('\n'));
       assert.equal(rows.length, 2);
       assert.equal(rows[0].date, '2026-11-01');

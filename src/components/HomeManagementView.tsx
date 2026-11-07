@@ -133,7 +133,7 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
           const pct=finance.expenseTotal>0?Math.min(100,value/finance.expenseTotal*100):0;
           return <div className="homeos-finance-category" key={label}>
             <div className="flex items-center justify-between gap-3"><span className="truncate text-sm font-semibold">{label}</span><strong className="shrink-0 text-sm tabular-nums">{money(value)}</strong></div>
-            <div className="homeos-finance-track"><span style={{width:pct+'%',background:[activeTheme.accent,activeTheme.accentMuted,'#8295A7','#A97972','#9C9A7D','#547D70','#8A9B85','#C49A69'][index%8]}}/></div>
+            <div className="homeos-finance-track"><span style={{width:pct+'%',background:[activeTheme.accent,activeTheme.isDark?'#A3B7C8':activeTheme.accentMuted,'#8295A7','#A97972','#9C9A7D','#547D70','#8A9B85','#C49A69'][index%8]}}/></div>
             <div className="text-[10px]" style={{color:activeTheme.textSecondary}}>{pct.toFixed(1)}% מסך ההוצאות המאומתות</div>
           </div>;
         }):<div className="homeos-finance-empty">עדיין אין הוצאות מאומתות לחודש הנוכחי. לאחר אימות עסקאות הן יופיעו כאן אוטומטית.</div>}

@@ -594,6 +594,10 @@ class HomeOSIndexedDB {
   async saveMembership(membership: HouseholdMembership): Promise<void> {
     return this.transaction(['household_memberships'], 'readwrite', async (tx) => {
       const store = tx.objectStore('household_memberships');
+      const existing = await this.reqToPromise<HouseholdMembership | undefined>(store.get(membership.id));
+      if (existing && existing.householdId !== membership.householdId) {
+        throw new Error('הפרת בידוד משקי בית: לא ניתן לשנות חברות השייכת למשק בית אחר');
+      }
       await this.reqToPromise(store.put(membership));
     });
   }
@@ -801,6 +805,10 @@ class HomeOSIndexedDB {
   async savePerson(person: HouseholdPerson): Promise<void> {
     return this.transaction(['household_persons'], 'readwrite', async (tx) => {
       const store = tx.objectStore('household_persons');
+      const existing = await this.reqToPromise<HouseholdPerson | undefined>(store.get(person.id));
+      if (existing && existing.householdId !== person.householdId) {
+        throw new Error('הפרת בידוד משקי בית: לא ניתן לשנות בן בית השייך למשק בית אחר');
+      }
       await this.reqToPromise(store.put(person));
     });
   }
@@ -907,6 +915,10 @@ class HomeOSIndexedDB {
   async savePermissionRule(rule: HouseholdPermissionRule): Promise<void> {
     return this.transaction(['household_permissions'], 'readwrite', async (tx) => {
       const store = tx.objectStore('household_permissions');
+      const existing = await this.reqToPromise<HouseholdPermissionRule | undefined>(store.get(rule.id));
+      if (existing && (existing.householdId !== rule.householdId || existing.membershipId !== rule.membershipId)) {
+        throw new Error('הפרת בידוד משקי בית: לא ניתן לשנות הרשאה השייכת למשק בית אחר');
+      }
       await this.reqToPromise(store.put(rule));
     });
   }
@@ -919,11 +931,22 @@ class HomeOSIndexedDB {
     actorEmail: string
   ): Promise<void> {
     await this.assertPermission(householdId, actorUserId, 'admin', 'approve');
+    const memberships = await this.getMembershipsByHousehold(householdId);
+    if (!memberships.some(membership => membership.id === membershipId)) {
+      throw new Error('החברות המבוקשת אינה שייכת למשק הבית הפעיל');
+    }
+    if (rules.some(rule => rule.householdId !== householdId || rule.membershipId !== membershipId)) {
+      throw new Error('ניסיון לעדכן הרשאות מחוץ למשק הבית או לחברות שנבחרה נחסם');
+    }
 
     await this.transaction(['household_permissions'], 'readwrite', async (tx) => {
       const store = tx.objectStore('household_permissions');
-      for (const r of rules) {
-        await this.reqToPromise(store.put(r));
+      for (const rule of rules) {
+        const existing = await this.reqToPromise<HouseholdPermissionRule | undefined>(store.get(rule.id));
+        if (existing && (existing.householdId !== householdId || existing.membershipId !== membershipId)) {
+          throw new Error('ניסיון לדרוס הרשאה של משק בית אחר נחסם');
+        }
+        await this.reqToPromise(store.put(rule));
       }
     });
 
@@ -1862,7 +1885,12 @@ class HomeOSIndexedDB {
     }
     if (document.size > 25 * 1024 * 1024) throw new Error('גודל הקובץ המרבי הוא 25MB');
     return this.transaction(['household_documents'], 'readwrite', async (tx) => {
-      await this.reqToPromise(tx.objectStore('household_documents').put(document));
+      const store = tx.objectStore('household_documents');
+      const existing = await this.reqToPromise<HouseholdDocument | undefined>(store.get(document.id));
+      if (existing && existing.householdId !== document.householdId) {
+        throw new Error('הפרת בידוד משקי בית: לא ניתן להחליף מסמך השייך למשק בית אחר');
+      }
+      await this.reqToPromise(store.put(document));
     });
   }
 

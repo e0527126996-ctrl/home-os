@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, CreditCard, Landmark, PiggyBank, FileText, Percent, ShieldAlert } from 'lucide-react';
 import { AccountCurrency, AccountType, FinancialAccount } from '../types.ts';
 import { parseCurrencyInput } from '../lib/currency.ts';
@@ -72,6 +72,24 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const [notes, setNotes] = useState(initialAccount?.notes || '');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // The modal stays mounted while closed. Refresh its fields whenever it is
+  // opened for a new account so a previous edit cannot leak into this form.
+  useEffect(() => {
+    if (!isOpen) return;
+    setType(initialAccount?.type || 'CHECKING');
+    setName(initialAccount?.name || '');
+    setInstitution(initialAccount?.institution || 'בנק הפועלים');
+    setCustomInstitution('');
+    setAccountNumberLast4(initialAccount?.accountNumberLast4 || '');
+    setCurrency(initialAccount?.currency || 'ILS');
+    setOpeningBalance(initialAccount ? String(initialAccount.openingBalance) : '0');
+    setCreditLimit(initialAccount?.creditLimit !== undefined ? String(initialAccount.creditLimit) : '');
+    setInterestRate(initialAccount?.interestRate !== undefined ? String(initialAccount.interestRate) : '');
+    setNotes(initialAccount?.notes || '');
+    setError(null);
+    setIsSubmitting(false);
+  }, [isOpen, initialAccount?.id]);
 
   if (!isOpen) return null;
 

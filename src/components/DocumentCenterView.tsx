@@ -218,8 +218,8 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
           </select>
         </div>
         <input ref={inputRef} type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx,.doc,.docx,application/pdf,image/*" onChange={handleUpload} className="hidden" />
-        <button type="button" disabled={busy} onClick={() => inputRef.current?.click()} className="flex min-h-36 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#7D9B8D]/50 bg-[#7D9B8D]/[.06] p-6 text-center transition hover:bg-[#7D9B8D]/[.12] disabled:opacity-50">
-          <span className="rounded-2xl bg-[#315C4B] p-3 text-white"><Upload className="h-6 w-6" /></span>
+        <button type="button" disabled={busy} onClick={() => inputRef.current?.click()} className="homeos-document-dropzone flex min-h-36 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-6 text-center transition disabled:opacity-50" style={{borderColor:activeTheme.accent,background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted}}>
+          <span className="rounded-2xl p-3" style={{background:activeTheme.accent,color:activeTheme.isDark?activeTheme.textPrimary:activeTheme.bgCard}}><Upload className="h-6 w-6" /></span>
           <strong className="text-sm">{busy ? 'שומר מסמכים...' : 'לחץ לבחירת מסמכים מהמחשב'}</strong>
           <span className="text-xs" style={muted}>ניתן לבחור כמה קבצים בפעולה אחת</span>
         </button>
@@ -231,17 +231,17 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
           <div className="relative min-w-[220px]"><Search className="absolute right-3 top-2.5 h-4 w-4 opacity-40" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="חיפוש לפי שם מסמך..." className="w-full rounded-xl border py-2 pr-9 pl-3 text-xs" style={panel} /></div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => setFilter('ALL')} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${filter === 'ALL' ? 'bg-[#315C4B] text-white' : 'bg-black/5 dark:bg-white/10'}`}>הכול</button>
-          {categories.map((item) => <button key={item.value} onClick={() => setFilter(item.value)} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${filter === item.value ? 'bg-[#315C4B] text-white' : 'bg-black/5 dark:bg-white/10'}`}>{item.label}</button>)}
+          <button onClick={() => setFilter('ALL')} className="rounded-full px-3 py-1.5 text-xs font-semibold" style={{background:filter==='ALL'?activeTheme.accent:activeTheme.bgSurface,color:filter==='ALL'?(activeTheme.isDark?activeTheme.textPrimary:activeTheme.bgCard):activeTheme.textSecondary}}>הכול</button>
+          {categories.map((item) => <button key={item.value} onClick={() => setFilter(item.value)} className="rounded-full px-3 py-1.5 text-xs font-semibold" style={{background:filter===item.value?activeTheme.accent:activeTheme.bgSurface,color:filter===item.value?(activeTheme.isDark?activeTheme.textPrimary:activeTheme.bgCard):activeTheme.textSecondary}}>{item.label}</button>)}
         </div>
         {visibleDocuments.length === 0 ? <div className="rounded-2xl border border-dashed p-10 text-center" style={{ borderColor: activeTheme.borderSubtle }}><Archive className="mx-auto mb-3 h-8 w-8 opacity-30" /><p className="text-sm font-semibold">עדיין אין מסמכים להצגה</p><p className="mt-1 text-xs" style={muted}>העלה דוחות בנק, חשבוניות וקבלות כדי להתחיל לבנות את הארכיון.</p></div> :
           <div className="divide-y" style={{ borderColor: activeTheme.borderSubtle }}>
             {visibleDocuments.map((doc) => {
               const Icon = fileIcon(doc.mimeType);
               return <div key={doc.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
-                <div className="flex min-w-0 flex-1 items-center gap-3"><span className="rounded-xl bg-[#7D9B8D]/10 p-3 text-[#527A68]"><Icon className="h-5 w-5" /></span><div className="min-w-0"><div className="truncate text-sm font-bold">{doc.name}</div><div className="mt-1 text-[11px]" style={muted}>{categories.find((item) => item.value === doc.category)?.label} · {formatSize(doc.size)} · {formatDate(doc.uploadedAt)}</div></div></div>
+                <div className="flex min-w-0 flex-1 items-center gap-3"><span className="rounded-xl p-3" style={{background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted,color:activeTheme.accent}}><Icon className="h-5 w-5" /></span><div className="min-w-0"><div className="truncate text-sm font-bold">{doc.name}</div><div className="mt-1 text-[11px]" style={muted}>{categories.find((item) => item.value === doc.category)?.label} · {formatSize(doc.size)} · {formatDate(doc.uploadedAt)}</div></div></div>
                 <div className="flex items-center gap-2">
-                  {doc.category === 'BANK' && /\.(pdf|xlsx?|csv)$/i.test(doc.name) && <button onClick={() => handleAnalyzeStatement(doc)} className="rounded-lg border border-[#527A68]/40 bg-[#527A68]/10 px-3 py-2 text-xs font-bold text-[#527A68] hover:bg-[#527A68]/20">נתח דף חשבון</button>}
+                  {doc.category === 'BANK' && /\.(pdf|xlsx?|csv)$/i.test(doc.name) && <button onClick={() => handleAnalyzeStatement(doc)} className="rounded-lg border px-3 py-2 text-xs font-bold" style={{borderColor:activeTheme.borderSubtle,background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted,color:activeTheme.accent}}>נתח דף חשבון</button>}
                   <button onClick={() => handlePreview(doc)} className="rounded-lg border px-3 py-2 text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5" style={{ borderColor: activeTheme.borderSubtle }}>פתח</button>
                   <button onClick={() => handleDownload(doc)} title="הורדה" className="rounded-lg border p-2 hover:bg-black/5 dark:hover:bg-white/5" style={{ borderColor: activeTheme.borderSubtle }}><Download className="h-4 w-4" /></button>
                   {canWrite && <button onClick={() => handleDelete(doc)} title="מחיקה" className="rounded-lg border p-2 text-rose-600 hover:bg-rose-50" style={{ borderColor: activeTheme.borderSubtle }}><Trash2 className="h-4 w-4" /></button>}

@@ -105,7 +105,7 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
         return { value: Number(String(match[1]).replace(',', '.')), unit: normalizedUnit, label: unitAliases[unit] || unit };
       });
       const parts = [...parseParts(existingText), ...parseParts(addedText)];
-      if (parts.every((part): part is { value: number; unit: string; label: string } => Boolean(part) && Number.isFinite(part.value))) {
+      if (parts.every((part): part is { value: number; unit: string; label: string } => part !== null && Number.isFinite(part.value))) {
         const totals = new Map<string, { value: number; label: string }>();
         for (const part of parts) {
           const old = totals.get(part.unit);

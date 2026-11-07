@@ -1279,6 +1279,14 @@ class HomeOSIndexedDB {
       timestamp: updated.updatedAt,
     };
     await this.transaction(['financial_accounts', 'ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
+      const accountStore = tx.objectStore('financial_accounts');
+      const currentAccount = await this.reqToPromise<FinancialAccount | undefined>(accountStore.get(accountId));
+      if (!currentAccount || currentAccount.householdId !== householdId) {
+        throw new Error('החשבון נמחק או אינו שייך עוד למשק הבית הפעיל');
+      }
+      if (currentAccount.updatedAt !== existing.updatedAt) {
+        throw new Error('פרטי החשבון השתנו בחלון אחר. רענן את המסך ונסה שוב כדי למנוע דריסת עדכון חדש יותר');
+      }
       if (patch.status !== undefined && patch.status !== existing.status &&
           (patch.status === 'ARCHIVED' || patch.status === 'CLOSED')) {
         const linked = await this.reqToPromise<LedgerTransaction[]>(
@@ -1320,7 +1328,7 @@ class HomeOSIndexedDB {
           throw new Error('לא ניתן לשנות מטבע של חשבון שכבר קיימות בו עסקאות. יש לפתוח חשבון חדש במטבע הרצוי כדי לשמור על דיוק הנתונים.');
         }
       }
-      await this.reqToPromise(tx.objectStore('financial_accounts').put(updated));
+      await this.reqToPromise(accountStore.put(updated));
       await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
     });
 
@@ -1384,6 +1392,9 @@ class HomeOSIndexedDB {
     await this.transaction(['financial_accounts', 'ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
       const account = await this.reqToPromise<FinancialAccount | undefined>(tx.objectStore('financial_accounts').get(accountId));
       if (!account || account.householdId !== householdId) throw new Error('החשבון אינו שייך למשק הבית הפעיל או שכבר נמחק');
+      if (account.updatedAt !== existing.updatedAt) {
+        throw new Error('פרטי החשבון השתנו בחלון אחר. רענן את המסך לפני מחיקה');
+      }
       const linked = await this.reqToPromise<LedgerTransaction[]>(
         tx.objectStore('ledger_transactions').index('accountId').getAll(accountId)
       );

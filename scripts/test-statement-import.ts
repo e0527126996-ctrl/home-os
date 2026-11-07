@@ -12,6 +12,7 @@ const cases: Array<{ name: string; run: () => void | Promise<void> }> = [
     run: () => {
       assert.equal(parseStatementAmount('₪ 1,234.56'), 123456);
       assert.equal(parseStatementAmount('1.234,56'), 123456);
+      assert.equal(parseStatementAmount('1.234'), 123400);
       assert.equal(parseStatementAmount('-12.345,67'), -1234567);
       assert.equal(parseStatementAmount('(75.40)'), -7540);
     },
@@ -53,7 +54,7 @@ const cases: Array<{ name: string; run: () => void | Promise<void> }> = [
     name: 'classifies CSV credit and debit columns from their explicit column meaning',
     run: async () => {
       const csv = [
-        'תאריך,תיאור,חובה,זכות',
+        '\\uFEFFתאריך,תיאור,חובה,זכות',
         '01/11/2026,העברה נכנסת,,1250.00',
         '02/11/2026,העברה יוצאת,85.00,',
       ].join('\n');
@@ -64,6 +65,19 @@ const cases: Array<{ name: string; run: () => void | Promise<void> }> = [
       assert.equal(result.rows[0].amountCents, 125000);
       assert.equal(result.rows[1].type, 'EXPENSE');
       assert.equal(result.rows[1].amountCents, 8500);
+    },
+  },
+  {
+    name: 'parses ISO PDF dates and European decimal-comma transaction values',
+    run: () => {
+      const rows = parsePdfLines([
+        'תאריך פרטים חובה זכות יתרה',
+        '2026-11-06 סונול דלק 125,50 4.875,00',
+      ].join('\\n'));
+      assert.equal(rows.length, 1);
+      assert.equal(rows[0].date, '2026-11-06');
+      assert.equal(rows[0].amountCents, 12550);
+      assert.match(rows[0].payee, /סונול/);
     },
   },
   {

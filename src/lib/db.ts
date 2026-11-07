@@ -1896,17 +1896,22 @@ class HomeOSIndexedDB {
   }
 
   async saveDocument(document: HouseholdDocument): Promise<void> {
-    if (!document.householdId || !document.name || !(document.blob instanceof Blob)) {
+    if (!document.id || !document.householdId || !document.name?.trim() || !(document.blob instanceof Blob)) {
       throw new Error('פרטי המסמך אינם תקינים');
     }
-    if (document.size > 25 * 1024 * 1024) throw new Error('גודל הקובץ המרבי הוא 25MB');
+    if (document.blob.size > 25 * 1024 * 1024) throw new Error('גודל הקובץ המרבי הוא 25MB');
+    const safeDocument: HouseholdDocument = {
+      ...document,
+      name: document.name.trim(),
+      size: document.blob.size,
+    };
     return this.transaction(['household_documents'], 'readwrite', async (tx) => {
       const store = tx.objectStore('household_documents');
-      const existing = await this.reqToPromise<HouseholdDocument | undefined>(store.get(document.id));
-      if (existing && existing.householdId !== document.householdId) {
+      const existing = await this.reqToPromise<HouseholdDocument | undefined>(store.get(safeDocument.id));
+      if (existing && existing.householdId !== safeDocument.householdId) {
         throw new Error('הפרת בידוד משקי בית: לא ניתן להחליף מסמך השייך למשק בית אחר');
       }
-      await this.reqToPromise(store.put(document));
+      await this.reqToPromise(store.put(safeDocument));
     });
   }
 
@@ -2188,9 +2193,14 @@ class HomeOSIndexedDB {
           for (const doc of backup.documents) {
             await assertExistingOwnership(docsStore, doc.id, 'מסמך');
             const { dataUrl, ...metadata } = doc;
+            const blob = dataUrlToBlob(dataUrl, doc.mimeType);
+            if (blob.size > 25 * 1024 * 1024) {
+              throw new Error('הגיבוי מכיל מסמך החורג ממגבלת 25MB');
+            }
             await this.reqToPromise(docsStore.put({
               ...metadata,
-              blob: dataUrlToBlob(dataUrl, doc.mimeType),
+              size: blob.size,
+              blob,
             }));
           }
         }

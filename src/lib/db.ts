@@ -20,7 +20,7 @@ import {
   User,
   VerificationStatus,
 } from '../types.ts';
-import { formatCents, fromCents, toCents } from './currency.ts';
+import { formatCents, fromCents, parseCurrencyInput, toCents } from './currency.ts';
 
 const DB_NAME = 'home_os_db';
 const DB_VERSION = 5;
@@ -1111,8 +1111,20 @@ class HomeOSIndexedDB {
       throw new Error('שם המוסד הפיננסי הינו שדה חובה');
     }
 
-    // Strict integer cents conversion
-    const openingBalanceCents = toCents(String(data.openingBalance));
+    const parsedOpeningBalance = parseCurrencyInput(String(data.openingBalance));
+    if (!parsedOpeningBalance.valid) throw new Error('יתרת הפתיחה חייבת להיות סכום תקין עם עד שתי ספרות אחרי הנקודה');
+    const openingBalanceCents = parsedOpeningBalance.cents;
+    const parsedCreditLimit = data.creditLimit !== undefined ? parseCurrencyInput(String(data.creditLimit)) : undefined;
+    if (parsedCreditLimit && (!parsedCreditLimit.valid || parsedCreditLimit.cents < 0)) {
+      throw new Error('מסגרת האשראי חייבת להיות סכום תקין ולא שלילי');
+    }
+    if (data.interestRate !== undefined && (!Number.isFinite(data.interestRate) || data.interestRate < 0)) {
+      throw new Error('שיעור הריבית חייב להיות מספר תקין ולא שלילי');
+    }
+    const currency = data.currency || 'ILS';
+    if (!(['ILS', 'USD', 'EUR', 'GBP'] as string[]).includes(currency)) {
+      throw new Error('המטבע שנבחר אינו נתמך');
+    }
     const isLiability = data.type === 'CREDIT_CARD' || data.type === 'LOAN_MORTGAGE';
 
     const id = `acc_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -1125,15 +1137,15 @@ class HomeOSIndexedDB {
       type: data.type,
       institution: data.institution.trim(),
       accountNumberLast4: data.accountNumberLast4?.trim() || undefined,
-      currency: data.currency || 'ILS',
+      currency,
       openingBalanceCents,
       openingBalance: fromCents(openingBalanceCents),
       currentBalanceCents: openingBalanceCents,
       currentBalance: fromCents(openingBalanceCents),
       status: 'ACTIVE',
       isLiability,
-      creditLimitCents: data.creditLimit !== undefined ? toCents(String(data.creditLimit)) : undefined,
-      creditLimit: data.creditLimit !== undefined ? fromCents(toCents(String(data.creditLimit))) : undefined,
+      creditLimitCents: parsedCreditLimit?.cents,
+      creditLimit: parsedCreditLimit ? fromCents(parsedCreditLimit.cents) : undefined,
       interestRate: data.interestRate !== undefined ? Number(data.interestRate) : undefined,
       notes: data.notes?.trim() || undefined,
       color: data.color || undefined,
@@ -1172,16 +1184,39 @@ class HomeOSIndexedDB {
       throw new Error('חשבון פיננסי לא נמצא');
     }
 
+    if (patch.name !== undefined && !patch.name.trim()) throw new Error('שם החשבון הינו שדה חובה');
+    if (patch.institution !== undefined && !patch.institution.trim()) throw new Error('שם המוסד הפיננסי הינו שדה חובה');
+    if (patch.currency !== undefined && !(['ILS', 'USD', 'EUR', 'GBP'] as string[]).includes(patch.currency)) {
+      throw new Error('המטבע שנבחר אינו נתמך');
+    }
+    if (patch.currency !== undefined && patch.currency !== existing.currency) {
+      const linkedTransactions = await this.getTransactionsByAccount(householdId, accountId);
+      if (linkedTransactions.length > 0) {
+        throw new Error('לא ניתן לשנות מטבע של חשבון שכבר קיימות בו עסקאות. יש לפתוח חשבון חדש במטבע הרצוי כדי לשמור על דיוק הנתונים.');
+      }
+    }
+
+    const parsedOpeningBalance = patch.openingBalance !== undefined
+      ? parseCurrencyInput(String(patch.openingBalance))
+      : undefined;
+    if (parsedOpeningBalance && !parsedOpeningBalance.valid) {
+      throw new Error('יתרת הפתיחה חייבת להיות סכום תקין עם עד שתי ספרות אחרי הנקודה');
+    }
+    const parsedCreditLimit = patch.creditLimit !== undefined
+      ? parseCurrencyInput(String(patch.creditLimit))
+      : undefined;
+    if (parsedCreditLimit && (!parsedCreditLimit.valid || parsedCreditLimit.cents < 0)) {
+      throw new Error('מסגרת האשראי חייבת להיות סכום תקין ולא שלילי');
+    }
+    if (patch.interestRate !== undefined && (!Number.isFinite(patch.interestRate) || patch.interestRate < 0)) {
+      throw new Error('שיעור הריבית חייב להיות מספר תקין ולא שלילי');
+    }
+
     const isLiability = patch.type
       ? patch.type === 'CREDIT_CARD' || patch.type === 'LOAN_MORTGAGE'
       : existing.isLiability;
-
-    const openingBalanceCents = patch.openingBalance !== undefined
-      ? toCents(String(patch.openingBalance))
-      : existing.openingBalanceCents;
-    const creditLimitCents = patch.creditLimit !== undefined
-      ? toCents(String(patch.creditLimit))
-      : existing.creditLimitCents;
+    const openingBalanceCents = parsedOpeningBalance?.cents ?? existing.openingBalanceCents;
+    const creditLimitCents = parsedCreditLimit?.cents ?? existing.creditLimitCents;
 
     const updated: FinancialAccount = {
       ...existing,
@@ -1545,6 +1580,9 @@ class HomeOSIndexedDB {
 
     if (!fromAccount || !toAccount) {
       throw new Error('אחד מהחשבונות לא נמצא במשק הבית הפעיל');
+    }
+    if (fromAccount.currency !== toAccount.currency) {
+      throw new Error('לא ניתן לבצע העברה ישירה בין חשבונות במטבעות שונים ללא שער המרה מאומת');
     }
     if ([fromAccount, toAccount].some((account) => account.status === 'ARCHIVED' || account.status === 'CLOSED')) {
       throw new Error('לא ניתן לבצע העברה מחשבון שהועבר לארכיון או נסגר');

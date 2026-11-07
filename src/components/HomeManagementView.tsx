@@ -97,8 +97,8 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
     const mergeQuantityText = (existingText: string, addedText: string) => {
       if (!existingText.trim()) return addedText;
       if (!addedText.trim()) return existingText;
-      const parseParts = (text: string) => text.split(/\\s*\\+\\s*/).map(part => {
-        const match = part.trim().match(/^(\\d+(?:[.,]\\d+)?)\\s*(.*?)$/);
+      const parseParts = (text: string) => text.split(/\s*\+\s*/).map(part => {
+        const match = part.trim().match(/^(\d+(?:[.,]\d+)?)\s*(.*?)$/);
         if (!match) return null;
         const unit = String(match[2] || '').trim();
         const normalizedUnit = unitAliases[unit] || unit.toLocaleLowerCase('he-IL');

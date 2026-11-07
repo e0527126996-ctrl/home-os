@@ -2884,3 +2884,30 @@ html[data-theme="carbon_gold_luxury"] .homeos-app-shell .homeos-view-mode-chip {
   .homeos-home-snapshot-metrics > button { border-inline-start: 0; border-bottom: 1px solid var(--homeos-border); }
   .homeos-home-snapshot-metrics > button:last-child { border-bottom: 0; }
 }
+
+
+.homeos-finance-category-button {
+  width: 100%;
+  padding: .8rem .75rem;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--homeos-text);
+  text-align: right;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+.homeos-finance-category-button:hover,
+.homeos-finance-category-button.is-selected {
+  border-color: var(--homeos-border);
+  background: color-mix(in srgb, var(--homeos-accent) 7%, var(--homeos-card));
+}
+.homeos-finance-category-button:hover { transform: translateY(-1px); }
+.homeos-finance-category-button:focus-visible { outline: 3px solid var(--homeos-accent); outline-offset: 3px; }
+.homeos-finance-category-detail {
+  margin-top: 1.2rem;
+  padding: 1rem;
+  border: 1px solid var(--homeos-border);
+  border-radius: 16px;
+  background: var(--homeos-surface);
+}

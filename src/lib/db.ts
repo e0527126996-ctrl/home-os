@@ -1894,7 +1894,12 @@ class HomeOSIndexedDB {
       throw new Error('פרטי הרשומה אינם תקינים');
     }
     return this.transaction(['household_home_items'], 'readwrite', async (tx) => {
-      await this.reqToPromise(tx.objectStore('household_home_items').put(item));
+      const store = tx.objectStore('household_home_items');
+      const existing = await this.reqToPromise<HouseholdHomeItem | undefined>(store.get(item.id));
+      if (existing && existing.householdId !== item.householdId) {
+        throw new Error('הפרת בידוד משקי בית: לא ניתן לעדכן רשומה השייכת למשק בית אחר');
+      }
+      await this.reqToPromise(store.put(item));
     });
   }
 

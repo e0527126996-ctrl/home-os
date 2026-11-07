@@ -96,7 +96,7 @@ function parseIngredientLine(value: string): { name: string; quantity: ParsedQua
     return { name: remainder, quantity: amount === null ? null : { value: amount, unit: normalizeText('יח׳'), label: 'יח׳' } };
   }
 
-  const suffix = text.match(new RegExp('^(.+?)\\s+' + numberPattern + '\\s*(.*?)
+  const suffix = text.match(new RegExp('^(.+?)\\s+' + numberPattern + '\\s*(.*?)$'));
   if (suffix) {
     const quantity = parseMeasure(suffix[2] + ' ' + suffix[3]);
     if (quantity) return { name: suffix[1].trim(), quantity };

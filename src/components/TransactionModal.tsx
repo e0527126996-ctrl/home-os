@@ -522,6 +522,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               >
                 <option value="VERIFIED">מאומת</option>
                 <option value="PENDING">ממתין לאימות</option>
+                <option value="RECONCILED">מותאם לדף חשבון</option>
               </select>
             </div>
           </div>

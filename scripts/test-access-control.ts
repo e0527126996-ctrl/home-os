@@ -4,6 +4,7 @@ import {
   canApproveHouseholdDomain,
   canReadHouseholdDomain,
   canWriteHouseholdDomain,
+  defaultPermissionsForRole,
   filterHouseholdsByMembership,
   isHouseholdManager,
 } from '../src/lib/accessControl.ts';
@@ -86,6 +87,15 @@ const cases: Array<{ name: string; run: () => void }> = [
       assert.equal(canWriteHouseholdDomain('member', readWriteOnly, 'admin'), true);
       assert.equal(canApproveHouseholdDomain('member', readWriteOnly, 'admin'), false);
       assert.equal(canApproveHouseholdDomain('member', [rule('admin', true, false, true)], 'admin'), true);
+    },
+  },
+  {
+    name: 'role changes produce least-privilege default permission sets',
+    run: () => {
+      assert.deepEqual(defaultPermissionsForRole('admin', 'admin'), { canRead: true, canWrite: true, canApprove: true });
+      assert.deepEqual(defaultPermissionsForRole('member', 'finance'), { canRead: true, canWrite: true, canApprove: false });
+      assert.deepEqual(defaultPermissionsForRole('member', 'admin'), { canRead: true, canWrite: false, canApprove: false });
+      assert.deepEqual(defaultPermissionsForRole('read_only', 'finance'), { canRead: true, canWrite: false, canApprove: false });
     },
   },
   {

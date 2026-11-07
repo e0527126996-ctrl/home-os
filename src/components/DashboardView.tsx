@@ -26,6 +26,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   accounts, transactions, householdName, activeTheme, onOpenAccounts, onOpenLedger,
 }) => {
   const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[] } | null>(null);
+  // Pending imports are review candidates, not confirmed financial activity.
+  const confirmedTransactions = useMemo(() => confirmedTransactions.filter(tx => tx.verificationStatus !== 'PENDING' && Number.isSafeInteger(tx.amountCents) && tx.amountCents > 0), [transactions]);
 
   useEffect(() => {
     if (!chartDetail) return;
@@ -48,7 +50,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const months = Array.from({ length: 6 }, (_, index) => {
       const date = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1);
       const key = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
-      const monthTx = transactions.filter(tx => tx.date && tx.date.slice(0, 7) === key);
+      const monthTx = confirmedTransactions.filter(tx => tx.date && tx.date.slice(0, 7) === key);
       return {
         key, label: monthLabel(date),
         income: monthTx.filter(tx => tx.type === 'INCOME').reduce((s, tx) => s + tx.amountCents, 0),
@@ -60,20 +62,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const previous = months[months.length - 2] || { income: 0, expense: 0, label: '' };
     const currentDay = now.getDate();
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const currentMonthTransactions = transactions.filter(tx => tx.date?.slice(0, 7) === currentKey && (tx.type === 'INCOME' || tx.type === 'EXPENSE'));
+    const currentMonthTransactions = confirmedTransactions.filter(tx => tx.date?.slice(0, 7) === currentKey && (tx.type === 'INCOME' || tx.type === 'EXPENSE'));
     const currentTransactionDays = new Set(currentMonthTransactions.map(tx => tx.date)).size;
     const projectionReady = currentDay >= 3 && currentTransactionDays >= 3 && currentMonthTransactions.length >= 5;
     const paceFactor = daysInMonth / Math.max(1, currentDay);
     const projectedIncome = Math.round(current.income * paceFactor);
     const projectedExpense = Math.round(current.expense * paceFactor);
     const projectedCashflow = projectedIncome - projectedExpense;
-    const expenseToDate = transactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === currentKey && Number(tx.date.slice(8, 10)) <= currentDay)
+    const expenseToDate = confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === currentKey && Number(tx.date.slice(8, 10)) <= currentDay)
       .reduce((sum, tx) => sum + tx.amountCents, 0);
-    const previousExpenseToDate = transactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === previous.key && Number(tx.date.slice(8, 10)) <= currentDay)
+    const previousExpenseToDate = confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === previous.key && Number(tx.date.slice(8, 10)) <= currentDay)
       .reduce((sum, tx) => sum + tx.amountCents, 0);
     const expenseChange = previousExpenseToDate > 0 ? ((expenseToDate - previousExpenseToDate) / previousExpenseToDate) * 100 : null;
     const max = Math.max(1, ...months.flatMap(m => [m.income, m.expense]));
-    const categories = transactions.filter(tx => tx.type === 'EXPENSE' && tx.date && tx.date.slice(0, 7) === currentKey)
+    const categories = confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date && tx.date.slice(0, 7) === currentKey)
       .reduce<Record<string, number>>((acc, tx) => {
         const key = tx.category || 'ללא קטגוריה';
         acc[key] = (acc[key] || 0) + tx.amountCents;
@@ -86,12 +88,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const baselineIncome = completedMonths.reduce((s, m) => s + m.income, 0) / Math.max(1, completedMonths.length);
     const baselineCashflow = baselineIncome - baselineExpense;
     const baselineSavingsRate = baselineIncome > 0 ? (baselineCashflow / baselineIncome) * 100 : null;
-    const baselineTransactionCount = transactions.filter(tx => completedMonths.some(m => tx.date?.slice(0, 7) === m.key) && (tx.type === 'INCOME' || tx.type === 'EXPENSE')).length;
+    const baselineTransactionCount = confirmedTransactions.filter(tx => completedMonths.some(m => tx.date?.slice(0, 7) === m.key) && (tx.type === 'INCOME' || tx.type === 'EXPENSE')).length;
     const averageExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
     const cashflow = current.income - current.expense;
     const pendingReviewCount = transactions.filter(tx => tx.verificationStatus === 'PENDING').length;
-    const reconciledTransactionCount = transactions.filter(tx => tx.verificationStatus === 'RECONCILED').length;
-    const uncategorizedExpenseCount = transactions.filter(tx => tx.type === 'EXPENSE' && (!tx.category?.trim() || tx.category.trim() === 'ללא קטגוריה')).length;
+    const reconciledTransactionCount = confirmedTransactions.filter(tx => tx.verificationStatus === 'RECONCILED').length;
+    const uncategorizedExpenseCount = confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && (!tx.category?.trim() || tx.category.trim() === 'ללא קטגוריה')).length;
 
     // Compare the current month's category run-rate with the average of the prior
     // three complete months. This is a review signal, not a promised saving.
@@ -116,7 +118,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     // This is deliberately a review signal, not proof of a subscription or fixed bill.
     const monthKeys = new Set(months.map(month => month.key));
     const recurringGroups = new Map<string, { payee: string; category: string; monthlyAmounts: Map<string, number>; items: LedgerTransaction[] }>();
-    for (const tx of transactions) {
+    for (const tx of confirmedTransactions) {
       if (tx.type !== 'EXPENSE' || tx.verificationStatus === 'PENDING' || !tx.date || !monthKeys.has(tx.date.slice(0, 7)) || !tx.payee?.trim() || !Number.isSafeInteger(tx.amountCents) || tx.amountCents <= 0) continue;
       const payee = tx.payee.trim().replace(/\s+/g, ' ');
       const normalizedPayee = payee.toLocaleLowerCase('he-IL');
@@ -152,7 +154,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .slice(0, 4);
 
     return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, reconciledTransactionCount, uncategorizedExpenseCount };
-  }, [accounts, transactions]);
+  }, [accounts, transactions, confirmedTransactions]);
 
   const currency = (cents: number) => money(cents / 100);
   const muted = { color: activeTheme.textSecondary };
@@ -204,10 +206,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <button type="button" onClick={() => setChartDetail({ title: "הכנסות החודש", subtitle: "כל ההכנסות שנרשמו בחודש הנוכחי", items: transactions.filter(tx => tx.type === 'INCOME' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>הכנסות החודש</span><span className="homeos-icon-tile green"><ArrowDownLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value green">{currency(data.current.income)}</div><div className="homeos-card-foot">לחץ לפירוט ההכנסות</div></button>
-        <button type="button" onClick={() => setChartDetail({ title: "הוצאות החודש", subtitle: "כל ההוצאות שנרשמו בחודש הנוכחי", items: transactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>הוצאות החודש</span><span className="homeos-icon-tile copper"><ArrowUpLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{currency(data.current.expense)}</div><div className="homeos-card-foot">לחץ לפירוט ההוצאות</div></button>
-        <button type="button" onClick={() => setChartDetail({ title: "מאזן חודשי", subtitle: "הכנסות והוצאות בחודש הנוכחי", items: transactions.filter(tx => tx.date?.slice(0, 7) === data.months[5]?.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>מאזן חודשי</span><span className="homeos-icon-tile blue"><Activity className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.cashflow >= 0 ? 'green' : 'negative')}>{currency(data.cashflow)}</div><div className="homeos-card-foot">לחץ לפירוט התזרים</div></button>
-        <button type="button" onClick={() => setChartDetail({ title: "השוואת הוצאות חודשית", subtitle: "עסקאות הוצאה בחודש הנוכחי ובחודש הקודם", items: transactions.filter(tx => tx.type === 'EXPENSE' && [data.months[5]?.key, data.months[4]?.key].includes(tx.date?.slice(0, 7))) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>שינוי בהוצאות</span><span className="homeos-icon-tile neutral"><CalendarDays className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{data.expenseChange === null ? '—' : ((data.expenseChange > 0 ? '+' : '') + data.expenseChange.toFixed(1) + '%')}</div><div className="homeos-card-foot">השוואה לאותם ימים בחודש הקודם · לחץ לפירוט</div></button>
+        <button type="button" onClick={() => setChartDetail({ title: "הכנסות החודש", subtitle: "כל ההכנסות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'INCOME' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>הכנסות החודש</span><span className="homeos-icon-tile green"><ArrowDownLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value green">{currency(data.current.income)}</div><div className="homeos-card-foot">לחץ לפירוט ההכנסות</div></button>
+        <button type="button" onClick={() => setChartDetail({ title: "הוצאות החודש", subtitle: "כל ההוצאות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>הוצאות החודש</span><span className="homeos-icon-tile copper"><ArrowUpLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{currency(data.current.expense)}</div><div className="homeos-card-foot">לחץ לפירוט ההוצאות</div></button>
+        <button type="button" onClick={() => setChartDetail({ title: "מאזן חודשי", subtitle: "הכנסות והוצאות בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.date?.slice(0, 7) === data.months[5]?.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>מאזן חודשי</span><span className="homeos-icon-tile blue"><Activity className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.cashflow >= 0 ? 'green' : 'negative')}>{currency(data.cashflow)}</div><div className="homeos-card-foot">לחץ לפירוט התזרים</div></button>
+        <button type="button" onClick={() => setChartDetail({ title: "השוואת הוצאות חודשית", subtitle: "עסקאות הוצאה בחודש הנוכחי ובחודש הקודם", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && [data.months[5]?.key, data.months[4]?.key].includes(tx.date?.slice(0, 7))) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>שינוי בהוצאות</span><span className="homeos-icon-tile neutral"><CalendarDays className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{data.expenseChange === null ? '—' : ((data.expenseChange > 0 ? '+' : '') + data.expenseChange.toFixed(1) + '%')}</div><div className="homeos-card-foot">השוואה לאותם ימים בחודש הקודם · לחץ לפירוט</div></button>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[1.55fr_.85fr]">
@@ -218,7 +220,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="homeos-chart-grid">
             {data.months.map((month, index) => (
-              <button type="button" key={month.key} className="homeos-chart-month cursor-pointer rounded-xl px-1 transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#547D70] dark:hover:bg-white/10" aria-label={"פתיחת פירוט " + month.label} onClick={() => setChartDetail({ title: "פירוט " + month.label, subtitle: "הכנסות " + currency(month.income) + " · הוצאות " + currency(month.expense), items: transactions.filter(tx => tx.date && tx.date.slice(0, 7) === month.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })}>
+              <button type="button" key={month.key} className="homeos-chart-month cursor-pointer rounded-xl px-1 transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#547D70] dark:hover:bg-white/10" aria-label={"פתיחת פירוט " + month.label} onClick={() => setChartDetail({ title: "פירוט " + month.label, subtitle: "הכנסות " + currency(month.income) + " · הוצאות " + currency(month.expense), items: confirmedTransactions.filter(tx => tx.date && tx.date.slice(0, 7) === month.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })}>
                 <div className="homeos-chart-bars">
                   <div className="homeos-chart-bar income" title={'הכנסות: ' + currency(month.income)} style={{ height: Math.max(month.income ? 3 : 1, month.income / data.max * 100) + '%', opacity: index === 5 ? 1 : .72 }} />
                   <div className="homeos-chart-bar expense" title={'הוצאות: ' + currency(month.expense)} style={{ height: Math.max(month.expense ? 3 : 1, month.expense / data.max * 100) + '%', opacity: index === 5 ? 1 : .72 }} />
@@ -235,7 +237,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         <div className={panel + ' p-5 sm:p-7'}>
           <div className="homeos-section-kicker">SPENDING BREAKDOWN</div><h2 className="mt-1 text-lg font-bold">לאן הכסף הולך?</h2><p className="mt-1 text-xs" style={muted}>חמש הקטגוריות המובילות בהוצאות החודש</p>
-          {data.topCategories.length ? <><div className="my-6 flex items-center justify-center"><div className="homeos-donut" style={{ background: 'conic-gradient(' + data.topCategories.map(([name, value], i) => { const start = data.topCategories.slice(0, i).reduce((s, x) => s + x[1], 0) / categoryTotal * 100; const end = (data.topCategories.slice(0, i).reduce((s, x) => s + x[1], 0) + value) / categoryTotal * 100; return categoryColors[i] + ' ' + start + '% ' + end + '%'; }).join(', ') + ')' }}><div><span>5 קטגוריות מובילות</span><strong>{currency(categoryTotal)}</strong></div></div></div><div className="space-y-3">{data.topCategories.map(([name, value], i) => <button type="button" key={name} onClick={() => setChartDetail({ title: "הוצאות: " + name, subtitle: "עסקאות בקטגוריה זו בחודש הנוכחי · " + currency(value), items: transactions.filter(tx => tx.type === 'EXPENSE' && tx.category === name && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2 text-right text-xs transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#547D70] dark:hover:bg-white/10"><span className="flex min-w-0 items-center gap-2"><i className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: categoryColors[i] }} /><span className="truncate">{name}</span></span><strong className="shrink-0 tabular-nums">{currency(value)}</strong></button>)}</div></> : <div className="flex min-h-52 flex-col items-center justify-center text-center"><Sparkles className="mb-3 h-7 w-7" style={muted} /><p className="text-sm font-semibold">אין עדיין נתוני הוצאות</p><p className="mt-1 max-w-[220px] text-xs leading-5" style={muted}>לאחר רישום עסקאות יוצג כאן ניתוח לפי קטגוריות.</p></div>}
+          {data.topCategories.length ? <><div className="my-6 flex items-center justify-center"><div className="homeos-donut" style={{ background: 'conic-gradient(' + data.topCategories.map(([name, value], i) => { const start = data.topCategories.slice(0, i).reduce((s, x) => s + x[1], 0) / categoryTotal * 100; const end = (data.topCategories.slice(0, i).reduce((s, x) => s + x[1], 0) + value) / categoryTotal * 100; return categoryColors[i] + ' ' + start + '% ' + end + '%'; }).join(', ') + ')' }}><div><span>5 קטגוריות מובילות</span><strong>{currency(categoryTotal)}</strong></div></div></div><div className="space-y-3">{data.topCategories.map(([name, value], i) => <button type="button" key={name} onClick={() => setChartDetail({ title: "הוצאות: " + name, subtitle: "עסקאות בקטגוריה זו בחודש הנוכחי · " + currency(value), items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.category === name && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2 text-right text-xs transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#547D70] dark:hover:bg-white/10"><span className="flex min-w-0 items-center gap-2"><i className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: categoryColors[i] }} /><span className="truncate">{name}</span></span><strong className="shrink-0 tabular-nums">{currency(value)}</strong></button>)}</div></> : <div className="flex min-h-52 flex-col items-center justify-center text-center"><Sparkles className="mb-3 h-7 w-7" style={muted} /><p className="text-sm font-semibold">אין עדיין נתוני הוצאות</p><p className="mt-1 max-w-[220px] text-xs leading-5" style={muted}>לאחר רישום עסקאות יוצג כאן ניתוח לפי קטגוריות.</p></div>}
         </div>
       </section>
 
@@ -315,7 +317,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <div className="mt-3 text-xs" style={muted}>תחזית לסוף החודש</div>
                 <div className="mt-1 text-xl font-bold tabular-nums">{currency(item.projected)}</div>
                 <div className="mt-2 text-xs leading-5" style={muted}>לעומת ממוצע חודשי של {currency(item.historicalAverage)} בשלושת החודשים המלאים הקודמים — פער צפוי של {currency(item.increase)}. הסעיף הופיע ב-{item.historicalMonthsPresent} מתוך 3 חודשים, ונרשמו בו {item.transactionCount} עסקאות החודש.</div>
-                <button type="button" onClick={() => setChartDetail({ title: "בדיקת הוצאות: " + item.category, subtitle: "עסקאות בקטגוריה בחודש הנוכחי", items: transactions.filter(tx => tx.type === 'EXPENSE' && (tx.category || 'ללא קטגוריה') === item.category && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-text-link mt-3">בדיקת העסקאות <ArrowLeft className="h-4 w-4" /></button>
+                <button type="button" onClick={() => setChartDetail({ title: "בדיקת הוצאות: " + item.category, subtitle: "עסקאות בקטגוריה בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && (tx.category || 'ללא קטגוריה') === item.category && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-text-link mt-3">בדיקת העסקאות <ArrowLeft className="h-4 w-4" /></button>
               </div>
             ))}
           </div>

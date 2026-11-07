@@ -212,11 +212,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="homeos-hero-footer"><span>HOUSEHOLD WEALTH OVERVIEW</span><span>01 — FINANCIAL POSITION</span></div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <button type="button" onClick={() => setChartDetail({ title: "הכנסות החודש", subtitle: "כל ההכנסות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'INCOME' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>הכנסות החודש</span><span className="homeos-icon-tile green"><ArrowDownLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value green">{currency(data.current.income)}</div><div className="homeos-card-foot">לחץ לפירוט ההכנסות</div></button>
-        <button type="button" onClick={() => setChartDetail({ title: "הוצאות החודש", subtitle: "כל ההוצאות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>הוצאות החודש</span><span className="homeos-icon-tile copper"><ArrowUpLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{currency(data.current.expense)}</div><div className="homeos-card-foot">לחץ לפירוט ההוצאות</div></button>
-        <button type="button" onClick={() => setChartDetail({ title: "מאזן חודשי", subtitle: "הכנסות והוצאות בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.date?.slice(0, 7) === data.months[5]?.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>מאזן חודשי</span><span className="homeos-icon-tile blue"><Activity className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.cashflow >= 0 ? 'green' : 'negative')}>{currency(data.cashflow)}</div><div className="homeos-card-foot">לחץ לפירוט התזרים</div></button>
-        <button type="button" onClick={() => setChartDetail({ title: "השוואת הוצאות חודשית", subtitle: "עסקאות הוצאה בחודש הנוכחי ובחודש הקודם", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && [data.months[5]?.key, data.months[4]?.key].includes(tx.date?.slice(0, 7))) })} className={panel + " text-right transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#547D70]"}><div className="homeos-card-top"><span>שינוי בהוצאות</span><span className="homeos-icon-tile neutral"><CalendarDays className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{data.expenseChange === null ? '—' : ((data.expenseChange > 0 ? '+' : '') + data.expenseChange.toFixed(1) + '%')}</div><div className="homeos-card-foot">השוואה לאותם ימים בחודש הקודם · לחץ לפירוט</div></button>
+      <section className="homeos-kpi-strip" aria-label="מדדי החודש">
+        <button type="button" onClick={() => setChartDetail({ title: "הכנסות החודש", subtitle: "כל ההכנסות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'INCOME' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>הכנסות החודש</span><span className="homeos-icon-tile green"><ArrowDownLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value green">{currency(data.current.income)}</div><div className="homeos-card-foot">לחץ לפירוט ההכנסות</div></button>
+        <button type="button" onClick={() => setChartDetail({ title: "הוצאות החודש", subtitle: "כל ההוצאות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>הוצאות החודש</span><span className="homeos-icon-tile copper"><ArrowUpLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{currency(data.current.expense)}</div><div className="homeos-card-foot">לחץ לפירוט ההוצאות</div></button>
+        <button type="button" onClick={() => setChartDetail({ title: "מאזן חודשי", subtitle: "הכנסות והוצאות בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.date?.slice(0, 7) === data.months[5]?.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>מאזן חודשי</span><span className="homeos-icon-tile blue"><Activity className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.cashflow >= 0 ? 'green' : 'negative')}>{currency(data.cashflow)}</div><div className="homeos-card-foot">לחץ לפירוט התזרים</div></button>
+        <button type="button" onClick={() => setChartDetail({ title: "השוואת הוצאות חודשית", subtitle: "עסקאות הוצאה בחודש הנוכחי ובחודש הקודם", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && [data.months[5]?.key, data.months[4]?.key].includes(tx.date?.slice(0, 7))) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>שינוי בהוצאות</span><span className="homeos-icon-tile neutral"><CalendarDays className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{data.expenseChange === null ? '—' : ((data.expenseChange > 0 ? '+' : '') + data.expenseChange.toFixed(1) + '%')}</div><div className="homeos-card-foot">השוואה לאותם ימים בחודש הקודם · לחץ לפירוט</div></button>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[1.55fr_.85fr]">
@@ -248,6 +248,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
+      <details className="homeos-advanced-details">
+        <summary>
+          <span className="homeos-advanced-title">ניתוח מתקדם</span>
+          <span className="homeos-advanced-description">תחזיות, הזדמנויות לחיסכון ובקרת נתונים</span>
+          <ChevronLeft className="homeos-advanced-chevron h-4 w-4" />
+        </summary>
+        <div className="homeos-advanced-content space-y-5">
       <section className={panel + ' p-5 sm:p-7'}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -392,6 +399,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
         <p className="mt-3 text-[10px] leading-5" style={muted}>הספירה מבוססת על סטטוס האימות ושדה הקטגוריה ברשומות הקיימות. פתיחת הפנקס מאפשרת לבדוק את העסקאות; הנתונים אינם משתנים אוטומטית.</p>
       </section>
+
+        </div>
+      </details>
 
       <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]">
         <div className={panel + ' p-5 sm:p-7'}>

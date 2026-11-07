@@ -1787,6 +1787,17 @@ class HomeOSIndexedDB {
     }
 
     const now = new Date().toISOString();
+    const transactionAccount = await this.getAccountById(existing.accountId, householdId);
+    const auditLog: AuditLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      householdId,
+      userId: actorUserId,
+      userEmail: actorEmail,
+      action: 'UPDATE_TRANSACTION',
+      domain: 'FINANCE',
+      details: `עדכון עסקה: ${existing.payee} (${formatCents(patch.amountCents ?? existing.amountCents, transactionAccount?.currency || 'ILS')})`,
+      timestamp: now,
+    };
     // Only editable business fields may change. IDs, household/account ownership,
     // transaction type and transfer links are immutable after creation.
     const updated: LedgerTransaction = {
@@ -1811,7 +1822,7 @@ class HomeOSIndexedDB {
         throw new Error('רגל ההעברה הנגדית חסרה או אינה תואמת; העדכון בוטל כדי למנוע חוסר איזון');
       }
 
-      await this.transaction(['ledger_transactions'], 'readwrite', async (tx) => {
+      await this.transaction(['ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
         const store = tx.objectStore('ledger_transactions');
         await this.reqToPromise(store.put(updated));
 
@@ -1828,23 +1839,15 @@ class HomeOSIndexedDB {
           };
           await this.reqToPromise(store.put(counterUpdated));
         }
+        await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
       });
     } else {
-      await this.transaction(['ledger_transactions'], 'readwrite', async (tx) => {
+      await this.transaction(['ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
         const store = tx.objectStore('ledger_transactions');
         await this.reqToPromise(store.put(updated));
+        await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
       });
     }
-
-    const transactionAccount = await this.getAccountById(existing.accountId, householdId);
-    await this.recordAuditLog(
-      householdId,
-      actorUserId,
-      actorEmail,
-      'UPDATE_TRANSACTION',
-      'FINANCE',
-      `עדכון עסקה: ${updated.payee} (${formatCents(updated.amountCents, transactionAccount?.currency || 'ILS')})`
-    );
 
     return updated;
   }
@@ -1874,21 +1877,23 @@ class HomeOSIndexedDB {
       }
     }
 
-    await this.transaction(['ledger_transactions'], 'readwrite', async (tx) => {
+    const transactionAccount = await this.getAccountById(existing.accountId, householdId);
+    const auditLog: AuditLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      householdId,
+      userId: actorUserId,
+      userEmail: actorEmail,
+      action: 'DELETE_TRANSACTION',
+      domain: 'FINANCE',
+      details: `מחיקת עסקה ${existing.id} (${existing.payee}, ${formatCents(existing.amountCents, transactionAccount?.currency || 'ILS')})${existing.linkedTransactionId ? ' יחד עם רגל ההעברה המקושרת' : ''}`,
+      timestamp: new Date().toISOString(),
+    };
+    await this.transaction(['ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
       const store = tx.objectStore('ledger_transactions');
       await this.reqToPromise(store.delete(transactionId));
       if (counterLeg) await this.reqToPromise(store.delete(counterLeg.id));
+      await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
     });
-
-    const transactionAccount = await this.getAccountById(existing.accountId, householdId);
-    await this.recordAuditLog(
-      householdId,
-      actorUserId,
-      actorEmail,
-      'DELETE_TRANSACTION',
-      'FINANCE',
-      `מחיקת עסקה ${existing.id} (${existing.payee}, ${formatCents(existing.amountCents, transactionAccount?.currency || 'ILS')})${existing.linkedTransactionId ? ' יחד עם רגל ההעברה המקושרת' : ''}`
-    );
   }
 
   /**

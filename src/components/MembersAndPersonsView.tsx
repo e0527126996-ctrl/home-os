@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { UserPlus, Shield, User as UserIcon, Baby, Trash2, KeyRound, Plus, Edit2 } from 'lucide-react';
 import { Household, HouseholdMembership, HouseholdPerson, Role, User, PersonType } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
+import { WorkspacePageHeader } from './WorkspacePageHeader.tsx';
 
 interface MembersAndPersonsViewProps {
   household: Household;
@@ -115,16 +116,14 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
   const availableUsers = allUsers.filter((u) => !existingMemberUserIds.has(u.id));
 
   return (
-    <div className="homeos-members-view space-y-6">
-      {/* Top Banner / Tab Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4" style={{ borderColor: activeTheme.borderSubtle }}>
-        <div>
-          <h2 className="font-serif text-xl font-semibold">אנשי הבית והרשאות גישה</h2>
-          <p className="text-xs mt-1" style={{ color: activeTheme.textSecondary }}>
-            הפרדה מלאה בין משתמשי כניסה (בעלי חשבון והרשאות) לבין בני משפחה ותלויים (ללא חשבון)
-          </p>
-        </div>
-
+    <div className="homeos-members-view homeos-workspace-page space-y-6">
+      <WorkspacePageHeader
+        eyebrow="HOUSEHOLD / PEOPLE & ACCESS"
+        title="אנשי הבית והרשאות"
+        description="ניהול המשתמשים המורשים, בני המשפחה, התפקידים והרשאות הגישה."
+        meta={<><span>{memberships.length} משתמשים מורשים</span><span>{persons.length} בני בית</span></>}
+      />
+      <div className="homeos-members-tabs-row">
         {/* Tab switch */}
         <div className="flex items-center gap-1 p-1 rounded border self-start" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
           <button

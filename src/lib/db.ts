@@ -1574,7 +1574,14 @@ class HomeOSIndexedDB {
       details: `רישום עסקה: ${newTx.type === 'INCOME' ? 'הכנסה' : 'הוצאה'} ע"ס ${formatCents(newTx.amountCents, account.currency)} בחשבון ${account.name} (${newTx.payee})`,
       timestamp: now,
     };
-    await this.transaction(['ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
+    await this.transaction(['financial_accounts', 'ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
+      const currentAccount = await this.reqToPromise<FinancialAccount | undefined>(tx.objectStore('financial_accounts').get(data.accountId));
+      if (!currentAccount || currentAccount.householdId !== householdId || currentAccount.status !== 'ACTIVE') {
+        throw new Error('החשבון נסגר או אינו זמין עוד לרישום עסקה');
+      }
+      if (currentAccount.currency !== account.currency) {
+        throw new Error('מטבע החשבון השתנה בחלון אחר. רענן את המסך ובדוק את סכום העסקה לפני שמירה');
+      }
       await this.reqToPromise(tx.objectStore('ledger_transactions').put(newTx));
       await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
     });
@@ -1635,7 +1642,14 @@ class HomeOSIndexedDB {
       details: `ייבוא אטומי של ${importedRows.length} עסקאות מקובץ דף חשבון לחשבון ${account.name}; כל העסקאות ממתינות לאימות`,
       timestamp: now,
     };
-    await this.transaction(['ledger_transactions', 'audit_logs'], 'readwrite', async tx => {
+    await this.transaction(['financial_accounts', 'ledger_transactions', 'audit_logs'], 'readwrite', async tx => {
+      const currentAccount = await this.reqToPromise<FinancialAccount | undefined>(tx.objectStore('financial_accounts').get(account.id));
+      if (!currentAccount || currentAccount.householdId !== householdId || currentAccount.status !== 'ACTIVE') {
+        throw new Error('החשבון נסגר או אינו זמין עוד לייבוא');
+      }
+      if (currentAccount.currency !== account.currency) {
+        throw new Error('מטבע החשבון השתנה בזמן הכנת הייבוא. רענן את המסך ובדוק את הקובץ מחדש');
+      }
       const store = tx.objectStore('ledger_transactions');
       const auditStore = tx.objectStore('audit_logs');
       const writes = importedRows.map(item => this.reqToPromise(store.add(item)));
@@ -1761,7 +1775,20 @@ class HomeOSIndexedDB {
       details: `ביצוע העברה פנימית ע"ס ${formatCents(data.amountCents, fromAccount.currency)} מחשבון ${fromAccount.name} אל ${toAccount.name}`,
       timestamp: now,
     };
-    await this.transaction(['ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
+    await this.transaction(['financial_accounts', 'ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
+      const accountStore = tx.objectStore('financial_accounts');
+      const [currentFrom, currentTo] = await Promise.all([
+        this.reqToPromise<FinancialAccount | undefined>(accountStore.get(data.fromAccountId)),
+        this.reqToPromise<FinancialAccount | undefined>(accountStore.get(data.toAccountId)),
+      ]);
+      if (!currentFrom || !currentTo || currentFrom.householdId !== householdId || currentTo.householdId !== householdId ||
+          currentFrom.status !== 'ACTIVE' || currentTo.status !== 'ACTIVE') {
+        throw new Error('אחד מחשבונות ההעברה נסגר או אינו זמין עוד');
+      }
+      if (currentFrom.currency !== currentTo.currency ||
+          currentFrom.currency !== fromAccount.currency || currentTo.currency !== toAccount.currency) {
+        throw new Error('מטבע אחד החשבונות השתנה. רענן את המסך לפני ביצוע ההעברה');
+      }
       const store = tx.objectStore('ledger_transactions');
       await this.reqToPromise(store.put(outgoingLeg));
       await this.reqToPromise(store.put(incomingLeg));

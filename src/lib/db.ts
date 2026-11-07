@@ -1272,7 +1272,15 @@ class HomeOSIndexedDB {
       details: `עדכון פרטי חשבון: ${updated.name}`,
       timestamp: updated.updatedAt,
     };
-    await this.transaction(['financial_accounts', 'audit_logs'], 'readwrite', async (tx) => {
+    await this.transaction(['financial_accounts', 'ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
+      if (patch.currency !== undefined && patch.currency !== existing.currency) {
+        const linked = await this.reqToPromise<LedgerTransaction[]>(
+          tx.objectStore('ledger_transactions').index('accountId').getAll(accountId)
+        );
+        if (linked.some(transaction => transaction.householdId === householdId)) {
+          throw new Error('לא ניתן לשנות מטבע של חשבון שכבר קיימות בו עסקאות. יש לפתוח חשבון חדש במטבע הרצוי כדי לשמור על דיוק הנתונים.');
+        }
+      }
       await this.reqToPromise(tx.objectStore('financial_accounts').put(updated));
       await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
     });
@@ -1334,7 +1342,15 @@ class HomeOSIndexedDB {
       details: `מחיקת חשבון פיננסי: ${existing.name} (${existing.institution})`,
       timestamp: new Date().toISOString(),
     };
-    await this.transaction(['financial_accounts', 'audit_logs'], 'readwrite', async (tx) => {
+    await this.transaction(['financial_accounts', 'ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
+      const account = await this.reqToPromise<FinancialAccount | undefined>(tx.objectStore('financial_accounts').get(accountId));
+      if (!account || account.householdId !== householdId) throw new Error('החשבון אינו שייך למשק הבית הפעיל או שכבר נמחק');
+      const linked = await this.reqToPromise<LedgerTransaction[]>(
+        tx.objectStore('ledger_transactions').index('accountId').getAll(accountId)
+      );
+      if (linked.some(transaction => transaction.householdId === householdId)) {
+        throw new Error('נוספו עסקאות לחשבון בזמן המחיקה. החשבון לא נמחק; ניתן להעבירו לארכיון.');
+      }
       await this.reqToPromise(tx.objectStore('financial_accounts').delete(accountId));
       await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
     });

@@ -182,6 +182,7 @@ export default function App() {
   // Update root CSS variables when theme changes
   useEffect(() => {
     const root = document.documentElement;
+    root.dataset.theme = activeTheme.id;
     root.style.setProperty('--bg-canvas', activeTheme.bgCanvas);
     root.style.setProperty('--bg-surface', activeTheme.bgSurface);
     root.style.setProperty('--bg-card', activeTheme.bgCard);

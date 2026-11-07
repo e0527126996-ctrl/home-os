@@ -1795,7 +1795,7 @@ class HomeOSIndexedDB {
       userEmail: actorEmail,
       action: 'UPDATE_TRANSACTION',
       domain: 'FINANCE',
-      details: `עדכון עסקה: ${existing.payee} (${formatCents(patch.amountCents ?? existing.amountCents, transactionAccount?.currency || 'ILS')})`,
+      details: `עדכון עסקה: ${patch.payee?.trim() || existing.payee} (${formatCents(patch.amountCents ?? existing.amountCents, transactionAccount?.currency || 'ILS')})`,
       timestamp: now,
     };
     // Only editable business fields may change. IDs, household/account ownership,
@@ -1872,7 +1872,7 @@ class HomeOSIndexedDB {
         throw new Error('העברה זו אינה מקושרת לרגל הנגדית שלה; לא ניתן למחוק אותה בבטחה');
       }
       counterLeg = await this.getTransactionById(existing.linkedTransactionId, householdId);
-      if (!counterLeg || counterLeg.type !== 'TRANSFER' || counterLeg.linkedTransactionId !== existing.id || counterLeg.transferId !== existing.transferId || counterLeg.accountId !== existing.counterpartyAccountId || counterLeg.counterpartyAccountId !== existing.accountId || counterLeg.transferDirection === existing.transferDirection) {
+      if (!counterLeg || counterLeg.type !== 'TRANSFER' || counterLeg.linkedTransactionId !== existing.id || counterLeg.transferId !== existing.transferId || counterLeg.accountId !== existing.counterpartyAccountId || counterLeg.counterpartyAccountId !== existing.accountId || !['OUT', 'IN'].includes(existing.transferDirection || '') || !['OUT', 'IN'].includes(counterLeg.transferDirection || '') || counterLeg.transferDirection === existing.transferDirection) {
         throw new Error('רגל ההעברה הנגדית חסרה או אינה תואמת; המחיקה בוטלה כדי למנוע פגיעה ביתרות');
       }
     }

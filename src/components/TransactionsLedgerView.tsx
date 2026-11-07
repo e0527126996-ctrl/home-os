@@ -190,10 +190,12 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
     lastMonthPrefix,
   ]);
 
-  const visibleCurrencies = new Set(filteredTransactions
+  const visibleCurrencies = new Set<string>(filteredTransactions
     .filter(tx => tx.verificationStatus !== 'PENDING' && Number.isSafeInteger(tx.amountCents) && tx.amountCents > 0)
-    .map(tx => accountsMap.get(tx.accountId)?.currency)
-    .filter((currency): currency is string => Boolean(currency)));
+    .flatMap(tx => {
+      const currency = accountsMap.get(tx.accountId)?.currency;
+      return currency ? [currency] : [];
+    }));
   const selectedSummaryCurrency = accountFilter !== 'ALL'
     ? accountsMap.get(accountFilter)?.currency || 'ILS'
     : visibleCurrencies.size === 1 ? [...visibleCurrencies][0] : 'ILS';

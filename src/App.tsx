@@ -400,10 +400,10 @@ export default function App() {
 
   const handleImportTransactions = async (rows: ImportedStatementRow[], accountId: string) => {
     if (!activeHousehold || !currentUser) throw new Error('יש להתחבר למשק הבית לפני ייבוא עסקאות');
-    let imported = 0;
     try {
-      for (const row of rows) {
-        await db.createTransaction(activeHousehold.id, {
+      const imported = await db.createImportedTransactionsBatch(
+        activeHousehold.id,
+        rows.map(row => ({
           accountId,
           date: row.date,
           amountCents: row.amountCents,
@@ -411,16 +411,15 @@ export default function App() {
           category: row.category,
           payee: row.payee,
           notes: 'יובא מדף חשבון · נדרש אימות מול המסמך המקורי',
-          source: 'IMPORT',
-          verificationStatus: 'PENDING',
-        }, currentUser.id, currentUser.email);
-        imported++;
-      }
+        })),
+        currentUser.id,
+        currentUser.email
+      );
       await reloadHouseholdData(activeHousehold.id);
-      showToast(`יובאו ${imported} עסקאות. היתרות והדוחות עודכנו; העסקאות מסומנות לבדיקה.`);
+      showToast(`יובאו ${imported.length} עסקאות. כולן ממתינות לאימות ולא ישפיעו על היתרות עד לאישור.`);
     } catch (err: any) {
       await reloadHouseholdData(activeHousehold.id);
-      showToast(`יובאו ${imported} עסקאות לפני שגיאה: ${err.message}`, 'error');
+      showToast('ייבוא דף החשבון נכשל: ' + err.message, 'error');
       throw err;
     }
   };

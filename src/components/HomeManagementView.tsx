@@ -4,11 +4,13 @@ import { db } from '../lib/db.ts';
 import { FinancialAccount, Household, HouseholdHomeItem, HouseholdPerson, LedgerTransaction, User } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
 import { buildFinanceAnalytics } from '../lib/financeAnalytics.ts';
+import { classifyShoppingCategory, formatIngredientQuantity, mergeQuantityTexts, normalizeShoppingName, splitIngredientName } from '../lib/shoppingIntelligence.ts';
 
 type Props = { household: Household; currentUser: User | null; activeTheme: ThemeConfig; canRead: boolean; canWrite: boolean; accounts: FinancialAccount[]; transactions: LedgerTransaction[]; persons: HouseholdPerson[]; onOpenLedger: () => void; initialTab?: 'planner'|'recipes'|'shopping'|'tasks'|'finance'; onRequestUserSwitch: () => void; onItemsChange: (items: HouseholdHomeItem[]) => void };
 type Recipe = { name: string; ingredients: string[]; instructions: string; category: string; servings?: number };
 type Meal = { date: string; slot: string; recipeId: string; recipeName: string; servings?: number };
-type Shopping = { name: string; quantity: string; checked: boolean; source?: string };
+type GeneratedShoppingBatch = { quantity: string; sources: string[] };
+type Shopping = { name: string; quantity: string; checked: boolean; source?: string; manualQuantity?: string; generatedBatches?: Record<string, GeneratedShoppingBatch> };
 type Task = { title: string; dueDate: string; assignee: string; done: boolean };
 const uid = (p: string) => p + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
 const iso = (d: Date) => [d.getFullYear(), String(d.getMonth()+1).padStart(2,'0'), String(d.getDate()).padStart(2,'0')].join('-');
@@ -27,7 +29,7 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
   const [mealDate,setMealDate] = useState(iso(new Date())); const [mealSlot,setMealSlot] = useState('צהריים'); const [recipeId,setRecipeId] = useState(''); const [mealServings,setMealServings] = useState(String(householdPortions)); const [editingMealId,setEditingMealId] = useState<string|null>(null);
   const [shopName,setShopName] = useState(''); const [quantity,setQuantity] = useState(''); const [editingShoppingId,setEditingShoppingId] = useState<string|null>(null);
   const [taskTitle,setTaskTitle] = useState(''); const [taskDate,setTaskDate] = useState(iso(new Date())); const [assignee,setAssignee] = useState(''); const [editingTaskId,setEditingTaskId] = useState<string|null>(null);
-  const [error,setError] = useState(''); const [busy,setBusy] = useState(false); const [shoppingFeedback,setShoppingFeedback] = useState(''); const [selectedFinanceCategory,setSelectedFinanceCategory] = useState<string|null>(null);
+  const [error,setError] = useState(''); const [busy,setBusy] = useState(false); const [shoppingFeedback,setShoppingFeedback] = useState(''); const [shoppingSearch,setShoppingSearch] = useState(''); const [shoppingStatus,setShoppingStatus] = useState<'OPEN'|'CHECKED'|'ALL'>('OPEN'); const [selectedFinanceCategory,setSelectedFinanceCategory] = useState<string|null>(null);
   const mealEditorRef = useRef<HTMLElement | null>(null);
   const recipeEditorRef = useRef<HTMLElement | null>(null);
   const refresh = useCallback(async()=>{ if(!currentUser || !canRead) return; try { const nextItems = await db.getHomeItemsByHousehold(household.id,currentUser.id); setItems(nextItems); onItemsChange(nextItems); setError(''); } catch(e) { setError(e instanceof Error?e.message:'טעינת נתוני הבית נכשלה'); } },[household.id,currentUser,canRead,onItemsChange]);
@@ -64,102 +66,123 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
    const editRecipe=(item:HouseholdHomeItem)=>{const recipe=item.data as Recipe;setEditingRecipeId(item.id);setName(recipe.name||'');setIngredients((recipe.ingredients||[]).join(', '));setInstructions(recipe.instructions||'');setCategory(recipe.category||'ארוחה משפחתית');setRecipeServings(String(recipe.servings||4));window.requestAnimationFrame(()=>recipeEditorRef.current?.scrollIntoView({behavior:'smooth',block:'center'}));};
   const addMeal=async()=>{if(!validISODate(mealDate)){setError('יש לבחור תאריך תקין לארוחה');return;}const r=recipes.find(x=>x.id===recipeId);if(!r){setError('יש לבחור מתכון קיים לפני שמירת הארוחה.');return;}const parsedMealServings=Number(mealServings);if(!Number.isFinite(parsedMealServings)||parsedMealServings<=0||parsedMealServings>100){setError('יש להזין מספר מנות מתוכנן תקין (1–100)');return;}const ok=await save('meal',{date:mealDate,slot:mealSlot,recipeId:r.id,recipeName:String(r.data.name||'מתכון'),servings:parsedMealServings},editingMealId||uid('meal'));if(ok)resetMealForm();};
    const editMeal=(item:HouseholdHomeItem)=>{const data=item.data as Meal;const recipeExists=recipes.some(recipe=>recipe.id===data.recipeId);setEditingMealId(item.id);setMealDate(data.date||iso(new Date()));setMealSlot(data.slot||'צהריים');setRecipeId(recipeExists?data.recipeId:'');setMealServings(String(data.servings||householdPortions));setError(recipeExists?'':'המתכון ששויך לארוחה כבר אינו קיים. בחר מתכון חלופי ושמור.');window.requestAnimationFrame(()=>mealEditorRef.current?.scrollIntoView({behavior:'smooth',block:'center'}));};
-   const addShopping=async()=>{if(!shopName.trim())return;const old=editingShoppingId?shopping.find(x=>x.id===editingShoppingId):undefined;const ok=await save('shopping',{...(old?.data as Shopping||{}),name:shopName.trim(),quantity:quantity.trim()},editingShoppingId||uid('shopping'));if(ok){setShopName('');setQuantity('');setEditingShoppingId(null);}};
+   const addShopping=async()=>{
+    if(!shopName.trim())return;
+    const old=editingShoppingId?shopping.find(x=>x.id===editingShoppingId):undefined;
+    const oldData=old?.data as Shopping|undefined;
+    const existingDuplicate=!editingShoppingId?shopping.find(item=>!(item.data as Shopping).checked&&normalizeShoppingName(String((item.data as Shopping).name||''))===normalizeShoppingName(shopName.trim())):undefined;
+    const target=old||existingDuplicate;
+    const targetData=target?.data as Shopping|undefined;
+    const batches={...(targetData?.generatedBatches||{})};
+    const manualQuantity=editingShoppingId?quantity.trim():mergeQuantityTexts(targetData?.manualQuantity??(targetData?.generatedBatches?'':targetData?.quantity||''),quantity.trim());
+    const displayQuantity=mergeQuantityTexts(manualQuantity,...Object.values(batches).map(batch=>batch.quantity));
+    const ok=await save('shopping',{...(targetData||{}),name:editingShoppingId?shopName.trim():(targetData?.name||shopName.trim()),quantity:displayQuantity,manualQuantity,generatedBatches:batches},target?.id||uid('shopping'));
+    if(ok){
+      setShopName('');setQuantity('');setEditingShoppingId(null);
+      if(existingDuplicate)setShoppingFeedback('הפריט כבר היה ברשימה הפתוחה, ולכן אוחד עם השורה הקיימת במקום ליצור כפילות.');
+    }
+  };
    const editShopping=(item:HouseholdHomeItem)=>{const data=item.data as Shopping;setEditingShoppingId(item.id);setShopName(data.name||'');setQuantity(data.quantity||'');};
-  const addIngredientsToShopping = async (sourceRecipes: Array<{recipe: Recipe; plannedServings: number}>) => {
+  const addIngredientsToShopping = async (
+    sourceRecipes: Array<{recipe: Recipe; plannedServings: number}>,
+    batchKey: string,
+  ) => {
     if (!currentUser || !canWrite) { setError('אין הרשאת כתיבה לרשימת הקניות.'); return; }
-    const grouped = new Map<string, { name: string; sources: Set<string>; amounts: Map<string, { value: number; label: string }> }>();
-    const unitAliases: Record<string, string> = { 'כפות': 'כף', 'כפיות': 'כפית', 'כוסות': 'כוס', 'יחידות': 'יח׳', 'יחידה': 'יח׳', 'קילוגרם': 'ק״ג', 'קילו': 'ק״ג', 'ליטר': 'ל׳', 'מיליליטר': 'מ״ל' };
+    const grouped = new Map<string, { name: string; sources: Set<string>; quantities: string[] }>();
     for (const entry of sourceRecipes) {
-      const recipe = entry.recipe;
-      const baseServings = Number(recipe.servings) > 0 ? Number(recipe.servings) : 4;
+      const baseServings = Number(entry.recipe.servings) > 0 ? Number(entry.recipe.servings) : 4;
       const scaleFactor = Math.max(0.01, entry.plannedServings / baseServings);
-      for (const rawIngredient of recipe.ingredients || []) {
+      for (const rawIngredient of entry.recipe.ingredients || []) {
         const raw = String(rawIngredient || '').trim();
         if (!raw) continue;
-        const match = raw.match(/^(.+?)\s*(?:[-–—:]\s*)(\d+(?:[.,]\d+)?)\s*([^\d].*)$/);
-        const namePart = (match?.[1] || raw).trim();
-        const key = namePart.normalize('NFKC').replace(/[׳״"'’]/g, '').replace(/\s+/g, ' ').toLocaleLowerCase('he-IL');
+        const name = splitIngredientName(raw).trim();
+        if (!name) continue;
+        const key = normalizeShoppingName(name);
         if (!key) continue;
         let group = grouped.get(key);
-        if (!group) { group = { name: namePart, sources: new Set<string>(), amounts: new Map() }; grouped.set(key, group); }
-        group.sources.add(recipe.name);
-        if (match) {
-          const parsed = Number(String(match[2]).replace(',', '.')) * scaleFactor;
-          const rawUnit = String(match[3] || '').trim();
-          const unitKey = unitAliases[rawUnit] || rawUnit.toLocaleLowerCase('he-IL');
-          const current = group.amounts.get(unitKey);
-          group.amounts.set(unitKey, { value: (current?.value || 0) + parsed, label: rawUnit || '' });
+        if (!group) { group = { name, sources: new Set<string>(), quantities: [] }; grouped.set(key, group); }
+        group.sources.add(entry.recipe.name);
+        const scaledQuantity = formatIngredientQuantity([raw], scaleFactor);
+        if (scaledQuantity) group.quantities.push(scaledQuantity);
+      }
+    }
+
+    const openShopping = shopping.filter(item => !(item.data as Shopping).checked);
+    const existingOpen = new Map(openShopping.map(item => [normalizeShoppingName(String((item.data as Shopping).name || '')), item]));
+    const now = new Date().toISOString();
+    const writes: HouseholdHomeItem[] = [];
+    const deleteIds: string[] = [];
+    let added = 0;
+    let updated = 0;
+    let removedStale = 0;
+
+    // A weekly/recipe batch is a replaceable source, not an additive event.
+    // Re-running it updates that batch instead of doubling quantities.
+    if (batchKey) {
+      for (const item of openShopping) {
+        const oldData = item.data as Shopping;
+        if (!oldData.generatedBatches?.[batchKey] || grouped.has(normalizeShoppingName(oldData.name))) continue;
+        const nextBatches = { ...oldData.generatedBatches };
+        delete nextBatches[batchKey];
+        const manualQuantity = oldData.manualQuantity ?? '';
+        const quantityText = mergeQuantityTexts(manualQuantity, ...Object.values(nextBatches).map(batch => batch.quantity));
+        if (!quantityText && !Object.keys(nextBatches).length && !manualQuantity) {
+          deleteIds.push(item.id);
+          removedStale++;
+        } else {
+          const sources = [...new Set(Object.values(nextBatches).flatMap(batch => batch.sources))];
+          writes.push({ ...item, data: { ...oldData, quantity: quantityText, source: sources.join(' · '), generatedBatches: nextBatches }, updatedAt: now });
+          updated++;
         }
       }
     }
-    if (grouped.size === 0) { setError('לא נמצאו מצרכים במתכונים שנבחרו. הוסף מצרכים לספר המתכונים ונסה שוב.'); return; }
-    const mergeQuantityText = (existingText: string, addedText: string) => {
-      if (!existingText.trim()) return addedText;
-      if (!addedText.trim()) return existingText;
-      const parseParts = (text: string) => text.split(/\s*\+\s*/).map(part => {
-        const match = part.trim().match(/^(\d+(?:[.,]\d+)?)\s*(.*?)$/);
-        if (!match) return null;
-        const unit = String(match[2] || '').trim();
-        const normalizedUnit = unitAliases[unit] || unit.toLocaleLowerCase('he-IL');
-        return { value: Number(String(match[1]).replace(',', '.')), unit: normalizedUnit, label: unitAliases[unit] || unit };
-      });
-      const parts = [...parseParts(existingText), ...parseParts(addedText)];
-      if (parts.every((part): part is { value: number; unit: string; label: string } => part !== null && Number.isFinite(part.value))) {
-        const totals = new Map<string, { value: number; label: string }>();
-        for (const part of parts) {
-          const old = totals.get(part.unit);
-          totals.set(part.unit, { value: (old?.value || 0) + part.value, label: part.label });
-        }
-        return [...totals.values()].map(part => {
-          const value = Number.isInteger(part.value) ? String(part.value) : String(Number(part.value.toFixed(2)));
-          return [value, part.label].filter(Boolean).join(' ');
-        }).join(' + ');
-      }
-      return [...new Set([existingText.trim(), addedText.trim()])].join(' + ');
-    };
-    const existingOpen = new Map(shopping.filter(item => !(item.data as Shopping).checked).map(item => {
-      const data = item.data as Shopping;
-      const key = String(data.name || '').normalize('NFKC').replace(/[׳״"'’]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('he-IL');
-      return [key, item] as const;
-    }));
-    const now = new Date().toISOString();
-    const writes: HouseholdHomeItem[] = [];
-    let added = 0;
-    let enriched = 0;
+
     for (const [key, group] of grouped) {
-      const quantity = [...group.amounts.entries()].map(([unitKey, amount]) => {
-        const normalizedUnit = unitAliases[amount.label] || amount.label || unitKey;
-        const value = Number.isInteger(amount.value) ? String(amount.value) : String(Number(amount.value.toFixed(2)));
-        return [value, normalizedUnit].filter(Boolean).join(' ');
-      }).join(' + ');
-      const source = [...group.sources].join(' · ');
+      const quantity = mergeQuantityTexts(...group.quantities);
       const existing = existingOpen.get(key);
+      const oldData = existing?.data as Shopping | undefined;
+      const batches = { ...(oldData?.generatedBatches || {}) };
+      const manualQuantity = oldData?.manualQuantity ?? (oldData?.generatedBatches ? '' : oldData?.quantity || '');
+      batches[batchKey] = { quantity, sources: [...group.sources] };
+      const allSources = [...new Set([...Object.values(batches).flatMap(batch => batch.sources), ...(oldData?.source || '').split(' · ').filter(Boolean)])];
+      const displayQuantity = mergeQuantityTexts(manualQuantity, ...Object.values(batches).map(batch => batch.quantity));
       if (existing) {
-        const oldData = existing.data as Shopping;
-        const mergedSources = [...new Set([...(oldData.source || '').split(' · ').filter(Boolean), ...group.sources])].join(' · ');
-        const mergedQuantity = mergeQuantityText(oldData.quantity || '', quantity);
-        writes.push({ ...existing, data: { ...oldData, quantity: mergedQuantity, source: mergedSources }, updatedAt: now });
-        enriched++;
+        writes.push({
+          ...existing,
+          data: { ...oldData, name: oldData?.name || group.name, quantity: displayQuantity, checked: false, source: allSources.join(' · '), manualQuantity, generatedBatches: batches },
+          updatedAt: now,
+        });
+        updated++;
       } else {
-        writes.push({ id: uid('shopping'), householdId: household.id, kind: 'shopping', data: { name: group.name, quantity, checked: false, source }, createdAt: now, updatedAt: now });
+        writes.push({
+          id: uid('shopping'), householdId: household.id, kind: 'shopping',
+          data: { name: group.name, quantity: displayQuantity, checked: false, source: allSources.join(' · '), manualQuantity: '', generatedBatches: batches },
+          createdAt: now, updatedAt: now,
+        });
         added++;
       }
     }
-    if (writes.length === 0) { setShoppingFeedback('כל המצרכים כבר מופיעים ברשימה הפתוחה. לא נוצרו כפילויות.'); setTab('shopping'); return; }
+
+    if (!writes.length && !deleteIds.length) {
+      setShoppingFeedback('רשימת הקניות כבר מסונכרנת עם התכנון הזה. לא נוספו כמויות כפולות.');
+      setTab('shopping');
+      return;
+    }
     setBusy(true); setError(''); setShoppingFeedback('');
     try {
-      await db.saveHomeItemsBatch(writes, currentUser.id);
+      await db.syncShoppingItemsBatch(household.id, writes, deleteIds, currentUser.id);
       await refresh();
       setTab('shopping');
-      setShoppingFeedback('נוספו ' + added + ' פריטים חדשים לרשימה ו־' + enriched + ' פריטים קיימים עודכנו. מצרכים שחזרו בכמה מתכונים אוחדו לשורה אחת.');
+      setShoppingFeedback('הרשימה סונכרנה מחדש: ' + added + ' פריטים חדשים, ' + updated + ' פריטים שעודכנו' + (removedStale ? ', ' + removedStale + ' פריטים שכבר לא נדרשים הוסרו' : '') + '. הפקה חוזרת לא מכפילה כמויות, ומנות המתכון מותאמות למספר המנות שתוכנן.');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'יצירת רשימת הקניות נכשלה');
     } finally {
       setBusy(false);
     }
   };
-  const addRecipeIngredientsToShopping = async (recipe: Recipe) => addIngredientsToShopping([{recipe, plannedServings: Number(recipe.servings) > 0 ? Number(recipe.servings) : 4}]);
+  const addRecipeIngredientsToShopping = async (recipe: Recipe, recipeId: string) => {
+    await addIngredientsToShopping([{ recipe, plannedServings: Number(recipe.servings) > 0 ? Number(recipe.servings) : 4 }], 'recipe:' + recipeId);
+  };
   const addWeeklyMenuToShopping = async () => {
     const plannedMeals = meals.filter(item => weekDays.includes(String((item.data as Meal).date || '')));
     const plannedByRecipe = new Map<string, {recipe: Recipe; plannedServings: number}>();
@@ -170,12 +193,12 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
       const servings = Number(meal.servings) > 0 ? Number(meal.servings) : householdPortions;
       const previous = plannedByRecipe.get(recipeItem.id);
       if (previous) previous.plannedServings += servings;
-      else plannedByRecipe.set(recipeItem.id, {recipe: recipeItem.data as Recipe, plannedServings: servings});
+      else plannedByRecipe.set(recipeItem.id, { recipe: recipeItem.data as Recipe, plannedServings: servings });
     }
     const sourceRecipes = [...plannedByRecipe.values()];
     if (!plannedMeals.length) { setError('אין ארוחות מתוכננות בשבוע הזה. הוסף ארוחות לתפריט לפני הפקת רשימת קניות.'); return; }
     if (!sourceRecipes.length) { setError('לא נמצאו מתכונים תקינים לארוחות השבוע. בדוק את שיוך המתכונים בתפריט.'); return; }
-    await addIngredientsToShopping(sourceRecipes);
+    await addIngredientsToShopping(sourceRecipes, 'week:' + weekDays[0]);
   };
   const addTask=async()=>{if(!taskTitle.trim())return;if(!validISODate(taskDate)){setError('יש לבחור תאריך יעד תקין למשימה');return;}const old=editingTaskId?tasks.find(x=>x.id===editingTaskId):undefined;const ok=await save('task',{...(old?.data as Task||{}),title:taskTitle.trim(),dueDate:taskDate,assignee:assignee.trim()},editingTaskId||uid('task'));if(ok){setTaskTitle('');setAssignee('');setEditingTaskId(null);}};
    const editTask=(item:HouseholdHomeItem)=>{const data=item.data as Task;setEditingTaskId(item.id);setTaskTitle(data.title||'');setTaskDate(data.dueDate||iso(new Date()));setAssignee(data.assignee||'');};

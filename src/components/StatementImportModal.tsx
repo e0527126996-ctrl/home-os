@@ -3,6 +3,7 @@ import { ArrowDownRight, ArrowUpRight, CheckCircle2, FileSpreadsheet, FileText, 
 import { FinancialAccount, LedgerTransaction } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
 import { ImportedStatementRow, parseStatementFile } from '../lib/statementImport.ts';
+import { formatCents } from '../lib/currency.ts';
 
 interface Props {
   file: File;
@@ -50,6 +51,7 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
   const invalidCount = rowsForAccount.filter(r => !r.duplicate && (!r.date || !r.payee.trim() || !r.category.trim() || !Number.isSafeInteger(r.amountCents) || r.amountCents <= 0)).length;
   const totalIncome = eligible.filter(r => r.type === 'INCOME').reduce((s, r) => s + r.amountCents, 0);
   const totalExpense = eligible.filter(r => r.type === 'EXPENSE').reduce((s, r) => s + r.amountCents, 0);
+  const selectedCurrency = accounts.find(account => account.id === accountId)?.currency || 'ILS';
   const updateRow = (id: string, patch: Partial<ImportedStatementRow>) => setRows(prev => prev.map(row => row.id === id ? { ...row, ...patch } : row));
 
   const submit = async () => {
@@ -83,14 +85,14 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
         {!error && <div className="grid gap-3 border-b p-5 sm:grid-cols-2 xl:grid-cols-4" style={{borderColor:activeTheme.borderSubtle}}>
           <label className="sm:col-span-1"><span className="mb-1.5 block text-[11px] font-bold" style={muted}>לאיזה חשבון לשייך?</span><select value={accountId} onChange={e=>setAccountId(e.target.value)} className="w-full rounded-xl border px-3 py-2.5 text-xs" style={panel}>{accounts.filter(a=>a.status==='ACTIVE').map(a=><option key={a.id} value={a.id}>{a.name} · {a.institution}</option>)}</select></label>
           <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>עסקאות חדשות לקליטה</div><div className="mt-1 text-xl font-bold tabular-nums">{eligible.length}</div><div className="text-[10px]" style={muted}>{rowsForAccount.filter(r=>r.duplicate).length} התאמות אפשריות לכפילות ידולגו</div></div>
-          <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>סיכום תנועות לזיהוי</div><div className="mt-1 flex flex-wrap gap-3 text-xs font-bold"><span className="text-emerald-700">הכנסות ₪{(totalIncome/100).toLocaleString('he-IL')}</span><span className="text-amber-700">הוצאות ₪{(totalExpense/100).toLocaleString('he-IL')}</span></div></div>
+          <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>סיכום תנועות לזיהוי</div><div className="mt-1 flex flex-wrap gap-3 text-xs font-bold"><span className="text-emerald-700">הכנסות {formatCents(totalIncome, selectedCurrency)}</span><span className="text-amber-700">הוצאות {formatCents(totalExpense, selectedCurrency)}</span></div></div>
           <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>שורות שדורשות תיקון</div><div className={'mt-1 text-xl font-bold tabular-nums ' + (invalidCount ? 'text-rose-700' : 'text-emerald-700')}>{invalidCount}</div><div className="text-[10px]" style={muted}>לא ייכללו בייבוא עד לתיקון</div></div>
         </div>}
         {error ? <div className="flex-1 p-8 text-center text-sm" style={muted}>לא בוצע שינוי בפנקס העסקאות. אפשר לסגור ולנסות קובץ אחר.</div> :
         <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-5">
           {rows.length===0 ? <div className="p-12 text-center text-sm" style={muted}>לא נמצאו תנועות בקובץ.</div> :
           <table className="w-full min-w-[760px] text-right text-xs">
-            <thead className="sticky top-0 z-10" style={{backgroundColor:activeTheme.bgSurface,color:activeTheme.textSecondary}}><tr><th className="p-3">תאריך</th><th className="p-3">תיאור</th><th className="p-3">סוג</th><th className="p-3">סכום</th><th className="p-3">קטגוריה מוצעת (ניתנת לעריכה)</th><th className="p-3">זיהוי</th></tr></thead>
+            <thead className="sticky top-0 z-10" style={{backgroundColor:activeTheme.bgSurface,color:activeTheme.textSecondary}}><tr><th className="p-3">תאריך</th><th className="p-3">תיאור</th><th className="p-3">סוג</th><th className="p-3">סכום ({selectedCurrency})</th><th className="p-3">קטגוריה מוצעת (ניתנת לעריכה)</th><th className="p-3">זיהוי</th></tr></thead>
             <tbody>{rowsForAccount.map(row=><tr key={row.id} className="border-b" style={{borderColor:activeTheme.borderSubtle,opacity:row.duplicate ? 0.48 : 1}}>
               <td className="p-2"><input type="date" disabled={row.duplicate} value={row.date} onChange={e=>updateRow(row.id,{date:e.target.value})} className="w-[130px] rounded-lg border px-2 py-2 text-[11px]" style={panel}/></td>
               <td className="p-2"><input disabled={row.duplicate} value={row.payee} onChange={e=>updateRow(row.id,{payee:e.target.value})} className="w-[180px] rounded-lg border px-2 py-2 text-[11px] font-semibold" style={panel} title={row.sourceText}/></td>

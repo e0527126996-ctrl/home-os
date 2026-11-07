@@ -8,7 +8,7 @@ interface AuthModalProps {
   allUsers: User[];
   activeTheme: ThemeConfig;
   onClose: () => void;
-  onSwitchUser: (user: User) => void;
+  onSwitchUser: (user: User) => Promise<void> | void;
   onCreateUser: (email: string, fullName: string, pin: string) => Promise<User>;
   onLogout: () => void;
 }
@@ -35,14 +35,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setErrorMsg('');
     try {
       const user = await onCreateUser(email.trim(), fullName.trim(), pin.trim());
-      onSwitchUser(user);
+      await onSwitchUser(user);
       onClose();
     } catch (err: any) {
       setErrorMsg(err.message || 'שגיאה ביצירת משתמש');
     }
   };
 
-  const handleSelectUser = (u: User) => {
+  const handleSelectUser = async (u: User) => {
     if (u.id === currentUser?.id) {
       onClose();
       return;
@@ -53,18 +53,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setPinInput('');
       setErrorMsg('');
     } else {
-      onSwitchUser(u);
-      onClose();
+      try {
+        await onSwitchUser(u);
+        onClose();
+      } catch (err: any) {
+        setErrorMsg(err?.message || 'לא ניתן לעבור למשתמש שנבחר');
+      }
     }
   };
 
-  const handleVerifyPin = (e: React.FormEvent) => {
+  const handleVerifyPin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedUserToVerify) return;
 
     if (selectedUserToVerify.pin === pinInput) {
-      onSwitchUser(selectedUserToVerify);
-      onClose();
+      try {
+        await onSwitchUser(selectedUserToVerify);
+        onClose();
+      } catch (err: any) {
+        setErrorMsg(err?.message || 'לא ניתן להיכנס למשתמש שנבחר');
+      }
     } else {
       setErrorMsg('קוד ה-PIN שגוי. נסה שוב.');
     }
@@ -90,9 +98,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           </div>
 
-          <button onClick={onClose} className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+          {currentUser && <button onClick={onClose} className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors" aria-label="סגירת חלון משתמשים">
             <X className="w-5 h-5 opacity-70" />
-          </button>
+          </button>}
         </div>
 
         {/* Content */}

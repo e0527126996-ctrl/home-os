@@ -138,8 +138,20 @@ class HomeOSIndexedDB {
         }
       };
 
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        // Close stale connections when another tab requests a schema upgrade.
+        db.onversionchange = () => {
+          db.close();
+          this.dbPromise = null;
+        };
+        resolve(db);
+      };
+      request.onerror = () => {
+        // A failed open must not permanently poison the cached promise.
+        this.dbPromise = null;
+        reject(request.error || new Error('לא ניתן לפתוח את מסד הנתונים המקומי'));
+      };
     });
 
     return this.dbPromise;

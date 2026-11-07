@@ -18,7 +18,7 @@ interface DashboardViewProps {
   activeTheme: ThemeConfig;
   onOpenAccounts: () => void;
   onOpenLedger: () => void;
-  onOpenHome: () => void;
+  onOpenHomeTab: (tab: 'planner' | 'shopping' | 'tasks') => void;
   viewMode: WorkspaceViewMode;
   dashboardWidgetOrder: string[];
   visibleDashboardWidgetIds: string[];
@@ -31,7 +31,7 @@ const money = (value: number, currency: string = 'ILS') => new Intl.NumberFormat
 const monthLabel = (date: Date) => new Intl.DateTimeFormat('he-IL', { month: 'short' }).format(date);
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
-  accounts, transactions, homeItems, householdName, activeTheme, onOpenAccounts, onOpenLedger, onOpenHome,
+  accounts, transactions, homeItems, householdName, activeTheme, onOpenAccounts, onOpenLedger, onOpenHomeTab,
   viewMode, dashboardWidgetOrder, visibleDashboardWidgetIds, dashboardWidgetSizes,
 }) => {
   const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[]; note?: string } | null>(null);
@@ -477,9 +477,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <button onClick={onOpenLedger} className="homeos-text-link">מעבר לפנקס העסקאות <ArrowLeft className="h-4 w-4" /></button>
         </div>
         <div className="homeos-home-snapshot-metrics">
-          <button type="button" onClick={onOpenHome} title="פתיחת תכנון הארוחות"><span>ארוחות בשבעת הימים הקרובים</span><strong>{householdSnapshot.meals}</strong><small>פתיחת התפריט</small></button>
-          <button type="button" onClick={onOpenHome} title="פתיחת משימות הבית"><span>משימות פתוחות</span><strong>{householdSnapshot.openTasks}</strong><small>ניהול משימות</small></button>
-          <button type="button" onClick={onOpenHome} title="פתיחת רשימת הקניות"><span>פריטים ברשימת הקניות</span><strong>{householdSnapshot.openShopping}</strong><small>פתיחת רשימת הקניות</small></button>
+          <button type="button" onClick={()=>onOpenHomeTab('planner')} title="פתיחת תכנון הארוחות"><span>ארוחות בשבעת הימים הקרובים</span><strong>{householdSnapshot.meals}</strong><small>פתיחת התפריט</small></button>
+          <button type="button" onClick={()=>onOpenHomeTab('tasks')} title="פתיחת משימות הבית"><span>משימות פתוחות</span><strong>{householdSnapshot.openTasks}</strong><small>ניהול משימות</small></button>
+          <button type="button" onClick={()=>onOpenHomeTab('shopping')} title="פתיחת רשימת הקניות"><span>פריטים ברשימת הקניות</span><strong>{householdSnapshot.openShopping}</strong><small>פתיחת רשימת הקניות</small></button>
         </div>
       </section>
 

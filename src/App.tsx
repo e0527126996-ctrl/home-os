@@ -667,6 +667,8 @@ export default function App() {
           </nav>
         </section>
 
+                <div className="homeos-workspace-content">
+
         {activeTab === 'settings' && (
           <SettingsView
             themes={MODERN_EDITORIAL_THEMES}
@@ -930,6 +932,7 @@ export default function App() {
             onRefresh={() => reloadHouseholdData(activeHousehold.id)}
           />
         )}
+        </div>
       </main>
 
       {/* Modal Dialogs */}

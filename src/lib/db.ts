@@ -1963,12 +1963,14 @@ class HomeOSIndexedDB {
     ]);
 
     const targetHhd = households.filter((h) => h.id === householdId);
+    const householdUserIds = new Set(memberships.map(membership => membership.userId));
+    const householdUsers = users.filter(user => householdUserIds.has(user.id));
 
     return {
       version: '2.1.0',
       exportedAt: new Date().toISOString(),
       households: targetHhd,
-      users,
+      users: householdUsers,
       memberships,
       persons,
       permissions,
@@ -2000,8 +2002,40 @@ class HomeOSIndexedDB {
       throw new Error('שחזור מתוך גיבוי מחייב אישור מפורש של המשתמש לדריסת נתונים קיימים.');
     }
 
-    if (!backup.version || !backup.households || !Array.isArray(backup.households)) {
-      throw new Error('קובץ הגיבוי אינו בפורמט תקין של HOME OS');
+    if (!backup.version || !backup.households || !Array.isArray(backup.households) || backup.households.length !== 1) {
+      throw new Error('קובץ הגיבוי חייב להכיל משק בית אחד בפורמט תקין של HOME OS');
+    }
+
+    const targetHouseholdId = backup.households[0]?.id;
+    if (!targetHouseholdId) throw new Error('מזהה משק הבית בגיבוי חסר');
+    await this.assertPermission(targetHouseholdId, actorUserId, 'admin', 'approve');
+
+    const memberships = backup.memberships || [];
+    const membershipIds = new Set(memberships.map(membership => membership.id));
+    const membershipUserIds = new Set(memberships.map(membership => membership.userId));
+    const backupUsers = (backup.users || []).filter(user => membershipUserIds.has(user.id));
+    if (membershipUserIds.size !== backupUsers.length) {
+      throw new Error('הגיבוי אינו כולל את כל המשתמשים המשויכים לחברות במשק הבית');
+    }
+    const assertHousehold = (records: Array<{ householdId: string }> | undefined, label: string) => {
+      if (records?.some(record => record.householdId !== targetHouseholdId)) {
+        throw new Error('הגיבוי מכיל רשומות ' + label + ' ממשק בית אחר');
+      }
+    };
+    assertHousehold(memberships, 'חברות');
+    assertHousehold(backup.persons, 'בני בית');
+    assertHousehold(backup.permissions, 'הרשאות');
+    assertHousehold(backup.auditLogs, 'יומן פעולות');
+    assertHousehold(backup.accounts, 'חשבונות');
+    assertHousehold(backup.transactions, 'עסקאות');
+    assertHousehold(backup.documents, 'מסמכים');
+    assertHousehold(backup.homeItems, 'ניהול הבית');
+    if ((backup.permissions || []).some(rule => !membershipIds.has(rule.membershipId))) {
+      throw new Error('הגיבוי מכיל הרשאה שאינה משויכת לחברות קיימת');
+    }
+    const accountIds = new Set((backup.accounts || []).map(account => account.id));
+    if ((backup.transactions || []).some(transaction => !accountIds.has(transaction.accountId))) {
+      throw new Error('הגיבוי מכיל עסקה המשויכת לחשבון שאינו כלול בגיבוי');
     }
 
     await this.transaction(
@@ -2030,23 +2064,56 @@ class HomeOSIndexedDB {
         const docsStore = tx.objectStore('household_documents');
         const homeStore = tx.objectStore('household_home_items');
 
-        for (const h of backup.households) await this.reqToPromise(hStore.put(h));
-        for (const u of backup.users || []) await this.reqToPromise(uStore.put(u));
-        for (const m of backup.memberships || []) await this.reqToPromise(mStore.put(m));
-        for (const p of backup.persons || []) await this.reqToPromise(pStore.put(p));
-        for (const pr of backup.permissions || []) await this.reqToPromise(permStore.put(pr));
-        for (const a of backup.auditLogs || []) await this.reqToPromise(aStore.put(a));
+        const assertExistingOwnership = async (store: IDBObjectStore, id: string, label: string) => {
+          const existing = await this.reqToPromise<{ householdId?: string } | undefined>(store.get(id));
+          if (existing && existing.householdId !== targetHouseholdId) {
+            throw new Error('שחזור הגיבוי ניסה לדרוס ' + label + ' ממשק בית אחר');
+          }
+        };
+
+        for (const h of backup.households) {
+          const existing = await this.reqToPromise<Household | undefined>(hStore.get(h.id));
+          if (existing && existing.id !== targetHouseholdId) throw new Error('מזהה משק הבית בגיבוי אינו תואם');
+          await this.reqToPromise(hStore.put(h));
+        }
+        for (const u of backupUsers) await this.reqToPromise(uStore.put(u));
+        for (const m of memberships) {
+          await assertExistingOwnership(mStore, m.id, 'חברות');
+          await this.reqToPromise(mStore.put(m));
+        }
+        for (const p of backup.persons || []) {
+          await assertExistingOwnership(pStore, p.id, 'בן בית');
+          await this.reqToPromise(pStore.put(p));
+        }
+        for (const pr of backup.permissions || []) {
+          await assertExistingOwnership(permStore, pr.id, 'הרשאה');
+          await this.reqToPromise(permStore.put(pr));
+        }
+        for (const a of backup.auditLogs || []) {
+          await assertExistingOwnership(aStore, a.id, 'רישום ביקורת');
+          await this.reqToPromise(aStore.put(a));
+        }
         if (backup.accounts && Array.isArray(backup.accounts)) {
-          for (const acc of backup.accounts) await this.reqToPromise(accStore.put(acc));
+          for (const acc of backup.accounts) {
+            await assertExistingOwnership(accStore, acc.id, 'חשבון');
+            await this.reqToPromise(accStore.put(acc));
+          }
         }
         if (backup.transactions && Array.isArray(backup.transactions)) {
-          for (const t of backup.transactions) await this.reqToPromise(txStore.put(t));
+          for (const t of backup.transactions) {
+            await assertExistingOwnership(txStore, t.id, 'עסקה');
+            await this.reqToPromise(txStore.put(t));
+          }
         }
         if (backup.homeItems && Array.isArray(backup.homeItems)) {
-          for (const item of backup.homeItems) await this.reqToPromise(homeStore.put(item));
+          for (const item of backup.homeItems) {
+            await assertExistingOwnership(homeStore, item.id, 'רשומת ניהול בית');
+            await this.reqToPromise(homeStore.put(item));
+          }
         }
         if (backup.documents && Array.isArray(backup.documents)) {
           for (const doc of backup.documents) {
+            await assertExistingOwnership(docsStore, doc.id, 'מסמך');
             const { dataUrl, ...metadata } = doc;
             await this.reqToPromise(docsStore.put({
               ...metadata,

@@ -1843,6 +1843,7 @@ class HomeOSIndexedDB {
 
     for (const tx of transactions) {
       if (tx.householdId !== householdId) continue;
+      if (tx.verificationStatus === 'PENDING' || !Number.isSafeInteger(tx.amountCents) || tx.amountCents <= 0) continue;
 
       if (tx.type === 'INCOME') {
         totalIncomeCents += tx.amountCents;

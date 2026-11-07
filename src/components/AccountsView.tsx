@@ -404,9 +404,13 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                       {deleteConfirmId === acc.id ? (
                         <div className="flex items-center gap-1">
                           <button
-                            onClick={() => {
-                              onDeleteAccount(acc.id);
-                              setDeleteConfirmId(null);
+                            onClick={async () => {
+                              try {
+                                await onDeleteAccount(acc.id);
+                                setDeleteConfirmId(null);
+                              } catch {
+                                // Keep the confirmation visible when deletion is rejected.
+                              }
                             }}
                             className="px-2 py-1 text-[11px] rounded bg-rose-600 text-white font-medium hover:bg-rose-700 transition-colors"
                           >

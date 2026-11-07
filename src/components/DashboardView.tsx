@@ -39,6 +39,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const detailItems = chartDetail?.items.filter(tx => detailFilter === 'ALL' || tx.type === detailFilter) || [];
   const detailIncome = detailItems.filter(tx => tx.type === 'INCOME').reduce((sum, tx) => sum + tx.amountCents, 0);
   const detailExpense = detailItems.filter(tx => tx.type === 'EXPENSE').reduce((sum, tx) => sum + tx.amountCents, 0);
+  const detailCurrency = detailItems.length ? (accountCurrencies.get(detailItems[0].accountId) || 'ILS') : 'ILS';
   const financeAnalytics = useMemo(() => buildFinanceAnalytics(accounts, transactions), [accounts, transactions]);
   const accountCurrencies = useMemo(() => new Map(accounts.map(account => [account.id, account.currency])), [accounts]);
   // All financial views use the same verified transaction selector.
@@ -459,7 +460,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="space-y-4">
             {data.foreignCurrencySummaries.map(item => {
               const maxAmount = Math.max(1, item.income, item.expense);
-              return <button type="button" key={item.currencyCode} className="homeos-foreign-row homeos-foreign-row-button" title={"פתיחת עסקאות במטבע " + item.currencyCode} onClick={() => setChartDetail({ title: "פעילות בחשבונות " + item.currencyCode, subtitle: "הכנסות " + currency(item.income, item.currencyCode) + " · הוצאות " + currency(item.expense, item.currencyCode), items: confirmedTransactions.filter(tx => accountCurrencies.get(tx.accountId) === item.currencyCode && tx.date?.slice(0, 7) === data.months[5]?.key) })}>
+              return <button type="button" key={item.currencyCode} className="homeos-foreign-row homeos-foreign-row-button" title={"פתיחת עסקאות במטבע " + item.currencyCode} onClick={() => setChartDetail({ title: "פעילות בחשבונות " + item.currencyCode, subtitle: "הכנסות " + currency(item.income, item.currencyCode) + " · הוצאות " + currency(item.expense, item.currencyCode), items: financeAnalytics.verifiedTransactions.filter(tx => accountCurrencies.get(tx.accountId) === item.currencyCode && tx.date?.slice(0, 7) === data.months[5]?.key) })}>
                 <div className="flex items-center justify-between gap-3"><strong className="text-sm">{item.currencyCode}</strong><span className="text-[10px]" style={muted}>{item.count} תנועות החודש · לחץ לפירוט</span></div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <div><div className="mb-1 flex justify-between text-xs"><span style={muted}>הכנסות</span><strong>{currency(item.income, item.currencyCode)}</strong></div><div className="homeos-finance-track"><span className="income" style={{width:(item.income/maxAmount*100)+'%'}}/></div></div>
@@ -507,8 +508,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {chartDetail.items.length > 0 && <>
                 <div className="mb-4 grid grid-cols-3 gap-2">
                   <div className="rounded-xl p-3" style={{backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>עסקאות</div><strong className="text-lg tabular-nums">{detailItems.length}</strong></div>
-                  <div className="rounded-xl p-3" style={{backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>הכנסות</div><strong className="text-sm tabular-nums">{currency(detailIncome)}</strong></div>
-                  <div className="rounded-xl p-3" style={{backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>הוצאות</div><strong className="text-sm tabular-nums">{currency(detailExpense)}</strong></div>
+                  <div className="rounded-xl p-3" style={{backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>הכנסות</div><strong className="text-sm tabular-nums">{currency(detailIncome, detailCurrency)}</strong></div>
+                  <div className="rounded-xl p-3" style={{backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>הוצאות</div><strong className="text-sm tabular-nums">{currency(detailExpense, detailCurrency)}</strong></div>
                 </div>
                 <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label="סינון עסקאות בפירוט">
                   {([{id:'ALL',label:'הכול'},{id:'INCOME',label:'הכנסות'},{id:'EXPENSE',label:'הוצאות'}] as const).map(option=><button key={option.id} type="button" onClick={()=>setDetailFilter(option.id)} aria-pressed={detailFilter===option.id} className="rounded-full border px-3 py-1.5 text-xs font-semibold" style={{borderColor:detailFilter===option.id?activeTheme.accent:activeTheme.borderSubtle,backgroundColor:detailFilter===option.id?activeTheme.accent:'transparent',color:detailFilter===option.id?(activeTheme.isDark?'#111':'#fff'):activeTheme.textPrimary}}>{option.label}</button>)}

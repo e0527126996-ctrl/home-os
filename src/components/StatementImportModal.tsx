@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, CheckCircle2, FileSpreadsheet, FileText, LoaderCircle, ShieldCheck, X } from 'lucide-react';
 import { FinancialAccount, LedgerTransaction } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
-import { ImportedStatementRow, parseStatementFile } from '../lib/statementImport.ts';
+import { ImportedStatementRow, normalizeStatementPayee, parseStatementFile } from '../lib/statementImport.ts';
 import { formatCents } from '../lib/currency.ts';
 
 interface Props {
@@ -38,10 +38,10 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
   const rowsForAccount = useMemo(() => {
     const existingKeys = new Set(transactions
       .filter(tx => tx.accountId === accountId)
-      .map(tx => [tx.date, tx.type, tx.amountCents, tx.payee.trim().toLowerCase()].join('|')));
+      .map(tx => [tx.date, tx.type, tx.amountCents, normalizeStatementPayee(tx.payee)].join('|')));
     const batchKeys = new Set<string>();
     return rows.map(row => {
-      const key = [row.date, row.type, row.amountCents, row.payee.trim().toLowerCase()].join('|');
+      const key = [row.date, row.type, row.amountCents, normalizeStatementPayee(row.payee)].join('|');
       const duplicate = !includeDuplicateIds.includes(row.id) && (existingKeys.has(key) || batchKeys.has(key));
       batchKeys.add(key);
       return { ...row, duplicate };

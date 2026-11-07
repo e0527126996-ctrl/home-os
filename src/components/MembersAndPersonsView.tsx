@@ -18,6 +18,9 @@ interface MembersAndPersonsViewProps {
   onAddPerson: (data: Omit<HouseholdPerson, 'id' | 'householdId' | 'createdAt'>) => Promise<void>;
   onDeletePerson: (personId: string) => Promise<void>;
   onConfigurePermissions: (membership: HouseholdMembership, targetUser: User) => void;
+  canManageMembers: boolean;
+  canConfigurePermissions: boolean;
+  canManagePersons: boolean;
 }
 
 export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
@@ -34,6 +37,9 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
   onAddPerson,
   onDeletePerson,
   onConfigurePermissions,
+  canManageMembers,
+  canConfigurePermissions,
+  canManagePersons,
 }) => {
   // Tabs: 'members' (Users with Login) vs 'persons' (Family members without accounts)
   const [activeTab, setActiveTab] = useState<'members' | 'persons'>('members');
@@ -174,18 +180,18 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
             <div className="text-xs font-serif font-semibold" style={{ color: activeTheme.textSecondary }}>
               משתמשים בעלי הרשאת התחברות וסמכות ניהול
             </div>
-            <button
+            {canManageMembers && <button
               onClick={() => setShowAddMemberForm(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: activeTheme.accent }}
             >
               <UserPlus className="w-3.5 h-3.5" />
               <span>צירוף משתמש מבוגר</span>
-            </button>
+            </button>}
           </div>
 
           {/* Add Member Modal / Card */}
-          {showAddMemberForm && (
+          {canManageMembers && showAddMemberForm && (
             <form
               onSubmit={handleAddMemberSubmit}
               className="p-5 rounded-lg border space-y-4"
@@ -350,10 +356,10 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
                       </td>
 
                       <td className="px-4 py-3">
-                        {m.role === 'owner' ? (
+                        {m.role === 'owner' || !canManageMembers ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200">
                             <Shield className="w-3 h-3" />
-                            <span>בעלים (Owner)</span>
+                            <span>{m.role === 'owner' ? 'בעלים (Owner)' : m.role === 'admin' ? 'מנהל (Admin)' : m.role === 'read_only' ? 'צפייה בלבד (Read-Only)' : 'חבר (Member)'}</span>
                           </span>
                         ) : (
                           <select
@@ -375,7 +381,7 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
 
                       <td className="px-4 py-3 text-left">
                         <div className="flex items-center justify-end gap-2">
-                          {user && (
+                          {user && canConfigurePermissions && (
                             <button
                               onClick={() => onConfigurePermissions(m, user)}
                               className="flex items-center gap-1 px-2.5 py-1 text-[11px] rounded border transition-colors hover:bg-black/5 dark:hover:bg-white/5"
@@ -387,7 +393,7 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
                             </button>
                           )}
 
-                          {m.role !== 'owner' && (
+                          {canManageMembers && m.role !== 'owner' && (
                             <button
                               onClick={() => onRemoveMember(m.id)}
                               className="p-1 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors"
@@ -416,18 +422,18 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
             <div className="text-xs font-serif font-semibold" style={{ color: activeTheme.textSecondary }}>
               נפשות משק הבית (לחישובי כמויות מזון, תזונה ואירוח – ללא צורך בחשבון)
             </div>
-            <button
+            {canManagePersons && <button
               onClick={() => setShowAddPersonForm(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: activeTheme.accent }}
             >
               <Plus className="w-3.5 h-3.5" />
               <span>הוספת בן בית / ילד</span>
-            </button>
+            </button>}
           </div>
 
           {/* Add Person Modal / Card */}
-          {showAddPersonForm && (
+          {canManagePersons && showAddPersonForm && (
             <form
               onSubmit={handleAddPersonSubmit}
               className="p-5 rounded-lg border space-y-4"
@@ -567,13 +573,13 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
                         </div>
                       </div>
 
-                      <button
+                      {canManagePersons && <button
                         onClick={() => onDeletePerson(p.id)}
                         className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded"
                         title="מחיקת בן בית"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      </button>}
                     </div>
 
                     <div className="text-[11px] pt-1 space-y-1">

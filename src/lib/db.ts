@@ -1069,6 +1069,9 @@ class HomeOSIndexedDB {
       const openCents = acc.openingBalanceCents !== undefined
         ? acc.openingBalanceCents
         : toCents(acc.openingBalance);
+      if (!Number.isSafeInteger(openCents)) {
+        throw new Error('יתרת הפתיחה של החשבון חורגת מטווח החישוב הבטוח');
+      }
       balanceMap.set(acc.id, openCents);
     }
 
@@ -1079,17 +1082,16 @@ class HomeOSIndexedDB {
       if (!balanceMap.has(tx.accountId)) continue;
       const current = balanceMap.get(tx.accountId)!;
 
-      if (tx.type === 'INCOME') {
-        balanceMap.set(tx.accountId, current + tx.amountCents);
-      } else if (tx.type === 'EXPENSE') {
-        balanceMap.set(tx.accountId, current - tx.amountCents);
-      } else if (tx.type === 'TRANSFER') {
-        if (tx.transferDirection === 'IN') {
-          balanceMap.set(tx.accountId, current + tx.amountCents);
-        } else if (tx.transferDirection === 'OUT') {
-          balanceMap.set(tx.accountId, current - tx.amountCents);
-        }
+      let nextBalance = current;
+      if (tx.type === 'INCOME' || (tx.type === 'TRANSFER' && tx.transferDirection === 'IN')) {
+        nextBalance += tx.amountCents;
+      } else if (tx.type === 'EXPENSE' || (tx.type === 'TRANSFER' && tx.transferDirection === 'OUT')) {
+        nextBalance -= tx.amountCents;
       }
+      if (!Number.isSafeInteger(nextBalance)) {
+        throw new Error('חישוב יתרת החשבון חרג מטווח האגורות הבטוח; יש לבדוק את נתוני החשבון והעסקאות');
+      }
+      balanceMap.set(tx.accountId, nextBalance);
     }
 
     return accounts.map((acc) => {

@@ -152,9 +152,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }, [homeItems, todayKey, nextWeekKey]);
   const currency = (cents: number, currencyCode: string = 'ILS') => money(cents / 100, currencyCode);
   const muted = { color: activeTheme.textSecondary };
+  const positive = { color: activeTheme.accent };
   const panel = 'homeos-lux-panel';
   const categoryTotal = data.topCategories.reduce((sum, item) => sum + item[1], 0);
-  const categoryColors = ['#B98B58', '#547D70', '#8295A7', '#A97972', '#9C9A7D'];
+  const categoryColors = [activeTheme.accent, activeTheme.accentMuted, '#8295A7', '#A97972', '#9C9A7D'];
   const monthName = new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' }).format(new Date());
   const hasActivity = data.current.income > 0 || data.current.expense > 0;
 
@@ -231,7 +232,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             ))}
           </div>
           <div className="mt-5 grid grid-cols-2 gap-4 border-t pt-5" style={{ borderColor: activeTheme.borderSubtle }}>
-            <div><div className="text-[11px]" style={muted}>מאזן החודש</div><div className="mt-1 text-lg font-bold tabular-nums" style={{ color: data.cashflow >= 0 ? '#477866' : '#B45F56' }}>{currency(data.cashflow)}</div></div>
+            <div><div className="text-[11px]" style={muted}>מאזן החודש</div><div className="mt-1 text-lg font-bold tabular-nums" style={{ color: data.cashflow >= 0 ? activeTheme.accent : '#B45F56' }}>{currency(data.cashflow)}</div></div>
             <div><div className="text-[11px]" style={muted}>ממוצע הוצאות · 3 חודשים מלאים</div><div className="mt-1 text-lg font-bold tabular-nums">{currency(data.averageExpense)}</div></div>
           </div>
         </div>
@@ -395,7 +396,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <div className="mt-3 text-[10px]" style={muted}>{item.category}</div>
                 <div className="mt-1 text-xl font-bold tabular-nums">{currency(item.averageAmount)}</div>
                 <div className="mt-1 text-[10px]" style={muted}>ממוצע בחודשים שבהם הופיע</div>
-                <div className="mt-3 border-t pt-2 text-[10px]" style={{ borderColor: activeTheme.borderSubtle, color: item.currentMonthAmount > 0 ? '#477866' : activeTheme.textSecondary }}>{item.currentMonthAmount > 0 ? 'נרשם החודש: ' + currency(item.currentMonthAmount) : 'טרם נרשם החודש'}</div>
+                <div className="mt-3 border-t pt-2 text-[10px]" style={{ borderColor: activeTheme.borderSubtle, color: item.currentMonthAmount > 0 ? activeTheme.accent : activeTheme.textSecondary }}>{item.currentMonthAmount > 0 ? 'נרשם החודש: ' + currency(item.currentMonthAmount) : 'טרם נרשם החודש'}</div>
               </button>
             ))}
           </div>

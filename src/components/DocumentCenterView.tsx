@@ -12,6 +12,7 @@ interface DocumentCenterViewProps {
   activeTheme: ThemeConfig;
   canRead: boolean;
   canWrite: boolean;
+  canImportStatements: boolean;
   accounts: FinancialAccount[];
   transactions: LedgerTransaction[];
   onImportTransactions: (rows: ImportedStatementRow[], accountId: string) => Promise<void>;
@@ -43,7 +44,7 @@ const fileIcon = (mime: string) => {
 };
 
 export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
-  household, currentUser, activeTheme, canRead, canWrite, accounts, transactions, onImportTransactions,
+  household, currentUser, activeTheme, canRead, canWrite, canImportStatements, accounts, transactions, onImportTransactions,
 }) => {
   const [documents, setDocuments] = useState<HouseholdDocument[]>([]);
   const [category, setCategory] = useState<HouseholdDocument['category']>('OTHER');
@@ -125,11 +126,11 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
         if (!currentUser || !canWrite) throw new Error('אין לך הרשאה לשמור מסמכים במשק הבית');
         await db.saveDocument(doc, currentUser.id, currentUser.email);
         saved++;
-        if (category === 'BANK' && /\.(pdf|xlsx?|csv|png|jpe?g|webp)$/i.test(file.name)) statementsToImport.push(file);
+        if (canImportStatements && category === 'BANK' && /\.(pdf|xlsx?|csv|png|jpe?g|webp)$/i.test(file.name)) statementsToImport.push(file);
       }
       await refresh();
       notifyDocumentsChanged();
-      setMessage(`${saved} מסמכים נשמרו בכספת המקומית`);
+      setMessage(`${saved} מסמכים נשמרו בכספת המקומית${category === 'BANK' && !canImportStatements ? '. אין הרשאת כתיבה פיננסית לייבוא התנועות' : ''}`);
       if (statementsToImport.length) {
         setStatementFile(statementsToImport[0]);
         setStatementQueue(prev => [...prev, ...statementsToImport.slice(1)]);
@@ -154,6 +155,10 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
   };
 
   const handleAnalyzeStatement = (doc: HouseholdDocument) => {
+    if (!canImportStatements) {
+      setError('אין לך הרשאת כתיבה פיננסית לניתוח ולייבוא תנועות מדף החשבון');
+      return;
+    }
     try {
       const file = new File([doc.blob], doc.name, { type: doc.mimeType || 'application/pdf' });
       setError('');
@@ -255,7 +260,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
               return <div key={doc.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-center gap-3"><span className="rounded-xl p-3" style={{background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted,color:activeTheme.accent}}><Icon className="h-5 w-5" /></span><div className="min-w-0"><div className="truncate text-sm font-bold">{doc.name}</div><div className="mt-1 text-[11px]" style={muted}>{categories.find((item) => item.value === doc.category)?.label} · {formatSize(doc.size)} · {formatDate(doc.uploadedAt)}</div></div></div>
                 <div className="flex items-center gap-2">
-                  {doc.category === 'BANK' && /\.(pdf|xlsx?|csv|png|jpe?g|webp)$/i.test(doc.name) && <button onClick={() => handleAnalyzeStatement(doc)} className="rounded-lg border px-3 py-2 text-xs font-bold" style={{borderColor:activeTheme.borderSubtle,background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted,color:activeTheme.accent}}>נתח דף חשבון</button>}
+                  {canImportStatements && doc.category === 'BANK' && /\.(pdf|xlsx?|csv|png|jpe?g|webp)$/i.test(doc.name) && <button onClick={() => handleAnalyzeStatement(doc)} className="rounded-lg border px-3 py-2 text-xs font-bold" style={{borderColor:activeTheme.borderSubtle,background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted,color:activeTheme.accent}}>נתח דף חשבון</button>}
                   <button onClick={() => handlePreview(doc)} className="rounded-lg border px-3 py-2 text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5" style={{ borderColor: activeTheme.borderSubtle }}>פתח</button>
                   <button onClick={() => handleDownload(doc)} title="הורדה" className="rounded-lg border p-2 hover:bg-black/5 dark:hover:bg-white/5" style={{ borderColor: activeTheme.borderSubtle }}><Download className="h-4 w-4" /></button>
                   {canWrite && <button onClick={() => handleDelete(doc)} title="מחיקה" className="rounded-lg border p-2 text-rose-600 hover:bg-rose-50" style={{ borderColor: activeTheme.borderSubtle }}><Trash2 className="h-4 w-4" /></button>}

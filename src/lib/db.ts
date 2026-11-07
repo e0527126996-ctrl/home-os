@@ -2259,6 +2259,27 @@ class HomeOSIndexedDB {
       throw new Error('הגיבוי מכיל עסקה המשויכת לחשבון מקור או יעד שאינו כלול בגיבוי');
     }
     const backupAccountsById = new Map((backup.accounts || []).map(account => [account.id, account]));
+    const projectedBalances = new Map<string, number>();
+    for (const account of backup.accounts || []) {
+      const opening = account.openingBalanceCents !== undefined
+        ? account.openingBalanceCents
+        : parseCurrencyInput(String(account.openingBalance)).cents;
+      projectedBalances.set(account.id, opening);
+    }
+    for (const transaction of backupTransactions) {
+      if (transaction.verificationStatus === 'PENDING') continue;
+      const current = projectedBalances.get(transaction.accountId);
+      if (current === undefined) throw new Error('עסקה בגיבוי מפנה לחשבון חסר');
+      let next = current;
+      if (transaction.type === 'INCOME' || (transaction.type === 'TRANSFER' && transaction.transferDirection === 'IN')) {
+        next += transaction.amountCents;
+      } else if (transaction.type === 'EXPENSE' || (transaction.type === 'TRANSFER' && transaction.transferDirection === 'OUT')) {
+        next -= transaction.amountCents;
+      }
+      if (!Number.isSafeInteger(next)) throw new Error('יתרת חשבון בגיבוי חורגת מטווח האגורות הבטוח');
+      projectedBalances.set(transaction.accountId, next);
+    }
+
     const backupTransactionsById = new Map(backupTransactions.map(transaction => [transaction.id, transaction]));
     const transferLegCounts = new Map<string, number>();
     for (const transaction of backupTransactions) {

@@ -43,6 +43,16 @@ export interface FinanceAnalytics {
   pendingAmountIlsCents: number;
   foreignCurrencySummaries: Array<{ currency: string; incomeCents: number; expenseCents: number; count: number }>;
   forecast: FinanceForecast;
+  projectionReady: boolean;
+  spendingAlerts: Array<{
+    category: string;
+    currentAmount: number;
+    projected: number;
+    historicalAverage: number;
+    historicalMonthsPresent: number;
+    increase: number;
+    transactionCount: number;
+  }>;
 }
 
 const monthKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -99,6 +109,13 @@ export function buildFinanceAnalytics(
 
   // Forecasts use the three complete calendar months before the current month.
   // A forecast is withheld unless all three months contain verified activity.
+  const currentMonthTransactions = ilsVerified.filter(tx =>
+    tx.date?.slice(0, 7) === currentKey && (tx.type === 'INCOME' || tx.type === 'EXPENSE')
+  );
+  const currentTransactionDays = new Set(currentMonthTransactions.map(tx => tx.date)).size;
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const projectionReady = now.getDate() >= 3 && currentTransactionDays >= 3 && currentMonthTransactions.length >= 5;
+
   const history = months.filter(month => month.key < currentKey).slice(-3);
   const historyTransactions = history.reduce((sum, month) => sum + month.transactionCount, 0);
   const historyMonthsWithActivity = history.filter(month => month.transactionCount > 0).length;
@@ -124,6 +141,28 @@ export function buildFinanceAnalytics(
     netCents: averageNetCents * monthsCount,
   }));
 
+  // Shared category run-rate alerts. These are review prompts, not guarantees.
+  const spendingAlerts = projectionReady && history.length === 3
+    ? [...categoriesMap.entries()].map(([category, currentAmount]) => {
+        const categoryTransactions = currentMonthTransactions.filter(tx =>
+          tx.type === 'EXPENSE' && (tx.category?.trim() || 'ללא קטגוריה') === category
+        );
+        const historyAmounts = history.map(month => ilsVerified
+          .filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === month.key && (tx.category?.trim() || 'ללא קטגוריה') === category)
+          .reduce((sum, tx) => sum + safeAmount(tx), 0)
+        );
+        const historicalTotal = historyAmounts.reduce((sum, value) => sum + value, 0);
+        const historicalMonthsPresent = historyAmounts.filter(value => value > 0).length;
+        const historicalAverage = historicalTotal / 3;
+        const projected = Math.round(currentAmount * daysInMonth / Math.max(1, now.getDate()));
+        const increase = projected - historicalAverage;
+        return { category, currentAmount, projected, historicalAverage, historicalMonthsPresent, increase, transactionCount: categoryTransactions.length };
+      })
+      .filter(item => item.transactionCount >= 2 && item.historicalMonthsPresent >= 2 && item.historicalAverage > 0 && item.increase >= 5000 && item.projected >= item.historicalAverage * 1.2)
+      .sort((a, b) => b.increase - a.increase)
+      .slice(0, 3)
+    : [];
+
   return {
     verifiedTransactions,
     pendingTransactions,
@@ -136,5 +175,7 @@ export function buildFinanceAnalytics(
       .reduce((sum, tx) => sum + safeAmount(tx), 0),
     foreignCurrencySummaries: [...foreignMap.entries()].map(([currency, value]) => ({ currency, ...value })).sort((a, b) => a.currency.localeCompare(b.currency)),
     forecast: { available, confidence, historyMonths: historyMonthsWithActivity, historyTransactions, averageIncomeCents, averageExpenseCents, averageNetCents, horizons, monthly },
+    projectionReady,
+    spendingAlerts,
   };
 }

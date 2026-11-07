@@ -96,7 +96,7 @@ const cases: Array<{ name: string; run: () => void | Promise<void> }> = [
 let failed = 0;
 for (const testCase of cases) {
   try {
-    testCase.run();
+    await testCase.run();
     process.stdout.write('✓ ' + testCase.name + '\n');
   } catch (error) {
     failed += 1;

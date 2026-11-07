@@ -1628,3 +1628,201 @@ body {
 }
 .homeos-document-center :is(.text-rose-800,.text-rose-700) { color: #C05A58 !important; }
 .homeos-document-center .border-rose-200 { border-color: color-mix(in srgb, #C05A58 35%, var(--border-subtle)) !important; }
+
+
+/* ─────────────────────────────────────────────────────────────
+   HOME OS — System-wide Editorial Polish
+   Presentation-only layer: no data, calculations, or workflows changed.
+   ───────────────────────────────────────────────────────────── */
+.homeos-app-shell {
+  min-height: 100vh;
+  color: var(--text-primary);
+  background-color: var(--bg-canvas);
+  transition: background-color .24s ease, color .24s ease;
+}
+.homeos-main-content {
+  width: min(100%, 1680px);
+  padding-bottom: clamp(1.5rem, 3vw, 3rem);
+}
+.homeos-topbar {
+  background: color-mix(in srgb, var(--bg-canvas) 90%, transparent);
+  border-bottom-color: var(--border-subtle);
+  color: var(--text-primary);
+  backdrop-filter: blur(20px) saturate(155%);
+}
+.homeos-topbar > div:first-child { min-height: 66px; }
+.homeos-brand-mark {
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 14px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 78%, #17251e), var(--accent));
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 20%, transparent), inset 0 1px 0 rgba(255,255,255,.25);
+}
+.homeos-household-switch,
+.homeos-toolbar-button,
+.homeos-user-button {
+  min-height: 40px;
+  border-color: var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+.homeos-toolbar-button:hover,
+.homeos-household-switch:hover,
+.homeos-user-button:hover {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg-card));
+}
+.homeos-navigation-shell {
+  border: 1px solid var(--border-subtle);
+  border-radius: 17px;
+  padding: 12px 14px 10px;
+  background: color-mix(in srgb, var(--bg-card) 94%, transparent);
+  box-shadow: 0 8px 25px rgba(25, 39, 30, .045);
+}
+.homeos-nav-item {
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.homeos-nav-item[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--accent) 36%, transparent);
+  color: #fff !important;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 78%, #18271f), var(--accent)) !important;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 20%, transparent) !important;
+}
+.homeos-nav-item:not([aria-current="page"]):hover {
+  color: var(--text-primary) !important;
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border-subtle));
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg-card)) !important;
+}
+.homeos-lux-panel,
+.homeos-home-panel,
+.homeos-foreign-currency,
+.homeos-advanced-details,
+.homeos-finance-overview {
+  border-color: var(--border-subtle);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+}
+.homeos-lux-panel,
+.homeos-home-panel {
+  border-radius: 16px;
+  box-shadow: 0 7px 24px rgba(25, 39, 30, .035);
+}
+.homeos-lux-panel:hover,
+.homeos-home-panel:hover {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border-subtle));
+  box-shadow: 0 13px 32px rgba(25, 39, 30, .065);
+}
+.homeos-section-kicker,
+.homeos-kicker { color: var(--accent); }
+.homeos-date-chip,
+.homeos-secondary-action {
+  border-color: var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+.homeos-primary-action,
+.homeos-export-button {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 82%, #17251e), var(--accent));
+  box-shadow: 0 6px 17px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.homeos-primary-action:hover,
+.homeos-export-button:hover { filter: brightness(1.045); }
+.homeos-home-field,
+.homeos-app-shell input:not([type="checkbox"]):not([type="radio"]),
+.homeos-app-shell select,
+.homeos-app-shell textarea {
+  min-height: 42px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  color: var(--text-primary);
+  background-color: var(--bg-card);
+  transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+.homeos-app-shell input::placeholder,
+.homeos-app-shell textarea::placeholder { color: var(--text-secondary); opacity: .72; }
+.homeos-app-shell input:focus,
+.homeos-app-shell select:focus,
+.homeos-app-shell textarea:focus {
+  border-color: var(--accent);
+  outline: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.homeos-app-shell input[type="checkbox"],
+.homeos-app-shell input[type="radio"] { accent-color: var(--accent); }
+.homeos-app-shell table { width: 100%; border-color: var(--border-subtle); }
+.homeos-app-shell thead th {
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--bg-surface) 72%, var(--bg-card));
+}
+.homeos-app-shell tbody td { border-color: var(--border-subtle); }
+.homeos-app-shell tbody tr:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.homeos-app-shell [role="dialog"] {
+  max-height: min(90vh, 900px);
+  border-color: var(--border-subtle);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+}
+.homeos-theme-option {
+  border-color: var(--border-subtle);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.homeos-theme-option:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border-subtle));
+  box-shadow: 0 10px 26px rgba(25, 39, 30, .07);
+}
+.homeos-theme-option.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 17%, transparent);
+}
+.homeos-density-compact main:has(> .homeos-navigation-shell) { row-gap: 1.2rem; }
+.homeos-density-compact .homeos-lux-panel,
+.homeos-density-compact .homeos-home-panel { padding: 15px; }
+.homeos-density-spacious main:has(> .homeos-navigation-shell) { row-gap: 2.6rem; }
+.homeos-density-spacious .homeos-lux-panel,
+.homeos-density-spacious .homeos-home-panel { padding: clamp(1.4rem, 2.2vw, 2rem); }
+.homeos-app-shell ::-webkit-scrollbar { width: 10px; height: 10px; }
+.homeos-app-shell ::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--text-secondary) 35%, transparent);
+  background-clip: padding-box;
+}
+.homeos-app-shell ::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  background-clip: padding-box;
+}
+.homeos-app-shell :focus-visible {
+  outline-color: color-mix(in srgb, var(--accent) 70%, white);
+}
+.homeos-app-shell button:disabled { transform: none; }
+.homeos-app-shell .tabular-nums { font-variant-numeric: tabular-nums lining-nums; }
+.homeos-app-shell .homeos-main-nav { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--accent) 35%, transparent) transparent; }
+.dark .homeos-app-shell { color-scheme: dark; }
+.dark .homeos-topbar { background: color-mix(in srgb, var(--bg-canvas) 90%, transparent); }
+.dark .homeos-lux-panel,
+.dark .homeos-home-panel,
+.dark .homeos-foreign-currency,
+.dark .homeos-advanced-details,
+.dark .homeos-finance-overview { box-shadow: 0 8px 26px rgba(0, 0, 0, .16); }
+.dark .homeos-app-shell thead th { background: color-mix(in srgb, var(--bg-surface) 80%, var(--bg-card)); }
+@media (max-width: 760px) {
+  .homeos-topbar > div:first-child { min-height: 60px; gap: 8px; }
+  .homeos-main-content { padding-top: 1.1rem; }
+  .homeos-navigation-shell { border-radius: 14px; padding: 9px; }
+  .homeos-main-nav { gap: 5px; padding-bottom: 3px; }
+  .homeos-nav-item { min-height: 40px; padding: 9px 11px; }
+  .homeos-app-shell [role="dialog"] { max-height: 94vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .homeos-app-shell *,
+  .homeos-app-shell *::before,
+  .homeos-app-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

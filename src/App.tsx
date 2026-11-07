@@ -559,7 +559,7 @@ export default function App() {
 
   return (
     <div
-      className={`homeos-app-shell homeos-density-${workspaceDensity} min-h-screen flex flex-col transition-colors duration-200`}
+      className={`homeos-app-shell homeos-density-${workspaceDensity} ${activeTheme.isDark ? 'dark' : ''} min-h-screen flex flex-col transition-colors duration-200`}
       style={{
         backgroundColor: activeTheme.bgCanvas,
         backgroundImage: 'radial-gradient(color-mix(in srgb, var(--homeos-accent) 4%, transparent) .7px, transparent .7px)',

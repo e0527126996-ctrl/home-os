@@ -2186,6 +2186,30 @@ class HomeOSIndexedDB {
     });
   }
 
+  async saveHomeItemsBatch(items: HouseholdHomeItem[], actorUserId: string): Promise<void> {
+    if (items.length === 0) return;
+    const householdId = items[0].householdId;
+    if (!householdId || items.some((item) => item.householdId !== householdId)) {
+      throw new Error('לא ניתן לשמור פעולות בית השייכות למשקי בית שונים יחד');
+    }
+    await this.assertPermission(householdId, actorUserId, 'food', 'write');
+    for (const item of items) {
+      if (!item.id || !['recipe', 'meal', 'shopping', 'task'].includes(item.kind)) {
+        throw new Error('פרטי אחת מרשומות הבית אינם תקינים');
+      }
+    }
+    return this.transaction(['household_home_items'], 'readwrite', async (tx) => {
+      const store = tx.objectStore('household_home_items');
+      for (const item of items) {
+        const existing = await this.reqToPromise<HouseholdHomeItem | undefined>(store.get(item.id));
+        if (existing && existing.householdId !== householdId) {
+          throw new Error('הפרת בידוד משקי בית: לא ניתן לעדכן רשומה השייכת למשק בית אחר');
+        }
+        await this.reqToPromise(store.put(item));
+      }
+    });
+  }
+
   async deleteHomeItem(itemId: string, householdId: string, actorUserId: string): Promise<void> {
     await this.assertPermission(householdId, actorUserId, 'food', 'write');
     return this.transaction(['household_home_items'], 'readwrite', async (tx) => {

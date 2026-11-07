@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, CheckCircle2, FileSpreadsheet, FileText, LoaderCircle, ShieldCheck, X } from 'lucide-react';
 import { FinancialAccount, LedgerTransaction } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
-import { ImportedStatementRow, normalizeStatementPayee, parseStatementFile } from '../lib/statementImport.ts';
+import { ImportedStatementRow, normalizeStatementPayee, parseStatementFileWithDiagnostics, StatementParseDiagnostics, StatementParseProgress } from '../lib/statementImport.ts';
 import { formatCents } from '../lib/currency.ts';
 
 interface Props {
@@ -24,10 +24,23 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
   const [includeDuplicateIds, setIncludeDuplicateIds] = useState<string[]>([]);
+  const [diagnostics, setDiagnostics] = useState<StatementParseDiagnostics | null>(null);
+  const [parseProgress, setParseProgress] = useState<StatementParseProgress | null>(null);
 
   React.useEffect(() => {
     let active = true;
-    parseStatementFile(file, transactions).then(result => { if (active) setRows(result); setIncludeDuplicateIds([]); })
+    setLoading(true);
+    setError('');
+    setDiagnostics(null);
+    setParseProgress(null);
+    parseStatementFileWithDiagnostics(file, transactions, progress => {
+      if (active) setParseProgress(progress);
+    }).then(result => {
+      if (!active) return;
+      setRows(result.rows);
+      setDiagnostics(result.diagnostics);
+      setIncludeDuplicateIds([]);
+    })
       .catch(err => { if (active) setError(err.message || 'לא ניתן לפענח את הקובץ'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -74,12 +87,12 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
         <div className="relative flex items-start justify-between gap-4">
           <div><div className="mb-2 flex items-center gap-2 text-[10px] font-bold tracking-[.2em] text-emerald-100/70"><ShieldCheck className="h-4 w-4"/> SMART STATEMENT IMPORT</div>
             <h2 className="font-serif text-2xl font-bold sm:text-3xl">קליטת דף חשבון</h2>
-            <p className="mt-2 text-xs text-emerald-50/75">{file.name} · הפענוח מתבצע מקומית במחשב</p>
+            <p className="mt-2 text-xs text-emerald-50/75">{file.name} · המסמך מעובד בדפדפן ואינו נשלח לשרת</p>
           </div>
           <button onClick={onClose} className="rounded-xl border border-white/20 bg-white/10 p-2 hover:bg-white/20"><X className="h-5 w-5"/></button>
         </div>
       </header>
-      {loading ? <div className="flex flex-1 items-center justify-center gap-3 p-16 text-sm" style={muted}><LoaderCircle className="h-5 w-5 animate-spin"/> מפענח תנועות ומזהה עסקאות...</div> :
+      {loading ? <div className="flex flex-1 flex-col items-center justify-center gap-3 p-16 text-sm" style={muted}><LoaderCircle className="h-5 w-5 animate-spin"/><strong>{parseProgress?.status || 'מפענח תנועות ומזהה עסקאות...'}</strong>{typeof parseProgress?.progress === 'number' && <div className="h-2 w-full max-w-xs overflow-hidden rounded-full" style={{backgroundColor:activeTheme.borderSubtle}}><div className="h-full rounded-full transition-all" style={{width:Math.max(0,Math.min(100,parseProgress.progress*100))+'%',backgroundColor:activeTheme.accent}} /></div>}<span className="max-w-md text-center text-[11px] leading-5">במסמך סרוק, מודל OCR בעברית נטען למחשב בפעם הראשונה. תוכן דף החשבון נשאר בדפדפן.</span></div> :
       done ? <div className="p-12 text-center"><CheckCircle2 className="mx-auto h-14 w-14 text-emerald-600"/><h3 className="mt-4 text-xl font-bold">הייבוא הושלם</h3><p className="mt-2 text-sm" style={muted}>העסקאות נוספו לפנקס במצב ממתין לבדיקה. הן לא ייכללו ביתרות ובתחזיות עד לאישור.</p><button onClick={onClose} className="homeos-primary-action mt-6">סיום</button></div> :
       <div className="flex min-h-0 flex-1 flex-col">
         {error && <div className="mx-5 mt-4 rounded-xl border border-rose-300 bg-rose-50 p-3 text-xs text-rose-800">{error}</div>}
@@ -88,6 +101,14 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
           <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>עסקאות חדשות לקליטה</div><div className="mt-1 text-xl font-bold tabular-nums">{eligible.length}</div><div className="text-[10px]" style={muted}>{rowsForAccount.filter(r=>r.duplicate).length} התאמות אפשריות לכפילות ידולגו</div><div className="mt-1 text-[10px] text-amber-700">{lowConfidenceCount} שורות עם זיהוי לא בטוח · מומלץ לבדוק</div></div>
           <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>סיכום תנועות לזיהוי</div><div className="mt-1 flex flex-wrap gap-3 text-xs font-bold"><span className="text-emerald-700">הכנסות {formatCents(totalIncome, selectedCurrency)}</span><span className="text-amber-700">הוצאות {formatCents(totalExpense, selectedCurrency)}</span></div></div>
           <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>שורות שדורשות תיקון</div><div className={'mt-1 text-xl font-bold tabular-nums ' + (invalidCount ? 'text-rose-700' : 'text-emerald-700')}>{invalidCount}</div><div className="text-[10px]" style={muted}>לא ייכללו בייבוא עד לתיקון</div></div>
+        </div>}
+        {!error && diagnostics && <div className="mx-5 mt-3 rounded-xl border px-4 py-3 text-[11px] leading-5" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface,color:activeTheme.textSecondary}}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <strong style={{color:activeTheme.textPrimary}}>אבחון קליטה · {diagnostics.method === 'excel' ? 'Excel' : diagnostics.method === 'csv' ? 'CSV' : diagnostics.method === 'pdf-text' ? 'PDF עם שכבת טקסט' : diagnostics.method === 'pdf-ocr' ? 'PDF סרוק · OCR מקומי' : 'תמונה · OCR מקומי'}</strong>
+            <span>{diagnostics.parsedRows} שורות זוהו{typeof diagnostics.pages === 'number' ? ' · ' + diagnostics.pages + ' עמודים' : ''} · {diagnostics.lowConfidenceRows} דורשות תשומת לב</span>
+          </div>
+          <p className="mt-1">{diagnostics.note}</p>
+          {diagnostics.method === 'pdf-ocr' || diagnostics.method === 'image-ocr' ? <p className="mt-1 font-semibold text-amber-700">זיהוי OCR אינו תחליף לבדיקת המסמך המקורי. כל שורה חייבת לעבור אימות לפני שתשפיע על היתרות והגרפים.</p> : null}
         </div>}
         {error ? <div className="flex-1 p-8 text-center text-sm" style={muted}>לא בוצע שינוי בפנקס העסקאות. אפשר לסגור ולנסות קובץ אחר.</div> :
         <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-5">

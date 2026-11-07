@@ -687,17 +687,6 @@ class HomeOSIndexedDB {
     const targetUser = await this.getUserById(userId);
     if (!targetUser) throw new Error('המשתמש שבחרת אינו קיים במערכת');
 
-    // Check if already member
-    const existing = await this.transaction(['household_memberships'], 'readonly', async (tx) => {
-      const store = tx.objectStore('household_memberships');
-      const idx = store.index('userAndHousehold');
-      return this.reqToPromise<HouseholdMembership | undefined>(idx.get([userId, householdId]));
-    });
-
-    if (existing) {
-      throw new Error('המשתמש כבר חבר במשק בית זה');
-    }
-
     const id = `mem_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
     const m: HouseholdMembership = {
       id,
@@ -706,26 +695,32 @@ class HomeOSIndexedDB {
       role,
       joinedAt: new Date().toISOString(),
     };
-    await this.saveMembership(m);
-
-    // Setup initial permission rules based on role
     const domains: Array<HouseholdPermissionRule['domain']> = [
-      'finance',
-      'food',
-      'documents',
-      'assets',
-      'planning',
-      'admin',
+      'finance', 'food', 'documents', 'assets', 'planning', 'admin',
     ];
-    for (const domain of domains) {
-      await this.savePermissionRule({
-        id: `perm_${m.id}_${domain}`,
-        membershipId: m.id,
-        householdId,
-        domain,
-        ...defaultPermissionsForRole(role, domain),
-      });
-    }
+
+    // Membership and all domain permissions are created atomically. A failed
+    // permission write must never leave a partially configured household member.
+    await this.transaction(['household_memberships', 'household_permissions'], 'readwrite', async (tx) => {
+      const membershipStore = tx.objectStore('household_memberships');
+      const existing = await this.reqToPromise<HouseholdMembership | undefined>(
+        membershipStore.index('userAndHousehold').get([userId, householdId])
+      );
+      if (existing) throw new Error('המשתמש כבר חבר במשק בית זה');
+      await this.reqToPromise(membershipStore.add(m));
+
+      const permissionStore = tx.objectStore('household_permissions');
+      for (const domain of domains) {
+        const rule: HouseholdPermissionRule = {
+          id: `perm_${m.id}_${domain}`,
+          membershipId: m.id,
+          householdId,
+          domain,
+          ...defaultPermissionsForRole(role, domain),
+        };
+        await this.reqToPromise(permissionStore.add(rule));
+      }
+    });
 
     await this.recordAuditLog(
       householdId,

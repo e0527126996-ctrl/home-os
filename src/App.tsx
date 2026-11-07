@@ -506,14 +506,16 @@ export default function App() {
         backgroundImage: 'radial-gradient(color-mix(in srgb, var(--homeos-accent) 4%, transparent) .7px, transparent .7px)',
         backgroundSize: '18px 18px',
         color: activeTheme.textPrimary,
-        ['--homeos-accent' as any]: activeTheme.accent,
-        ['--homeos-accent-muted' as any]: activeTheme.accentMuted,
-        ['--homeos-canvas' as any]: activeTheme.bgCanvas,
-        ['--homeos-surface' as any]: activeTheme.bgSurface,
-        ['--homeos-card' as any]: activeTheme.bgCard,
-        ['--homeos-border' as any]: activeTheme.borderSubtle,
-        ['--homeos-text' as any]: activeTheme.textPrimary,
-        ['--homeos-muted' as any]: activeTheme.textSecondary,
+        ...({
+          '--homeos-accent': activeTheme.accent,
+          '--homeos-accent-muted': activeTheme.accentMuted,
+          '--homeos-canvas': activeTheme.bgCanvas,
+          '--homeos-surface': activeTheme.bgSurface,
+          '--homeos-card': activeTheme.bgCard,
+          '--homeos-border': activeTheme.borderSubtle,
+          '--homeos-text': activeTheme.textPrimary,
+          '--homeos-muted': activeTheme.textSecondary,
+        } as React.CSSProperties),
       }}
       dir="rtl"
     >

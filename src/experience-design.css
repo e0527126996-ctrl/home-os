@@ -636,3 +636,172 @@
     scroll-behavior: auto !important;
   }
 }
+
+
+/* HOME OS — Visible editorial navigation refresh (v2) */
+.homeos-main-content {
+  grid-template-columns: minmax(236px, 278px) minmax(0, 1fr);
+  gap: clamp(22px, 2.5vw, 38px);
+  max-width: 1840px;
+  padding-top: clamp(22px, 2.8vw, 40px);
+}
+.homeos-navigation-shell {
+  align-self: stretch;
+  min-height: min(720px, calc(100vh - 116px));
+  padding: 23px 15px 18px;
+  border: 1px solid var(--ux-border);
+  border-radius: 23px;
+  background:
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--ux-accent) 8%, transparent), transparent 42%),
+    linear-gradient(160deg, var(--ux-card), color-mix(in srgb, var(--ux-surface) 58%, var(--ux-card)));
+  box-shadow: 0 18px 48px color-mix(in srgb, var(--ux-ink) 7%, transparent);
+}
+.homeos-navigation-shell > div:first-child {
+  padding: 4px 10px 19px;
+  border-bottom: 1px solid var(--ux-border);
+}
+.homeos-navigation-shell > div:first-child > div:first-child {
+  color: var(--ux-accent);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .16em;
+}
+.homeos-navigation-shell > div:first-child > div:last-child {
+  margin-top: 7px;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -.045em;
+}
+.homeos-navigation-shell .homeos-workspace-stat {
+  min-height: 32px;
+  justify-content: center;
+  border-radius: 9px;
+  font-size: 9px;
+}
+.homeos-nav-section-label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  margin: 10px 12px 3px;
+  padding-top: 9px;
+  color: var(--ux-ink);
+  font-size: 11px;
+  font-weight: 850;
+}
+.homeos-nav-section-label small {
+  color: var(--ux-muted);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .15em;
+}
+.homeos-main-nav { gap: 2px; }
+.homeos-main-nav .homeos-nav-item {
+  min-height: 48px;
+  gap: 12px;
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.homeos-main-nav .homeos-nav-item:not([aria-current="page"]):hover {
+  border-color: color-mix(in srgb, var(--ux-accent) 16%, var(--ux-border));
+  background: color-mix(in srgb, var(--ux-accent) 6%, var(--ux-card)) !important;
+  transform: translateX(-2px);
+}
+.homeos-main-nav .homeos-nav-item > svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+.homeos-main-nav .homeos-nav-item[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--ux-accent) 40%, transparent);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--ux-accent) 22%, transparent) !important;
+}
+.homeos-main-nav .homeos-nav-item[aria-current="page"]::before {
+  inset-inline-start: -16px;
+  inset-block: 10px;
+  width: 3px;
+}
+.homeos-workspace-content {
+  gap: clamp(22px, 2.4vw, 36px);
+}
+.homeos-command-center { gap: clamp(18px, 2vw, 28px) !important; }
+.homeos-dashboard-heading {
+  padding: 7px 0 19px;
+  border-bottom: 1px solid var(--ux-border);
+}
+.homeos-dashboard-heading h1 {
+  font-size: clamp(36px, 4vw, 56px);
+  letter-spacing: -.06em;
+}
+.homeos-command-center .homeos-wealth-hero.homeos-portfolio-hero {
+  min-height: 315px;
+  border-radius: 27px !important;
+  padding: clamp(30px, 3.8vw, 50px);
+  background:
+    radial-gradient(ellipse at 10% 10%, color-mix(in srgb, var(--ux-accent) 24%, transparent), transparent 35%),
+    radial-gradient(ellipse at 100% 100%, rgba(198, 163, 111, .22), transparent 46%),
+    linear-gradient(118deg, #101F19 0%, #19372B 52%, #274B3B 100%);
+  box-shadow: 0 25px 58px rgba(17, 39, 29, .2), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.homeos-command-center .homeos-net-worth {
+  font-size: clamp(48px, 6.2vw, 84px);
+}
+.homeos-command-center .homeos-kpi-strip {
+  border-radius: 18px;
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--ux-ink) 5%, transparent);
+}
+.homeos-command-center .homeos-kpi-item {
+  min-height: 148px;
+  padding: 22px 24px;
+}
+.homeos-command-center .homeos-lux-panel {
+  border-radius: 20px !important;
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--ux-ink) 5%, transparent);
+}
+.homeos-page-heading {
+  padding: 10px 0 24px;
+}
+.homeos-page-heading h1 { font-size: clamp(34px, 3.3vw, 48px); }
+.homeos-accounts-view .homeos-lux-panel,
+.homeos-document-center .homeos-lux-panel,
+.homeos-home-management .homeos-home-panel,
+.homeos-settings-section {
+  border-radius: 19px !important;
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--ux-ink) 5%, transparent);
+}
+.homeos-topbar {
+  min-height: 76px;
+  background: color-mix(in srgb, var(--ux-canvas) 94%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--ux-accent) 20%, var(--ux-border));
+  box-shadow: 0 8px 26px color-mix(in srgb, var(--ux-ink) 4%, transparent);
+}
+.homeos-topbar .homeos-brand-mark {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #14261F, color-mix(in srgb, var(--ux-accent) 72%, #254536) 76%, #C7A56B);
+}
+.homeos-topbar .text-xl {
+  font-size: 23px;
+  letter-spacing: -.07em;
+}
+@media (max-width: 980px) {
+  .homeos-main-content { grid-template-columns: minmax(0, 1fr); }
+  .homeos-navigation-shell { min-height: 0; padding: 16px 14px 12px; }
+  .homeos-nav-section-label { display: none; }
+  .homeos-main-nav { gap: 7px; }
+}
+@media (max-width: 720px) {
+  .homeos-main-content { gap: 15px; }
+  .homeos-navigation-shell { padding: 13px 11px; }
+  .homeos-navigation-shell > div:first-child > div:last-child { font-size: 20px; }
+  .homeos-dashboard-heading { padding-bottom: 15px; }
+  .homeos-dashboard-heading h1 { font-size: 35px; }
+  .homeos-command-center .homeos-wealth-hero.homeos-portfolio-hero { min-height: 0; padding: 23px 19px; border-radius: 20px !important; }
+  .homeos-command-center .homeos-kpi-item { min-height: 116px; padding: 15px; }
+}

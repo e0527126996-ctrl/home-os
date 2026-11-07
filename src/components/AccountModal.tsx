@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, CreditCard, Landmark, PiggyBank, FileText, Percent, ShieldAlert } from 'lucide-react';
 import { AccountCurrency, AccountType, FinancialAccount } from '../types.ts';
+import { parseCurrencyInput } from '../lib/currency.ts';
 import { ThemeConfig } from '../lib/themes.ts';
 
 interface AccountModalProps {
@@ -89,21 +90,22 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       return;
     }
 
-    const parsedBalance = parseFloat(openingBalance);
-    if (isNaN(parsedBalance)) {
-      setError('יתרת הפתיחה אינה מספר חוקי');
+    const parsedBalance = parseCurrencyInput(openingBalance);
+    if (!parsedBalance.valid) {
+      setError(parsedBalance.error || 'יתרת הפתיחה אינה מספר חוקי');
       return;
     }
 
-    const parsedLimit = creditLimit ? parseFloat(creditLimit) : undefined;
-    if (parsedLimit !== undefined && (isNaN(parsedLimit) || parsedLimit < 0)) {
-      setError('מסגרת אשראי חייבת להיות מספר חיובי');
+    const parsedLimit = creditLimit.trim() ? parseCurrencyInput(creditLimit) : undefined;
+    if (parsedLimit && (!parsedLimit.valid || parsedLimit.cents < 0)) {
+      setError(parsedLimit.error || 'מסגרת אשראי חייבת להיות מספר חיובי עם עד שתי ספרות אחרי הנקודה');
       return;
     }
 
-    const parsedInterest = interestRate ? parseFloat(interestRate) : undefined;
-    if (parsedInterest !== undefined && (isNaN(parsedInterest) || parsedInterest < 0)) {
-      setError('שיעור הריבית חייב להיות מספר חיובי');
+    const interestPattern = /^\\d+(?:\\.\\d{1,2})?$/;
+    const parsedInterest = interestRate.trim() ? Number(interestRate) : undefined;
+    if (parsedInterest !== undefined && (!interestPattern.test(interestRate.trim()) || !Number.isFinite(parsedInterest) || parsedInterest < 0)) {
+      setError('שיעור הריבית חייב להיות מספר תקין עם עד שתי ספרות אחרי הנקודה');
       return;
     }
 
@@ -120,8 +122,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         institution: finalInstitution,
         accountNumberLast4: accountNumberLast4.trim() || undefined,
         currency,
-        openingBalance: Math.round(parsedBalance * 100) / 100,
-        creditLimit: parsedLimit !== undefined ? Math.round(parsedLimit * 100) / 100 : undefined,
+        openingBalance: parsedBalance.cents / 100,
+        creditLimit: parsedLimit !== undefined ? parsedLimit.cents / 100 : undefined,
         interestRate: parsedInterest !== undefined ? Number(parsedInterest) : undefined,
         notes: notes.trim() || undefined,
       });

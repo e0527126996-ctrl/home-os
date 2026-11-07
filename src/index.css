@@ -951,3 +951,27 @@ body {
 .homeos-status-dot.verified { background:#5B9477; box-shadow:0 0 0 3px rgba(91,148,119,.12); }
 .homeos-status-dot.pending { background:#C28D52; box-shadow:0 0 0 3px rgba(194,141,82,.12); }
 .dark .homeos-workspace-stat { background:var(--bg-surface,#111827); border-color:var(--border-subtle,#334155); }
+
+.homeos-spending-alerts {
+  border:1px solid color-mix(in srgb,#B98B58 28%,var(--border-subtle,#E6E0D8));
+  border-radius:18px;
+  padding:1.15rem 1.25rem;
+  background:linear-gradient(120deg,color-mix(in srgb,#B98B58 7%,var(--bg-card,#fff)),var(--bg-card,#fff) 72%);
+}
+.homeos-spending-alert-icon {
+  display:flex; width:38px; height:38px; flex:0 0 auto; align-items:center; justify-content:center;
+  border-radius:12px; color:#A87845; background:rgba(185,139,88,.13);
+}
+.homeos-spending-alert-grid {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.7rem; margin-top:1rem;
+}
+.homeos-spending-alert-grid article {
+  min-width:0; border:1px solid var(--border-subtle,#E6E0D8); border-radius:13px; padding:.9rem; background:var(--bg-card,#fff);
+}
+.homeos-spending-alert-grid strong {
+  display:block; margin:.45rem 0 .25rem; font-size:1.35rem; font-variant-numeric:tabular-nums; letter-spacing:-.04em;
+}
+.homeos-spending-alert-grid article > span { display:inline-flex; margin-top:.6rem; border-radius:99px; padding:.28rem .55rem; color:#9B6639; background:rgba(185,139,88,.12); font-size:.66rem; font-weight:800; }
+.dark .homeos-spending-alerts { background:linear-gradient(120deg,color-mix(in srgb,#B98B58 12%,var(--bg-card,#1E293B)),var(--bg-card,#1E293B) 72%); border-color:color-mix(in srgb,#B98B58 30%,var(--border-subtle,#334155)); }
+.dark .homeos-spending-alert-grid article { background:var(--bg-surface,#111827); border-color:var(--border-subtle,#334155); }
+@media(max-width:760px) { .homeos-spending-alert-grid { grid-template-columns:1fr; } .homeos-spending-alert-grid article { display:grid; grid-template-columns:1fr auto; align-items:center; gap:.25rem .7rem; } .homeos-spending-alert-grid strong { grid-column:2; grid-row:1 / span 2; margin:0; } .homeos-spending-alert-grid article > span { justify-self:start; } }

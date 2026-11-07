@@ -77,6 +77,7 @@ export default function App() {
 
   // Navigation & Theme
   const [activeTab, setActiveTab] = useState<'dashboard' | 'overview' | 'accounts' | 'ledger' | 'members' | 'households' | 'audit' | 'documents' | 'home' | 'settings'>('dashboard');
+  const [homeManagementInitialTab, setHomeManagementInitialTab] = useState<'planner'|'recipes'|'shopping'|'tasks'|'finance'>('planner');
   const [activeTheme, setActiveTheme] = useState<ThemeConfig>(MODERN_EDITORIAL_THEMES[0]);
   const [workspaceDensity, setWorkspaceDensity] = useState<'compact' | 'balanced' | 'spacious'>('balanced');
   const [workspaceViewMode, setWorkspaceViewMode] = useState<WorkspaceViewMode>('executive');
@@ -812,7 +813,7 @@ export default function App() {
             activeTheme={activeTheme}
             onOpenAccounts={() => setActiveTab('accounts')}
             onOpenLedger={() => setActiveTab('ledger')}
-            onOpenHome={() => setActiveTab('home')}
+            onOpenHomeTab={(tab) => { setHomeManagementInitialTab(tab); setActiveTab('home'); }}
             viewMode={workspaceViewMode}
             dashboardWidgetOrder={dashboardWidgetOrder}
             visibleDashboardWidgetIds={visibleDashboardWidgetIds}
@@ -843,6 +844,7 @@ export default function App() {
             accounts={accounts}
             transactions={transactions}
             onOpenLedger={() => setActiveTab('ledger')}
+            initialTab={homeManagementInitialTab}
             onItemsChange={setHomeItems}
           />
         )}

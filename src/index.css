@@ -2714,3 +2714,38 @@ html[data-theme="carbon_gold_luxury"] .homeos-app-shell ::selection { background
 @media (prefers-reduced-motion: reduce) {
   .homeos-app-shell * { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+/* Per-widget footprint controls: compact / standard / expanded. */
+.homeos-dashboard [data-widget-size="compact"] > .homeos-lux-panel {
+  padding: 14px !important;
+}
+.homeos-dashboard [data-widget-size="compact"] > .homeos-wealth-hero {
+  padding: 18px !important;
+}
+.homeos-dashboard [data-widget-size="expanded"] > .homeos-lux-panel {
+  padding: clamp(26px, 3vw, 38px) !important;
+}
+.homeos-dashboard [data-widget-size="expanded"] > .homeos-wealth-hero {
+  padding: clamp(30px, 3.4vw, 42px) !important;
+}
+.homeos-dashboard [data-widget-size="compact"] .homeos-kpi-item {
+  min-height: 116px;
+  padding: 14px;
+}
+.homeos-dashboard [data-widget-size="expanded"] .homeos-kpi-item {
+  min-height: 176px;
+  padding: 26px;
+}
+.homeos-dashboard [data-widget-size="compact"] .homeos-section-kicker { font-size: 8px; }
+.homeos-dashboard [data-widget-size="expanded"] :is(h2,h3) { font-size: 1.2em; }
+.homeos-widget-size-select {
+  min-width: 88px;
+  max-width: 108px;
+  height: 30px;
+  padding: 3px 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 10px;
+}

@@ -1,0 +1,402 @@
+/* HOME OS — Editorial Workspace v2
+   A coherent application shell layered after the legacy component styles.
+   Theme colors come from App.tsx CSS variables; no data behavior is changed. */
+:root {
+  --homeos-shell-width: 1840px;
+  --homeos-sidebar-width: 268px;
+  --homeos-editorial-radius: 18px;
+  --homeos-editorial-shadow: 0 14px 42px rgba(35, 43, 36, .055);
+}
+html { background: var(--homeos-canvas, #FAF8F5); }
+body {
+  min-height: 100vh;
+  color: var(--homeos-text, #211F1B);
+  background:
+    radial-gradient(ellipse at 82% 0%, color-mix(in srgb, var(--homeos-accent, #547D70) 6%, transparent), transparent 34%),
+    var(--homeos-canvas, #FAF8F5);
+}
+.homeos-app-shell {
+  min-height: 100vh;
+  background-color: var(--homeos-canvas, #FAF8F5);
+  background-image:
+    radial-gradient(ellipse at 86% 0%, color-mix(in srgb, var(--homeos-accent, #547D70) 5%, transparent), transparent 38%) !important;
+  background-attachment: fixed;
+}
+.homeos-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 45;
+  border-bottom: 1px solid var(--homeos-border, #E6E0D8);
+  background: color-mix(in srgb, var(--homeos-canvas, #FAF8F5) 92%, transparent);
+  box-shadow: 0 6px 24px rgba(30, 38, 31, .035);
+  backdrop-filter: blur(22px) saturate(145%);
+}
+.homeos-topbar > div:first-child {
+  width: min(100%, var(--homeos-shell-width));
+  max-width: none !important;
+  min-height: 74px;
+  margin-inline: auto;
+  padding-inline: clamp(18px, 3vw, 46px);
+}
+.homeos-brand-mark {
+  width: 46px;
+  height: 46px;
+  border: 1px solid color-mix(in srgb, var(--homeos-accent, #547D70) 38%, transparent);
+  border-radius: 15px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--homeos-accent, #547D70) 72%, #14231B), var(--homeos-accent, #547D70));
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--homeos-accent, #547D70) 20%, transparent), inset 0 1px 0 rgba(255,255,255,.25);
+}
+.homeos-household-switch {
+  min-height: 40px;
+  border-color: var(--homeos-border, #E6E0D8);
+  border-radius: 12px;
+  background: var(--homeos-card, #fff);
+  color: var(--homeos-text, #211F1B);
+}
+.homeos-toolbar-button, .homeos-user-button {
+  min-height: 41px;
+  border-color: var(--homeos-border, #E6E0D8);
+  border-radius: 12px;
+  background: var(--homeos-card, #fff);
+  color: var(--homeos-text, #211F1B);
+}
+.homeos-export-button {
+  min-height: 41px;
+  border-radius: 12px;
+  background: var(--homeos-accent, #547D70);
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--homeos-accent, #547D70) 20%, transparent);
+}
+.homeos-sync-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  border: 1px solid color-mix(in srgb, #B77938 28%, var(--homeos-border, #E6E0D8));
+  border-radius: 11px;
+  padding: 6px 10px;
+  color: color-mix(in srgb, #925D24 88%, var(--homeos-text, #211F1B));
+  background: color-mix(in srgb, #D6A25A 9%, var(--homeos-card, #fff));
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.homeos-sync-state svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.homeos-sync-state small {
+  margin-inline-start: 2px;
+  color: var(--homeos-muted, #6B645C);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+/* Desktop: real application frame with a persistent right-side workspace rail. */
+.homeos-main-content {
+  display: grid;
+  width: min(100%, var(--homeos-shell-width));
+  max-width: var(--homeos-shell-width) !important;
+  grid-template-columns: var(--homeos-sidebar-width) minmax(0, 1fr);
+  grid-template-areas: "navigation workspace";
+  align-items: start;
+  column-gap: clamp(22px, 2.4vw, 42px);
+  row-gap: 0;
+  margin-inline: auto;
+  padding: 28px clamp(18px, 3vw, 46px) 58px;
+}
+.homeos-main-content.space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 0 !important; }
+.homeos-navigation-shell {
+  grid-area: navigation;
+  position: sticky;
+  top: 94px;
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  align-self: start;
+  min-width: 0;
+  max-height: calc(100dvh - 112px);
+  overflow-y: auto;
+  border: 1px solid var(--homeos-border, #E6E0D8) !important;
+  border-radius: 18px !important;
+  padding: 18px !important;
+  background: color-mix(in srgb, var(--homeos-card, #fff) 96%, transparent) !important;
+  box-shadow: 0 10px 34px rgba(31, 40, 33, .045) !important;
+  backdrop-filter: blur(18px);
+  scrollbar-width: thin;
+  scrollbar-color: var(--homeos-border, #E6E0D8) transparent;
+}
+.homeos-navigation-shell > div:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 13px;
+  margin: 0 !important;
+  padding: 0 2px 14px !important;
+  border-bottom: 1px solid var(--homeos-border, #E6E0D8);
+}
+.homeos-navigation-shell > div:first-child > div:first-child > div:last-child {
+  margin-top: 6px;
+  color: var(--homeos-text, #211F1B) !important;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -.025em;
+}
+.homeos-navigation-shell .homeos-section-kicker {
+  color: var(--homeos-accent, #547D70);
+  font-size: 9px;
+  letter-spacing: .16em;
+}
+.homeos-workspace-stat {
+  min-height: 26px;
+  border-color: var(--homeos-border, #E6E0D8);
+  border-radius: 8px;
+  padding: 4px 7px;
+  background: var(--homeos-surface, #F3EFEA);
+  color: var(--homeos-muted, #6B645C);
+  font-size: 9px;
+}
+.homeos-main-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  overflow: visible;
+  padding: 0;
+}
+.homeos-main-nav .homeos-nav-item {
+  display: flex;
+  width: 100%;
+  min-height: 45px;
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  gap: 11px;
+  border: 1px solid transparent;
+  border-inline-start: 3px solid transparent;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--homeos-muted, #6B645C) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+  transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.homeos-main-nav .homeos-nav-item > svg { width: 17px; height: 17px; flex: 0 0 auto; opacity: .82; }
+.homeos-main-nav .homeos-nav-item > span:nth-child(2) { flex: 1 1 auto; }
+.homeos-main-nav .homeos-nav-item > span:last-child {
+  border-radius: 7px;
+  padding: 3px 7px;
+  color: var(--homeos-muted, #6B645C);
+  background: var(--homeos-surface, #F3EFEA);
+  font-size: 10px;
+}
+.homeos-main-nav .homeos-nav-item:not([aria-current="page"]):hover {
+  border-color: var(--homeos-border, #E6E0D8);
+  border-inline-start-color: color-mix(in srgb, var(--homeos-accent, #547D70) 38%, transparent);
+  color: var(--homeos-text, #211F1B) !important;
+  background: var(--homeos-surface, #F3EFEA) !important;
+  transform: translateX(-2px);
+}
+.homeos-main-nav .homeos-nav-item[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--homeos-accent, #547D70) 17%, var(--homeos-border, #E6E0D8)) !important;
+  border-inline-start: 3px solid var(--homeos-accent, #547D70) !important;
+  color: var(--homeos-text, #211F1B) !important;
+  background: color-mix(in srgb, var(--homeos-accent, #547D70) 10%, var(--homeos-card, #fff)) !important;
+  box-shadow: none !important;
+}
+.homeos-main-nav .homeos-nav-item[aria-current="page"] > svg { color: var(--homeos-accent, #547D70); opacity: 1; }
+.homeos-main-nav .homeos-nav-item[aria-current="page"] > span:last-child {
+  color: var(--homeos-accent, #547D70);
+  background: color-mix(in srgb, var(--homeos-accent, #547D70) 11%, var(--homeos-card, #fff));
+}
+.homeos-workspace-content {
+  grid-area: workspace;
+  min-width: 0;
+  width: 100%;
+  animation: homeos-workspace-enter .32s ease both;
+}
+@keyframes homeos-workspace-enter {
+  from { opacity: .65; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Editorial content hierarchy: less generic rounding, clearer type and calm surfaces. */
+.homeos-app-shell h1, .homeos-app-shell h2, .homeos-app-shell h3 {
+  text-wrap: pretty;
+}
+.homeos-app-shell h1, .homeos-app-shell .homeos-net-worth {
+  letter-spacing: -.035em;
+}
+.homeos-wealth-hero, .homeos-home-hero {
+  border-radius: 22px !important;
+  box-shadow: 0 22px 52px color-mix(in srgb, var(--homeos-accent, #547D70) 16%, transparent), inset 0 1px 0 rgba(255,255,255,.12);
+}
+.homeos-lux-panel, .homeos-home-panel, .homeos-finance-overview {
+  border: 1px solid var(--homeos-border, #E6E0D8);
+  border-radius: 14px !important;
+  background: var(--homeos-card, #fff);
+  box-shadow: 0 5px 20px rgba(31, 40, 33, .028);
+}
+.homeos-lux-panel:hover, .homeos-home-panel:hover {
+  border-color: color-mix(in srgb, var(--homeos-accent, #547D70) 28%, var(--homeos-border, #E6E0D8));
+  box-shadow: 0 12px 28px rgba(31, 40, 33, .055);
+  transform: translateY(-1px);
+}
+.homeos-kicker, .homeos-section-kicker { color: var(--homeos-accent, #547D70); }
+.homeos-card-top { color: var(--homeos-muted, #6B645C); }
+.homeos-kpi-value { color: var(--homeos-text, #211F1B); font-variant-numeric: tabular-nums; }
+.homeos-date-chip {
+  border-color: var(--homeos-border, #E6E0D8);
+  border-radius: 9px;
+  background: var(--homeos-card, #fff);
+  color: var(--homeos-muted, #6B645C);
+}
+.homeos-insight {
+  border-color: color-mix(in srgb, var(--homeos-accent, #547D70) 20%, var(--homeos-border, #E6E0D8));
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--homeos-accent, #547D70) 6%, var(--homeos-card, #fff));
+}
+.homeos-primary-action, .homeos-secondary-action, .homeos-wide-link {
+  min-height: 42px;
+  border-radius: 10px;
+}
+.homeos-primary-action, .homeos-export-button {
+  background: var(--homeos-accent, #547D70);
+  box-shadow: 0 5px 15px color-mix(in srgb, var(--homeos-accent, #547D70) 18%, transparent);
+}
+.homeos-secondary-action {
+  border-color: var(--homeos-border, #E6E0D8);
+  color: var(--homeos-text, #211F1B);
+  background: var(--homeos-card, #fff);
+}
+.homeos-settings-section {
+  border: 1px solid var(--homeos-border, #E6E0D8);
+  border-radius: 15px;
+  padding: clamp(16px, 2vw, 24px);
+  background: var(--homeos-card, #fff);
+  box-shadow: 0 5px 22px rgba(31, 40, 33, .025);
+}
+.homeos-settings-hero {
+  border-radius: 16px;
+  box-shadow: none;
+}
+.homeos-theme-option { border-radius: 13px; }
+.homeos-theme-preview { border-radius: 8px; }
+.homeos-view-mode-option, .homeos-background-preset, .homeos-density-option { border-radius: 11px; }
+.homeos-widget-editor { border-color: var(--homeos-border, #E6E0D8); }
+.homeos-app-shell :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border-radius: 9px;
+  border-color: var(--homeos-border, #E6E0D8);
+  background-color: var(--homeos-surface, #F3EFEA);
+  color: var(--homeos-text, #211F1B);
+}
+.homeos-app-shell :is(input, select, textarea):focus {
+  border-color: var(--homeos-accent, #547D70);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--homeos-accent, #547D70) 13%, transparent);
+  outline: none;
+}
+.homeos-app-shell table { color: var(--homeos-text, #211F1B); }
+.homeos-app-shell thead th {
+  color: var(--homeos-muted, #6B645C);
+  background: var(--homeos-surface, #F3EFEA);
+  font-size: 10px;
+  font-weight: 800;
+}
+.homeos-app-shell tbody tr:hover { background: color-mix(in srgb, var(--homeos-accent, #547D70) 4%, var(--homeos-card, #fff)); }
+.homeos-app-shell :is(button, a):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--homeos-accent, #547D70) 66%, transparent);
+  outline-offset: 2px;
+}
+.homeos-app-shell.dark .homeos-navigation-shell {
+  background: color-mix(in srgb, var(--homeos-card, #1E293B) 96%, transparent) !important;
+  box-shadow: 0 10px 34px rgba(0,0,0,.2) !important;
+}
+.homeos-app-shell.dark .homeos-main-nav .homeos-nav-item[aria-current="page"] {
+  color: var(--homeos-text, #F8FAFC) !important;
+  background: color-mix(in srgb, var(--homeos-accent, #38BDF8) 15%, var(--homeos-card, #1E293B)) !important;
+}
+.homeos-app-shell.dark .homeos-lux-panel,
+.homeos-app-shell.dark .homeos-home-panel,
+.homeos-app-shell.dark .homeos-finance-overview,
+.homeos-app-shell.dark .homeos-settings-section {
+  background: var(--homeos-card, #1E293B);
+  border-color: var(--homeos-border, #334155);
+  box-shadow: 0 7px 24px rgba(0,0,0,.16);
+}
+
+/* Mid-size screens retain a top navigation strip; mobile gets horizontal scrolling. */
+@media (max-width: 1120px) {
+  .homeos-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: 20px 20px 42px;
+  }
+  .homeos-main-content.space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 0 !important; }
+  .homeos-navigation-shell {
+    position: sticky;
+    top: 74px;
+    z-index: 32;
+    width: 100%;
+    max-height: none;
+    gap: 10px;
+    padding: 12px 14px 9px !important;
+    border-radius: 14px !important;
+  }
+  .homeos-navigation-shell > div:first-child {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 8px !important;
+  }
+  .homeos-navigation-shell > div:first-child > div:first-child > div:last-child { font-size: 14px; }
+  .homeos-main-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding: 1px 1px 5px;
+    scrollbar-width: none;
+  }
+  .homeos-main-nav::-webkit-scrollbar { display: none; }
+  .homeos-main-nav .homeos-nav-item {
+    width: auto;
+    min-width: max-content;
+    min-height: 39px;
+    border-inline-start: 1px solid transparent;
+    border-radius: 9px;
+    padding: 8px 11px;
+  }
+  .homeos-main-nav .homeos-nav-item[aria-current="page"] {
+    border-inline-start: 1px solid color-mix(in srgb, var(--homeos-accent, #547D70) 25%, transparent) !important;
+  }
+}
+@media (max-width: 680px) {
+  .homeos-topbar > div:first-child {
+    min-height: 62px;
+    padding-inline: 12px;
+    gap: 8px;
+  }
+  .homeos-brand-mark { width: 38px; height: 38px; border-radius: 12px; }
+  .homeos-topbar .text-xl { font-size: 17px; }
+  .homeos-sync-state { min-height: 33px; padding: 5px 7px; font-size: 0; gap: 5px; }
+  .homeos-sync-state svg { width: 15px; height: 15px; }
+  .homeos-sync-state small { display: none; }
+  .homeos-toolbar-button, .homeos-user-button, .homeos-export-button { min-height: 36px; }
+  .homeos-main-content { gap: 15px; padding: 12px 12px 30px; }
+  .homeos-navigation-shell { top: 61px; padding: 9px 10px 6px !important; }
+  .homeos-navigation-shell > div:first-child { display: none; }
+  .homeos-main-nav .homeos-nav-item { min-height: 37px; gap: 7px; padding: 7px 9px; font-size: 11px; }
+  .homeos-main-nav .homeos-nav-item > svg { width: 15px; height: 15px; }
+  .homeos-wealth-hero, .homeos-home-hero { border-radius: 17px !important; }
+  .homeos-lux-panel, .homeos-home-panel { border-radius: 12px !important; }
+  .homeos-settings-section { padding: 14px; }
+  .homeos-settings-hero { padding: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .homeos-workspace-content { animation: none; }
+  .homeos-app-shell *, .homeos-app-shell *::before, .homeos-app-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

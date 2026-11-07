@@ -48,6 +48,7 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
     return {
       income, expenseTotal,
       pending: transactions.filter(tx => tx.verificationStatus === 'PENDING').length,
+      pendingAmount: transactions.filter(tx => tx.verificationStatus === 'PENDING' && currencies.get(tx.accountId) === 'ILS' && Number.isSafeInteger(tx.amountCents) && tx.amountCents > 0).reduce((sum, tx) => sum + tx.amountCents, 0),
       foreignAccounts: accounts.filter(account => account.status === 'ACTIVE' && account.currency !== 'ILS').length,
       categories: [...byCategory.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8),
     };
@@ -90,18 +91,18 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
     {tab==='shopping'&&<div className="grid gap-4 lg:grid-cols-[.8fr_1.2fr]"><section className={panel} style={ps}><h2 className="mb-4 text-lg font-bold">{editingShoppingId?'עריכת פריט':'הוספה לרשימה'}</h2><div className="space-y-3"><input className={field} style={fs} placeholder="מה צריך לקנות?" value={shopName} onChange={e=>setShopName(e.target.value)}/><input className={field} style={fs} placeholder="כמות / הערה (לא חובה)" value={quantity} onChange={e=>setQuantity(e.target.value)}/><div className="flex flex-wrap gap-2"><button disabled={!canWrite||busy||!shopName.trim()} onClick={()=>void addShopping()} className={primary} style={prim}>{editingShoppingId?<Check size={15}/>:<Plus size={15} />}{editingShoppingId?'שמירת שינויים':'הוסף לרשימה'}</button>{editingShoppingId&&<button disabled={busy} onClick={()=>{setEditingShoppingId(null);setShopName('');setQuantity('');}} className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-bold" style={fs}><X size={15}/>ביטול</button>}</div></div></section><section className={panel} style={ps}><div className="mb-4 flex justify-between"><h2 className="text-lg font-bold">רשימת הקניות</h2><span className="text-xs opacity-60">{shopping.filter(x=>!(x.data as Shopping).checked).length} פתוחים</span></div>{shopping.length===0?<div className="py-10 text-center text-sm opacity-50">הרשימה עדיין ריקה</div>:shopping.map(x=>{const d=x.data as Shopping;return <div key={x.id} className="mb-2 flex items-center gap-3 rounded-xl border px-3 py-3" style={{borderColor:activeTheme.borderSubtle}}><button disabled={!canWrite} onClick={()=>void save('shopping',{...d,checked:!d.checked},x.id)} className="flex h-6 w-6 items-center justify-center rounded-md border" style={{borderColor:activeTheme.borderSubtle,background:d.checked?'#527A68':'transparent',color:'white'}}>{d.checked&&<Check size={14}/>}</button><div className="min-w-0 flex-1"><div className={d.checked?'text-sm line-through opacity-40':'text-sm font-semibold'}>{d.name}</div><div className="text-[10px] opacity-50">{[d.quantity,d.source&&'מתוך: '+d.source].filter(Boolean).join(' · ')}</div></div>{canWrite&&<div className="flex items-center gap-3"><button title="עריכת פריט" onClick={()=>editShopping(x)} className="text-stone-500 hover:text-emerald-700"><Pencil size={15}/></button><button title="מחיקת פריט" onClick={()=>void remove(x.id)} disabled={busy} className="text-rose-500 disabled:opacity-40"><Trash2 size={15}/></button></div>}</div>})}</section></div>}
     {tab==='finance'&&<section className="homeos-finance-overview">
       <header className="flex flex-wrap items-end justify-between gap-3">
-        <div><div className="homeos-section-kicker">FINANCIAL CONNECTION</div><h2 className="mt-1 text-xl font-bold">הוצאות הבית מתוך פנקס העסקאות</h2><p className="mt-1 text-xs" style={{color:activeTheme.textSecondary}}>הנתונים מתעדכנים אוטומטית לאחר רישום או אימות עסקה</p></div>
+        <div><div className="homeos-section-kicker">חיבור נתונים פיננסיים</div><h2 className="mt-1 text-xl font-bold">הוצאות הבית מתוך פנקס העסקאות</h2><p className="mt-1 text-xs" style={{color:activeTheme.textSecondary}}>הנתונים מתעדכנים אוטומטית לאחר רישום או אימות עסקה</p></div>
         <button onClick={onOpenLedger} className="homeos-text-link">פתיחת פנקס העסקאות <ArrowUpRight size={15}/></button>
       </header>
       <div className="homeos-finance-summary">
         <div><span><ArrowDownRight size={14}/> הכנסות מאומתות החודש</span><strong>{money(finance.income)}</strong></div>
         <div><span><ArrowUpRight size={14}/> הוצאות מאומתות החודש</span><strong>{money(finance.expenseTotal)}</strong></div>
-        <div><span>עסקאות שממתינות לאימות</span><strong>{finance.pending}</strong></div>
+        <div><span>עסקאות שממתינות לאימות</span><strong>{finance.pending}</strong><small className="mt-1 block text-xs" style={{color:activeTheme.textSecondary}}>{money(finance.pendingAmount)} בשקלים · טרם נכלל בסיכום</small></div>
       </div>
       {finance.pending>0&&<div className="homeos-data-notice">יש {finance.pending} עסקאות שיובאו מדפי חשבון וממתינות לאימות. הן מוצגות כאן כממתינות, ולא נכללות בסיכומי ההוצאות, בגרפים או ביתרות עד לאימות.</div>}
       {finance.foreignAccounts>0&&<div className="homeos-data-notice muted">קיימים {finance.foreignAccounts} חשבונות במטבע זר. הסיכומים הכספיים כאן מוצגים בשקלים בלבד, ללא המרת מטבע לא מאומתת.</div>}
       <div className="homeos-finance-categories">
-        <div><div className="homeos-section-kicker">MONTHLY CATEGORY MIX</div><h3 className="mt-1 text-lg font-bold">חלוקת הוצאות לפי קטגוריה</h3></div>
+        <div><div className="homeos-section-kicker">חלוקה חודשית לפי קטגוריה</div><h3 className="mt-1 text-lg font-bold">חלוקת הוצאות לפי קטגוריה</h3></div>
         {finance.categories.length?finance.categories.map(([label,value],index)=>{
           const pct=finance.expenseTotal>0?Math.min(100,value/finance.expenseTotal*100):0;
           return <div className="homeos-finance-category" key={label}>

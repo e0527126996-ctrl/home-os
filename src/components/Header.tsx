@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, ShieldCheck, Database, Palette, Users, ChevronDown, Home, Sparkles, Cloud, Settings2 } from 'lucide-react';
+import { Download, ShieldCheck, Database, Palette, Users, ChevronDown, Home, CloudOff } from 'lucide-react';
 import { Household, User } from '../types.ts';
 import { MODERN_EDITORIAL_THEMES, ThemeConfig } from '../lib/themes.ts';
 
@@ -29,6 +29,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="homeos-brand-mark"><Home className="h-5 w-5" /></div>
           <div className="min-w-0"><div className="flex items-center gap-2"><span className="text-xl font-extrabold tracking-[-.06em]">HOME OS</span><span className="hidden rounded-full border border-[#547D70]/20 bg-[#547D70]/[.07] px-2 py-0.5 text-[9px] font-bold tracking-wider text-[#547D70] sm:inline-flex">מרכז הבית</span></div><div className="mt-0.5 text-[9px] font-semibold tracking-[.22em]" style={{ color: activeTheme.textSecondary }}>מערכת ניהול משק הבית</div></div>
           {household && <button onClick={onOpenHouseholds} className="homeos-household-switch"><span className="homeos-live-dot" /><span className="max-w-36 truncate">{household.name}</span><ChevronDown className="h-3.5 w-3.5 opacity-50" /></button>}
+          <div className="homeos-sync-state" role="status" title="הנתונים נשמרים בדפדפן הנוכחי. סנכרון בין מכשירים עדיין לא הוגדר."><CloudOff aria-hidden="true" /><span>מקומי בלבד</span><small>ענן לא מחובר</small></div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <div className="relative">

@@ -37,7 +37,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   );
 
   return (
-    <section className="homeos-settings space-y-7" dir="rtl">
+    <section className="homeos-settings homeos-workspace-page space-y-7" dir="rtl">
       <header className="homeos-settings-hero">
         <div className="flex items-center gap-3">
           <div className="homeos-settings-icon"><Palette className="h-5 w-5" /></div>

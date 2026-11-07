@@ -54,7 +54,7 @@ const cases: Array<{ name: string; run: () => void | Promise<void> }> = [
     name: 'classifies CSV credit and debit columns from their explicit column meaning',
     run: async () => {
       const csv = [
-        '\\uFEFFתאריך,תיאור,חובה,זכות',
+        '\uFEFFתאריך,תיאור,חובה,זכות',
         '01/11/2026,העברה נכנסת,,1250.00',
         '02/11/2026,העברה יוצאת,85.00,',
       ].join('\n');

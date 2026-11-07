@@ -154,7 +154,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+    <div className="homeos-themed-modal homeos-account-modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
       <div
         className="w-full max-w-xl rounded-xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         style={{

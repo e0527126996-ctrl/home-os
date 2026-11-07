@@ -18,6 +18,7 @@ interface DashboardViewProps {
   activeTheme: ThemeConfig;
   onOpenAccounts: () => void;
   onOpenLedger: () => void;
+  onOpenHome: () => void;
   viewMode: WorkspaceViewMode;
   dashboardWidgetOrder: string[];
   visibleDashboardWidgetIds: string[];
@@ -30,10 +31,14 @@ const money = (value: number, currency: string = 'ILS') => new Intl.NumberFormat
 const monthLabel = (date: Date) => new Intl.DateTimeFormat('he-IL', { month: 'short' }).format(date);
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
-  accounts, transactions, homeItems, householdName, activeTheme, onOpenAccounts, onOpenLedger,
+  accounts, transactions, homeItems, householdName, activeTheme, onOpenAccounts, onOpenLedger, onOpenHome,
   viewMode, dashboardWidgetOrder, visibleDashboardWidgetIds, dashboardWidgetSizes,
 }) => {
-  const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[] } | null>(null);
+  const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[]; note?: string } | null>(null);
+  const [detailFilter, setDetailFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
+  const detailItems = chartDetail?.items.filter(tx => detailFilter === 'ALL' || tx.type === detailFilter) || [];
+  const detailIncome = detailItems.filter(tx => tx.type === 'INCOME').reduce((sum, tx) => sum + tx.amountCents, 0);
+  const detailExpense = detailItems.filter(tx => tx.type === 'EXPENSE').reduce((sum, tx) => sum + tx.amountCents, 0);
   const financeAnalytics = useMemo(() => buildFinanceAnalytics(accounts, transactions), [accounts, transactions]);
   const accountCurrencies = useMemo(() => new Map(accounts.map(account => [account.id, account.currency])), [accounts]);
   // All financial views use the same verified transaction selector.
@@ -41,6 +46,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     () => financeAnalytics.verifiedTransactions.filter(tx => accountCurrencies.get(tx.accountId) === 'ILS'),
     [financeAnalytics, accountCurrencies],
   );
+
+  useEffect(() => { setDetailFilter('ALL'); }, [chartDetail?.title]);
 
   useEffect(() => {
     if (!chartDetail) return;
@@ -203,9 +210,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:grid-cols-1">
-            <div className="homeos-hero-metric"><span className="homeos-metric-icon"><TrendingUp className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">נכסים</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.assets)}</div></div><span className="text-[10px] text-white/35">{data.assetAccountCount} חשבונות</span></div>
-            <div className="homeos-hero-metric"><span className="homeos-metric-icon copper"><TrendingDown className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">התחייבויות</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.liabilities)}</div></div><span className="text-[10px] text-white/35">{data.liabilityAccountCount} התחייבויות</span></div>
-            <div className="homeos-hero-metric"><span className="homeos-metric-icon blue"><Activity className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">תזרים החודש</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.cashflow)}</div></div><span className="text-[10px] text-white/35">הכנסות פחות הוצאות</span></div>
+            <button type="button" onClick={onOpenAccounts} className="homeos-hero-metric" title="פתיחת חשבונות הנכסים"><span className="homeos-metric-icon"><TrendingUp className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">נכסים</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.assets)}</div></div><span className="text-[10px] text-white/35">{data.assetAccountCount} חשבונות · פתיחה</span></button>
+            <button type="button" onClick={onOpenAccounts} className="homeos-hero-metric" title="פתיחת חשבונות ההתחייבויות"><span className="homeos-metric-icon copper"><TrendingDown className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">התחייבויות</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.liabilities)}</div></div><span className="text-[10px] text-white/35">{data.liabilityAccountCount} התחייבויות · פתיחה</span></button>
+            <button type="button" onClick={onOpenLedger} className="homeos-hero-metric" title="פתיחת תנועות החודש"><span className="homeos-metric-icon blue"><Activity className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">תזרים החודש</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.cashflow)}</div></div><span className="text-[10px] text-white/35">הכנסות פחות הוצאות · פירוט</span></button>
           </div>
         </div>
         <div className="homeos-hero-footer"><span>תמונת ההון של משק הבית</span><span>01 — מצב פיננסי</span></div>
@@ -250,7 +257,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         <div className={panel + ' p-5 sm:p-7'}>
           <div className="homeos-section-kicker">פילוח הוצאות</div><h2 className="mt-1 text-lg font-bold">לאן הכסף הולך?</h2><p className="mt-1 text-xs" style={muted}>כל קטגוריות ההוצאה בחודש הנוכחי</p>
-          {data.topCategories.length ? <><div className="my-6 flex items-center justify-center"><div className="homeos-donut" style={{ background: 'conic-gradient(' + data.topCategories.map(([name, value], i) => { const start = data.topCategories.slice(0, i).reduce((s, x) => s + x[1], 0) / categoryTotal * 100; const end = (data.topCategories.slice(0, i).reduce((s, x) => s + x[1], 0) + value) / categoryTotal * 100; return categoryColors[i % categoryColors.length] + ' ' + start + '% ' + end + '%'; }).join(', ') + ')' }}><div><span>כל הקטגוריות</span><strong>{currency(categoryTotal)}</strong></div></div></div><div className="space-y-3">{data.topCategories.map(([name, value], i) => <button type="button" key={name} onClick={() => setChartDetail({ title: "הוצאות: " + name, subtitle: "עסקאות בקטגוריה זו בחודש הנוכחי · " + currency(value), items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.category === name && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2 text-right text-xs transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#547D70] dark:hover:bg-white/10"><span className="flex min-w-0 items-center gap-2"><i className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: categoryColors[i % categoryColors.length] }} /><span className="truncate">{name}</span></span><strong className="shrink-0 tabular-nums">{currency(value)}</strong></button>)}</div></> : <div className="flex min-h-52 flex-col items-center justify-center text-center"><Sparkles className="mb-3 h-7 w-7" style={muted} /><p className="text-sm font-semibold">אין עדיין נתוני הוצאות</p><p className="mt-1 max-w-[220px] text-xs leading-5" style={muted}>לאחר רישום עסקאות יוצג כאן ניתוח לפי קטגוריות.</p></div>}
+          {data.topCategories.length ? <><div className="my-6 flex items-center justify-center"><svg className="homeos-category-donut" viewBox="0 0 220 220" role="group" aria-label="פילוח הוצאות לפי קטגוריה, ניתן לבחור מקטע לפירוט"><circle cx="110" cy="110" r="76" fill="none" stroke={activeTheme.borderSubtle} strokeWidth="28" />{data.topCategories.map(([name, value], i) => { const circumference = 2 * Math.PI * 76; const segment = categoryTotal ? value / categoryTotal * circumference : 0; const offset = data.topCategories.slice(0, i).reduce((sum, item) => sum + item[1], 0) / Math.max(1, categoryTotal) * circumference; const openCategory = () => setChartDetail({ title: "הוצאות: " + name, subtitle: "עסקאות בקטגוריה זו בחודש הנוכחי · " + currency(value), items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && (tx.category || 'ללא קטגוריה') === name && tx.date?.slice(0, 7) === data.months[5]?.key) }); return <circle key={name} cx="110" cy="110" r="76" fill="none" stroke={categoryColors[i % categoryColors.length]} strokeWidth="28" strokeDasharray={segment + " " + Math.max(0, circumference - segment)} strokeDashoffset={-offset} transform="rotate(-90 110 110)" role="button" tabIndex={0} aria-label={"פירוט הוצאות " + name + " " + currency(value)} onClick={openCategory} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openCategory(); } }} className="homeos-category-donut-segment"><title>{name}: {currency(value)} — לחיצה לפירוט</title></circle>; })}<text x="110" y="101" textAnchor="middle" className="homeos-category-donut-caption">כל הקטגוריות</text><text x="110" y="126" textAnchor="middle" className="homeos-category-donut-total">{currency(categoryTotal)}</text></svg></div><div className="space-y-3">{data.topCategories.map(([name, value], i) => <button type="button" key={name} onClick={() => setChartDetail({ title: "הוצאות: " + name, subtitle: "עסקאות בקטגוריה זו בחודש הנוכחי · " + currency(value), items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.category === name && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2 text-right text-xs transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#547D70] dark:hover:bg-white/10"><span className="flex min-w-0 items-center gap-2"><i className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: categoryColors[i % categoryColors.length] }} /><span className="truncate">{name}</span></span><strong className="shrink-0 tabular-nums">{currency(value)}</strong></button>)}</div></> : <div className="flex min-h-52 flex-col items-center justify-center text-center"><Sparkles className="mb-3 h-7 w-7" style={muted} /><p className="text-sm font-semibold">אין עדיין נתוני הוצאות</p><p className="mt-1 max-w-[220px] text-xs leading-5" style={muted}>לאחר רישום עסקאות יוצג כאן ניתוח לפי קטגוריות.</p></div>}
         </div>
       </section>
 
@@ -277,12 +284,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {financeAnalytics.forecast.monthly.map(month => {
               const maxCumulative = Math.max(1, ...financeAnalytics.forecast.monthly.map(point => Math.abs(point.cumulativeNetCents)));
               const height = Math.max(4, Math.abs(month.cumulativeNetCents) / maxCumulative * 100);
-              return <div key={month.key} className="flex min-w-0 flex-col items-center gap-2" title={month.label + ': ' + currency(month.cumulativeNetCents)}>
+              return <button type="button" key={month.key} className="homeos-forecast-month flex min-w-0 flex-col items-center gap-2 rounded-lg px-1 text-center" title={month.label + ': ' + currency(month.cumulativeNetCents) + ' · לחיצה לפרטי התחזית'} onClick={() => setChartDetail({ title: "תחזית תזרים — " + month.label, subtitle: "תזרים מצטבר חזוי: " + currency(month.cumulativeNetCents), items: [], note: "זהו ערך תרחישי ולא תנועה שנרשמה בפועל. התחזית מחושבת מנתוני הכנסה והוצאה מאומתים משלושת החודשים המלאים האחרונים ומניחה שהקצב הממוצע יימשך. כדי לבדוק את נתוני המקור, פתח את פנקס העסקאות." })}>
                 <div className="flex h-28 w-full items-end justify-center rounded-lg px-1" style={{backgroundColor:activeTheme.bgSurface}}>
                   <div className="w-full rounded-t-md" style={{height:height + '%',background:month.cumulativeNetCents >= 0 ? 'linear-gradient(180deg,#6F9B83,#477866)' : 'linear-gradient(180deg,#D08A7D,#B45F56)'}}/>
                 </div>
                 <span className="text-[9px] whitespace-nowrap" style={muted}>{month.label}</span>
-              </div>;
+              </button>;
             })}
           </div>
           <p className="mt-3 text-[10px] leading-5" style={muted}>רמת ביטחון: {financeAnalytics.forecast.confidence === 'good' ? 'טובה' : 'בינונית'} · מבוסס על {financeAnalytics.forecast.historyTransactions} עסקאות מאומתות בשלושה חודשים מלאים. זהו תרחיש קבוע ולא תחזית עונתית; יש להוסיף ידנית התחייבויות, שינויים בשכר והוצאות חריגות כדי לדייק אותו.</p>
@@ -470,9 +477,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <button onClick={onOpenLedger} className="homeos-text-link">מעבר לפנקס העסקאות <ArrowLeft className="h-4 w-4" /></button>
         </div>
         <div className="homeos-home-snapshot-metrics">
-          <div><span>ארוחות בשבעת הימים הקרובים</span><strong>{householdSnapshot.meals}</strong></div>
-          <div><span>משימות פתוחות</span><strong>{householdSnapshot.openTasks}</strong></div>
-          <div><span>פריטים ברשימת הקניות</span><strong>{householdSnapshot.openShopping}</strong></div>
+          <button type="button" onClick={onOpenHome} title="פתיחת תכנון הארוחות"><span>ארוחות בשבעת הימים הקרובים</span><strong>{householdSnapshot.meals}</strong><small>פתיחת התפריט</small></button>
+          <button type="button" onClick={onOpenHome} title="פתיחת משימות הבית"><span>משימות פתוחות</span><strong>{householdSnapshot.openTasks}</strong><small>ניהול משימות</small></button>
+          <button type="button" onClick={onOpenHome} title="פתיחת רשימת הקניות"><span>פריטים ברשימת הקניות</span><strong>{householdSnapshot.openShopping}</strong><small>פתיחת רשימת הקניות</small></button>
         </div>
       </section>
 
@@ -492,16 +499,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={chartDetail.title} onMouseDown={(event) => { if (event.target === event.currentTarget) setChartDetail(null); }}>
           <div className="max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-3xl border bg-white shadow-2xl dark:bg-[#1E293B]" style={{ borderColor: activeTheme.borderSubtle }}>
             <div className="flex items-start justify-between gap-4 border-b p-5 sm:p-6" style={{ borderColor: activeTheme.borderSubtle }}>
-              <div><div className="homeos-section-kicker">פרטי התרשים</div><h2 className="mt-1 text-xl font-bold">{chartDetail.title}</h2><p className="mt-1 text-sm" style={muted}>{chartDetail.subtitle}</p></div>
+              <div><div className="homeos-section-kicker">פירוט אינטראקטיבי</div><h2 className="mt-1 text-xl font-bold">{chartDetail.title}</h2><p className="mt-1 text-sm" style={muted}>{chartDetail.subtitle}</p></div>
               <button type="button" onClick={() => setChartDetail(null)} className="rounded-xl border px-3 py-2 text-sm" style={{ borderColor: activeTheme.borderSubtle }}>סגירה ✕</button>
             </div>
             <div className="max-h-[65vh] overflow-y-auto p-5 sm:p-6">
-              {chartDetail.items.length ? <div className="space-y-2">{chartDetail.items.slice().sort((a,b) => b.date.localeCompare(a.date)).map(tx => (
-                <div key={tx.id} className="flex items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
-                  <div className="min-w-0"><div className="truncate text-sm font-semibold">{tx.payee || tx.category}</div><div className="mt-1 text-xs" style={muted}>{tx.category} · {new Date(tx.date + 'T12:00:00').toLocaleDateString('he-IL')}</div></div>
-                  <strong className={'shrink-0 text-sm tabular-nums ' + (tx.type === 'INCOME' ? 'text-[#477866]' : '')}>{tx.type === 'INCOME' ? '+' : tx.type === 'TRANSFER' ? '↔ ' : '−'}{currency(tx.amountCents)}</strong>
+              {chartDetail.note && <div className="mb-4 rounded-2xl border p-4 text-sm leading-6" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface,color:activeTheme.textSecondary}}>{chartDetail.note}</div>}
+              {chartDetail.items.length > 0 && <>
+                <div className="mb-4 grid grid-cols-3 gap-2">
+                  <div className="rounded-xl p-3" style={{backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>עסקאות</div><strong className="text-lg tabular-nums">{detailItems.length}</strong></div>
+                  <div className="rounded-xl p-3" style={{backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>הכנסות</div><strong className="text-sm tabular-nums">{currency(detailIncome)}</strong></div>
+                  <div className="rounded-xl p-3" style={{backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>הוצאות</div><strong className="text-sm tabular-nums">{currency(detailExpense)}</strong></div>
                 </div>
-              ))}</div> : <div className="py-12 text-center text-sm" style={muted}>אין עסקאות בחודש הזה.</div>}
+                <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label="סינון עסקאות בפירוט">
+                  {([{id:'ALL',label:'הכול'},{id:'INCOME',label:'הכנסות'},{id:'EXPENSE',label:'הוצאות'}] as const).map(option=><button key={option.id} type="button" onClick={()=>setDetailFilter(option.id)} aria-pressed={detailFilter===option.id} className="rounded-full border px-3 py-1.5 text-xs font-semibold" style={{borderColor:detailFilter===option.id?activeTheme.accent:activeTheme.borderSubtle,backgroundColor:detailFilter===option.id?activeTheme.accent:'transparent',color:detailFilter===option.id?(activeTheme.isDark?'#111':'#fff'):activeTheme.textPrimary}}>{option.label}</button>)}
+                </div>
+              </>}
+              {detailItems.length ? <div className="space-y-2">{detailItems.slice().sort((a,b) => b.date.localeCompare(a.date)).map(tx => (
+                <div key={tx.id} className="flex items-center justify-between gap-3 rounded-xl border p-3" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+                  <div className="min-w-0"><div className="truncate text-sm font-semibold">{tx.payee || tx.category}</div><div className="mt-1 text-xs" style={muted}>{tx.category} · {new Date(tx.date + 'T12:00:00').toLocaleDateString('he-IL')} · {accounts.find(account=>account.id===tx.accountId)?.name || 'חשבון'}</div></div>
+                  <strong className={'shrink-0 text-sm tabular-nums ' + (tx.type === 'INCOME' ? 'text-[#477866]' : '')}>{tx.type === 'INCOME' ? '+' : tx.type === 'TRANSFER' ? '↔ ' : '−'}{currency(tx.amountCents, accountCurrencies.get(tx.accountId) || 'ILS')}</strong>
+                </div>
+              ))}</div> : <div className="py-8 text-center text-sm leading-6" style={muted}>{chartDetail.items.length ? 'אין עסקאות התואמות למסנן שבחרת.' : (chartDetail.note ? 'הפירוט כאן מסביר את חישוב התחזית; אין מדובר ברשימת תנועות עתידיות.' : 'אין עסקאות להצגה בתקופה הזו.')}</div>}
             </div>
             <div className="border-t p-4 text-left" style={{ borderColor: activeTheme.borderSubtle }}><button type="button" onClick={() => { setChartDetail(null); onOpenLedger(); }} className="homeos-primary-action">פתיחת פנקס העסקאות <ArrowLeft className="h-4 w-4" /></button></div>
           </div>

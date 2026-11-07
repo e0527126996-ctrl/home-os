@@ -153,11 +153,23 @@ class HomeOSIndexedDB {
   ): Promise<T> {
     const db = await this.getDB();
     const tx = db.transaction(storeNames, mode);
+    const completion = new Promise<void>((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onabort = () => reject(tx.error || new Error('פעולת מסד הנתונים בוטלה ולא נשמרה'));
+    });
+    // Mark the rejection as observed immediately; the callback may still be
+    // waiting for an individual request when the transaction aborts.
+    void completion.catch(() => undefined);
+
     try {
       const result = await callback(tx);
+      // Request success is not the same as a committed transaction. Resolve
+      // only after IndexedDB confirms the complete transaction was committed.
+      await completion;
       return result;
     } catch (err) {
-      tx.abort();
+      try { tx.abort(); } catch { /* The transaction may already be inactive. */ }
+      try { await completion; } catch { /* Preserve the original operation error. */ }
       throw err;
     }
   }

@@ -67,7 +67,7 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
 
   const panel = { backgroundColor: activeTheme.bgCard, color: activeTheme.textPrimary, borderColor: activeTheme.borderSubtle };
   const muted = { color: activeTheme.textSecondary };
-  return <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#101B16]/65 p-3 backdrop-blur-md" dir="rtl" role="dialog" aria-modal="true" aria-label="ייבוא דף חשבון">
+  return <div className="homeos-themed-modal homeos-statement-import-modal fixed inset-0 z-[120] flex items-center justify-center bg-[#101B16]/65 p-3 backdrop-blur-md" dir="rtl" role="dialog" aria-modal="true" aria-label="ייבוא דף חשבון">
     <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border shadow-2xl" style={panel}>
       <header className="relative overflow-hidden bg-gradient-to-l from-[#142A22] via-[#244638] to-[#527D68] px-6 py-6 text-white sm:px-8">
         <div className="absolute -left-10 -top-24 h-64 w-64 rounded-full border border-white/10" />

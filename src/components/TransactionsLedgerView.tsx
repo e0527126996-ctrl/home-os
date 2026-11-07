@@ -20,6 +20,7 @@ import {
 } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
 import { formatCents } from '../lib/currency.ts';
+import { buildFinanceAnalytics } from '../lib/financeAnalytics.ts';
 
 interface TransactionsLedgerViewProps {
   transactions: LedgerTransaction[];
@@ -76,23 +77,29 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
     return Array.from(set).sort();
   }, [transactions]);
 
-  // Household-wide headline totals are shown in ILS only. Pending imports
-  // remain visible in the ledger but do not affect confirmed financial totals.
+  // Use the same verified-transaction rules as the dashboard and home finance view.
+  const financeAnalytics = useMemo(() => buildFinanceAnalytics(accounts, transactions), [accounts, transactions]);
   const summary = useMemo(() => {
     let incomeCents = 0;
     let expenseCents = 0;
     let transferVolumeCents = 0;
-    const confirmedIlsTransactions = transactions.filter(tx =>
-      accountsMap.get(tx.accountId)?.currency === 'ILS' &&
-      tx.verificationStatus !== 'PENDING' &&
-      Number.isSafeInteger(tx.amountCents) &&
-      tx.amountCents > 0
+    const confirmedIlsTransactions = financeAnalytics.verifiedTransactions.filter(tx =>
+      accountsMap.get(tx.accountId)?.currency === 'ILS'
     );
 
     confirmedIlsTransactions.forEach((tx) => {
       if (tx.type === 'INCOME') incomeCents += tx.amountCents;
       else if (tx.type === 'EXPENSE') expenseCents += tx.amountCents;
-      else if (tx.type === 'TRANSFER' && tx.transferDirection === 'OUT') transferVolumeCents += tx.amountCents;
+    });
+    const verifiedTransfers = transactions.filter(tx =>
+      tx.type === 'TRANSFER' &&
+      tx.verificationStatus !== 'PENDING' &&
+      accountsMap.get(tx.accountId)?.currency === 'ILS' &&
+      Number.isSafeInteger(tx.amountCents) &&
+      tx.amountCents > 0
+    );
+    verifiedTransfers.forEach(tx => {
+      if (tx.transferDirection === 'OUT') transferVolumeCents += tx.amountCents;
     });
 
     return {
@@ -100,9 +107,9 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
       expenseCents,
       netCashflowCents: incomeCents - expenseCents,
       transferVolumeCents,
-      count: confirmedIlsTransactions.length,
+      count: confirmedIlsTransactions.length + verifiedTransfers.length,
     };
-  }, [transactions, accountsMap]);
+  }, [financeAnalytics, transactions, accountsMap]);
 
   // גבולות תאריכים לסינון
   const now = new Date();

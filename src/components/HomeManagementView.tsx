@@ -44,6 +44,7 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
       currency: item.currency, income: item.incomeCents, expense: item.expenseCents,
     })),
     categories: financeAnalytics.categories,
+    forecast: financeAnalytics.forecast,
   }), [financeAnalytics, accounts]);
   const money = (cents: number) => new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }).format(cents / 100);
   const save=async(kind:HouseholdHomeItem['kind'],data:Record<string,unknown>,id=uid(kind))=>{
@@ -91,6 +92,21 @@ export function HomeManagementView({ household, currentUser, activeTheme, canRea
         <div><span><ArrowUpRight size={14}/> הוצאות מאומתות החודש</span><strong>{money(finance.expenseTotal)}</strong></div>
         <div><span>עסקאות שממתינות לאימות</span><strong>{finance.pending}</strong><small className="mt-1 block text-xs" style={{color:activeTheme.textSecondary}}>{money(finance.pendingAmount)} בשקלים · טרם נכלל בסיכום</small></div>
       </div>
+      <section className="homeos-home-forecast">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div><div className="homeos-section-kicker">תכנון קדימה</div><h3 className="mt-1 text-lg font-bold">תחזית תזרים ל־12 חודשים</h3><p className="mt-1 text-xs" style={{color:activeTheme.textSecondary}}>אותו מנוע חישוב שמזין את לוח הבקרה, על בסיס שלושה חודשים מלאים של נתונים מאומתים.</p></div>
+          <span className="homeos-forecast-tag">תרחיש בסיס</span>
+        </div>
+        {finance.forecast.available ? <>
+          <div className="homeos-home-forecast-kpis">
+            {finance.forecast.horizons.map(item=><div key={item.months}><span>תזרים מצטבר · {item.months} חודשים</span><strong className={item.netCents>=0?'positive':'negative'}>{money(item.netCents)}</strong><small>הכנסות {money(item.incomeCents)} · הוצאות {money(item.expenseCents)}</small></div>)}
+          </div>
+          <div className="homeos-forecast-bars" aria-label="תחזית תזרים מצטברת לשנים עשר חודשים">
+            {finance.forecast.monthly.map(point=>{const max=Math.max(1,...finance.forecast.monthly.map(x=>Math.abs(x.cumulativeNetCents)));return <div key={point.key} title={point.label+': '+money(point.cumulativeNetCents)}><div className="homeos-forecast-bar-track"><span className={point.cumulativeNetCents>=0?'positive':'negative'} style={{height:Math.max(4,Math.abs(point.cumulativeNetCents)/max*100)+'%'}}/></div><small>{point.label}</small></div>;})}
+          </div>
+          <p className="mt-3 text-[10px] leading-5" style={{color:activeTheme.textSecondary}}>רמת ביטחון: {finance.forecast.confidence==='good'?'טובה':'בינונית'} · {finance.forecast.historyTransactions} עסקאות מאומתות. זהו תרחיש קבוע שאינו כולל עדיין התחייבויות עתידיות, שינויים בשכר או עונתיות.</p>
+        </> : <div className="homeos-finance-empty">עדיין אין מספיק היסטוריה רציפה לתחזית אמינה. נדרשות לפחות 9 עסקאות מאומתות בשלושת החודשים המלאים האחרונים. המערכת לא תציג מספרים מומצאים.</div>}
+      </section>
       {finance.pending>0&&<div className="homeos-data-notice">יש {finance.pending} עסקאות שיובאו מדפי חשבון וממתינות לאימות. הן מוצגות כאן כממתינות, ולא נכללות בסיכומי ההוצאות, בגרפים או ביתרות עד לאימות.</div>}
       {finance.foreignAccounts>0&&<div className="homeos-data-notice muted">קיימים {finance.foreignAccounts} חשבונות במטבע זר. הסיכומים הכספיים כאן מוצגים בשקלים בלבד, ללא המרת מטבע לא מאומתת.</div>}
       {finance.foreignCurrencies.length>0&&<div className="homeos-finance-foreign">

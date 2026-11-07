@@ -1557,3 +1557,15 @@ body {
 .homeos-accounts-view :is(.text-stone-500,.text-stone-600,.text-slate-500) { color: var(--text-secondary); }
 .homeos-accounts-view :is(.bg-white,.bg-stone-50,.bg-stone-100) { background-color: var(--bg-card); }
 :root.dark .homeos-accounts-view :is(.bg-white,.bg-stone-50,.bg-stone-100) { background-color: var(--bg-surface); }
+
+
+/* Density presets now adjust the real dashboard rhythm, not only tokens. */
+.homeos-density-compact .homeos-dashboard > :not([hidden]) ~ :not([hidden]) { margin-top: 12px; }
+.homeos-density-balanced .homeos-dashboard > :not([hidden]) ~ :not([hidden]) { margin-top: 24px; }
+.homeos-density-spacious .homeos-dashboard > :not([hidden]) ~ :not([hidden]) { margin-top: 32px; }
+.homeos-density-compact .homeos-main-content { row-gap: 12px; }
+.homeos-density-balanced .homeos-main-content { row-gap: 24px; }
+.homeos-density-spacious .homeos-main-content { row-gap: 32px; }
+.homeos-density-compact .homeos-navigation-shell { padding-block: 10px; }
+.homeos-density-balanced .homeos-navigation-shell { padding-block: 15px; }
+.homeos-density-spacious .homeos-navigation-shell { padding-block: 22px; }

@@ -10,27 +10,21 @@
  */
 export function toCents(val: number | string | undefined | null): number {
   if (val === undefined || val === null || val === '') return 0;
-  
-  if (typeof val === 'number') {
-    if (!Number.isFinite(val)) return 0;
-    val = val.toFixed(2);
-  }
-  
-  const str = String(val).trim();
-  if (!str) return 0;
 
-  const isNegative = str.startsWith('-');
-  const clean = str.replace('-', '');
-  const parts = clean.split('.');
-  
-  const wholePart = parseInt(parts[0] || '0', 10);
-  const fracPartStr = (parts[1] || '').padEnd(2, '0').slice(0, 2);
-  const fracPart = parseInt(fracPartStr || '0', 10);
-  
-  if (isNaN(wholePart) || isNaN(fracPart)) return 0;
-  
+  // Numeric callers are normalized to two decimal places. String callers
+  // must already be a plain decimal value; malformed suffixes and extra
+  // decimal places are rejected instead of being silently truncated.
+  const str = typeof val === 'number'
+    ? (Number.isFinite(val) ? val.toFixed(2) : '')
+    : String(val).trim();
+  const match = str.match(/^(-?)(\\d+)(?:\\.(\\d{1,2}))?$/);
+  if (!match) return 0;
+
+  const wholePart = Number(match[2]);
+  const fracPart = Number((match[3] || '').padEnd(2, '0'));
   const totalCents = wholePart * 100 + fracPart;
-  return isNegative ? -totalCents : totalCents;
+  if (!Number.isSafeInteger(totalCents)) return 0;
+  return match[1] ? -totalCents : totalCents;
 }
 
 /**
@@ -65,6 +59,16 @@ export function parseCurrencyInput(input: string): { valid: boolean; cents: numb
   if (!/^-?\d+(\.\d{1,2})?$/.test(trimmed)) {
     return { valid: false, cents: 0, error: 'סכום אינו חוקי (יש להזין ספרות ועד 2 ספרות אחרי הנקודה)' };
   }
-  const cents = toCents(trimmed);
+  const match = trimmed.match(/^(-?)(\\d+)(?:\\.(\\d{1,2}))?$/);
+  if (!match) {
+    return { valid: false, cents: 0, error: 'סכום אינו חוקי (יש להזין ספרות ועד 2 ספרות אחרי הנקודה)' };
+  }
+  const wholePart = Number(match[2]);
+  const fractionPart = Number((match[3] || '').padEnd(2, '0'));
+  const absoluteCents = wholePart * 100 + fractionPart;
+  if (!Number.isSafeInteger(absoluteCents)) {
+    return { valid: false, cents: 0, error: 'הסכום חורג מהטווח הנתמך' };
+  }
+  const cents = match[1] ? -absoluteCents : absoluteCents;
   return { valid: true, cents };
 }

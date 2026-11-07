@@ -18,8 +18,6 @@ body {
 .homeos-app-shell {
   min-height: 100vh;
   background-color: var(--homeos-canvas, #FAF8F5);
-  background-image:
-    radial-gradient(ellipse at 86% 0%, color-mix(in srgb, var(--homeos-accent, #547D70) 5%, transparent), transparent 38%) !important;
   background-attachment: fixed;
 }
 .homeos-topbar {

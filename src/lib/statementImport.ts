@@ -223,8 +223,8 @@ export function parsePdfLines(text: string): ImportedStatementRow[] {
   const hasBalanceColumn = lines.some(line =>
     /(?:יתרה|balance)/i.test(line) && /(?:תאריך|date|חובה|זכות|debit|credit)/i.test(line)
   );
-  const datePattern = /(?:^|\s)(\d{1,2}[./-]\d{1,2}[./-]\d{2,4})(?=\s|$)/;
-  const amountPattern = /(?:₪\s*)?\(?[-−]?\d[\d,]*(?:\.\d{1,2})?\)?(?:\s*₪)?/g;
+  const datePattern = /(?:^|\s)(\d{4}[./-]\d{1,2}[./-]\d{1,2}|\d{1,2}[./-]\d{1,2}[./-]\d{2,4})(?=\s|$)/;
+  const amountPattern = /(?:₪\s*)?\(?[-−]?(?:\d{1,3}(?:[.,]\d{3})+|\d+)(?:[.,]\d{1,2})?\)?(?:\s*₪)?/g;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const dateMatch = line.match(datePattern);

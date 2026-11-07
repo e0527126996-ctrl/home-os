@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import type { Household, HouseholdMembership, HouseholdPermissionRule } from '../src/types.ts';
 import {
+  canApproveHouseholdDomain,
   canReadHouseholdDomain,
   canWriteHouseholdDomain,
   filterHouseholdsByMembership,
@@ -76,6 +77,15 @@ const cases: Array<{ name: string; run: () => void }> = [
       assert.equal(canWriteHouseholdDomain('member', rules, 'documents'), true);
       assert.equal(canReadHouseholdDomain('member', rules, 'finance'), false);
       assert.equal(canWriteHouseholdDomain('member', rules, 'finance'), false);
+    },
+  },
+  {
+    name: 'approval permission is separate from ordinary admin-domain read and write',
+    run: () => {
+      const readWriteOnly = [rule('admin', true, true, false)];
+      assert.equal(canWriteHouseholdDomain('member', readWriteOnly, 'admin'), true);
+      assert.equal(canApproveHouseholdDomain('member', readWriteOnly, 'admin'), false);
+      assert.equal(canApproveHouseholdDomain('member', [rule('admin', true, false, true)], 'admin'), true);
     },
   },
   {

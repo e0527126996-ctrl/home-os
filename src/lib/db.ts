@@ -1314,20 +1314,20 @@ class HomeOSIndexedDB {
 
         case 'SAVINGS':
           savingsTotalCents += balCents;
-          if (balCents >= 0) {
-            totalAssetsCents += balCents;
-          }
+          if (balCents >= 0) totalAssetsCents += balCents;
+          else totalLiabilitiesCents += Math.abs(balCents);
           break;
 
         case 'CREDIT_CARD':
           creditTotalCents += balCents;
-          // Negative balance represents money owed (liability)
-          totalLiabilitiesCents += Math.abs(balCents);
+          if (balCents >= 0) totalAssetsCents += balCents;
+          else totalLiabilitiesCents += Math.abs(balCents);
           break;
 
         case 'LOAN_MORTGAGE':
           loansTotalCents += balCents;
-          totalLiabilitiesCents += Math.abs(balCents);
+          if (balCents >= 0) totalAssetsCents += balCents;
+          else totalLiabilitiesCents += Math.abs(balCents);
           break;
       }
     }

@@ -3,7 +3,7 @@
  * Single Source of Truth Local-First Household Operating System
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import {
   Home,
   Users,
@@ -18,7 +18,6 @@ import {
   LayoutDashboard,
   WalletCards,
   ArrowLeftRight,
-  ChartNoAxesCombined,
   UsersRound,
   House,
   ClipboardList,
@@ -26,24 +25,24 @@ import {
   Utensils,
 } from 'lucide-react';
 import { Header } from './components/Header.tsx';
-import { DashboardView } from './components/DashboardView.tsx';
-import { HouseholdsView } from './components/HouseholdsView.tsx';
-import { MembersAndPersonsView } from './components/MembersAndPersonsView.tsx';
-import { AccountsView } from './components/AccountsView.tsx';
-import { TransactionsLedgerView } from './components/TransactionsLedgerView.tsx';
-import { TransactionModal } from './components/TransactionModal.tsx';
-import { PermissionsModal } from './components/PermissionsModal.tsx';
-import { AuditLogView } from './components/AuditLogView.tsx';
-import { TestRunnerModal } from './components/TestRunnerModal.tsx';
-import { ExportImportModal } from './components/ExportImportModal.tsx';
-import { StandaloneExportModal } from './components/StandaloneExportModal.tsx';
-import { AuthModal } from './components/AuthModal.tsx';
-import { DocumentCenterView } from './components/DocumentCenterView.tsx';
-import { HomeManagementView } from './components/HomeManagementView.tsx';
+const DashboardView = lazy(() => import('./components/DashboardView.tsx').then(({ DashboardView }) => ({ default: DashboardView })));
+const HouseholdsView = lazy(() => import('./components/HouseholdsView.tsx').then(({ HouseholdsView }) => ({ default: HouseholdsView })));
+const MembersAndPersonsView = lazy(() => import('./components/MembersAndPersonsView.tsx').then(({ MembersAndPersonsView }) => ({ default: MembersAndPersonsView })));
+const AccountsView = lazy(() => import('./components/AccountsView.tsx').then(({ AccountsView }) => ({ default: AccountsView })));
+const TransactionsLedgerView = lazy(() => import('./components/TransactionsLedgerView.tsx').then(({ TransactionsLedgerView }) => ({ default: TransactionsLedgerView })));
+const TransactionModal = lazy(() => import('./components/TransactionModal.tsx').then(({ TransactionModal }) => ({ default: TransactionModal })));
+const PermissionsModal = lazy(() => import('./components/PermissionsModal.tsx').then(({ PermissionsModal }) => ({ default: PermissionsModal })));
+const AuditLogView = lazy(() => import('./components/AuditLogView.tsx').then(({ AuditLogView }) => ({ default: AuditLogView })));
+const TestRunnerModal = lazy(() => import('./components/TestRunnerModal.tsx').then(({ TestRunnerModal }) => ({ default: TestRunnerModal })));
+const ExportImportModal = lazy(() => import('./components/ExportImportModal.tsx').then(({ ExportImportModal }) => ({ default: ExportImportModal })));
+const StandaloneExportModal = lazy(() => import('./components/StandaloneExportModal.tsx').then(({ StandaloneExportModal }) => ({ default: StandaloneExportModal })));
+const AuthModal = lazy(() => import('./components/AuthModal.tsx').then(({ AuthModal }) => ({ default: AuthModal })));
+const DocumentCenterView = lazy(() => import('./components/DocumentCenterView.tsx').then(({ DocumentCenterView }) => ({ default: DocumentCenterView })));
+const HomeManagementView = lazy(() => import('./components/HomeManagementView.tsx').then(({ HomeManagementView }) => ({ default: HomeManagementView })));
 import { db } from './lib/db.ts';
 import { MODERN_EDITORIAL_THEMES, ThemeConfig } from './lib/themes.ts';
 import { generateStandaloneHomeOSHtml } from './lib/standaloneGenerator.ts';
-import { ImportedStatementRow } from './lib/statementImport.ts';
+import type { ImportedStatementRow } from './lib/statementImport.ts';
 import {
   AuditLog,
   FinancialAccount,
@@ -551,6 +550,7 @@ export default function App() {
         onOpenExportHtml={() => setShowExportHtmlModal(true)}
       />
 
+      <Suspense fallback={<div className="flex min-h-48 items-center justify-center text-sm" style={{ color: activeTheme.textSecondary }}>טוען אזור עבודה...</div>}>
       {/* Main Body */}
       <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-7 lg:px-10 py-7 space-y-8">
         {/* Premium primary navigation */}
@@ -566,7 +566,6 @@ export default function App() {
               { id: 'ledger', label: 'פנקס עסקאות', icon: ArrowLeftRight, count: transactions.length },
               { id: 'documents', label: 'מרכז מסמכים', icon: FolderOpen },
               { id: 'home', label: 'ניהול הבית', icon: Utensils },
-              { id: 'overview', label: 'תמונת מצב', icon: ChartNoAxesCombined },
               { id: 'members', label: 'משפחה והרשאות', icon: UsersRound, count: memberships.length + persons.length },
               { id: 'households', label: 'משקי בית', icon: House, count: households.length },
               { id: 'audit', label: 'יומן ביקורת', icon: ClipboardList, count: auditLogs.length },
@@ -1005,6 +1004,7 @@ export default function App() {
           canEdit={canPerformFinance}
         />
       )}
+      </Suspense>
     </div>
   );
 }

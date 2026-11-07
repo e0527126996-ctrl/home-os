@@ -35,3 +35,12 @@ export function canWriteHouseholdDomain(
   return isHouseholdManager(role) ||
     rules.some(rule => rule.domain === domain && rule.canWrite);
 }
+
+export function canApproveHouseholdDomain(
+  role: Role | undefined,
+  rules: HouseholdPermissionRule[],
+  domain: DomainPermission,
+): boolean {
+  return isHouseholdManager(role) ||
+    rules.some(rule => rule.domain === domain && rule.canApprove);
+}

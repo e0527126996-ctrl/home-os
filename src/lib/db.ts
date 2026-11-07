@@ -1026,6 +1026,9 @@ class HomeOSIndexedDB {
     }
 
     for (const tx of transactions) {
+      // Imported rows remain PENDING until reviewed. They must never change
+      // official account balances or allow malformed amounts to poison totals.
+      if (tx.verificationStatus === 'PENDING' || !Number.isSafeInteger(tx.amountCents) || tx.amountCents <= 0) continue;
       if (!balanceMap.has(tx.accountId)) continue;
       const current = balanceMap.get(tx.accountId)!;
 

@@ -78,7 +78,7 @@ function parseMeasure(value: string): ParsedQuantity | null {
 
 function parseIngredientLine(value: string): { name: string; quantity: ParsedQuantity | null } {
   const text = value.trim();
-  const separated = text.match(/^(.+?)\\s*[-–—:]\\s*(.+)$/);
+  const separated = text.match(/^(.+?)\s*[-–—:]\s*(.+)$/);
   if (separated) {
     const quantity = parseMeasure(separated[2]);
     if (quantity) return { name: separated[1].trim(), quantity };
@@ -87,7 +87,7 @@ function parseIngredientLine(value: string): { name: string; quantity: ParsedQua
   const prefix = text.match(new RegExp('^' + numberPattern + '\\s+(.+)$'));
   if (prefix) {
     const remainder = prefix[2].trim();
-    const unitMatch = remainder.match(/^([^\\s]+)\\s+(.+)$/);
+    const unitMatch = remainder.match(/^([^\s]+)\s+(.+)$/);
     const canonicalUnit = unitMatch ? unitAliases[unitMatch[1]] : undefined;
     const amount = parseNumber(prefix[1]);
     if (amount !== null && canonicalUnit && unitMatch) {
@@ -111,7 +111,7 @@ function formatAmount(value: number): string {
 export function mergeQuantityTexts(...values: string[]): string {
   const parts = values.map(value => value.trim()).filter(Boolean);
   if (!parts.length) return '';
-  const tokens = parts.flatMap(value => value.split(/\\s*\\+\\s*/).map(parseMeasure));
+  const tokens = parts.flatMap(value => value.split(/\s*\+\s*/).map(parseMeasure));
   if (tokens.every((part): part is ParsedQuantity => part !== null)) {
     const totals = new Map<string, ParsedQuantity>();
     for (const part of tokens) {

@@ -158,6 +158,20 @@ export default function App() {
     loadInitialData();
   }, []);
 
+  // Keep other open HOME OS tabs in sync after a committed IndexedDB write.
+  // This is same-browser synchronization, not cloud or multi-device sync.
+  useEffect(() => {
+    if (!activeHousehold?.id || !currentUser?.id || typeof BroadcastChannel === 'undefined') return;
+    const channel = new BroadcastChannel('home-os-data');
+    channel.onmessage = (event: MessageEvent<{ type?: string; stores?: string[] }>) => {
+      if (event.data?.type !== 'data-changed' || !Array.isArray(event.data.stores)) return;
+      void reloadHouseholdData(activeHousehold.id, currentUser.id).catch((error) => {
+        console.error('Failed to refresh HOME OS after another tab changed data:', error);
+      });
+    };
+    return () => channel.close();
+  }, [activeHousehold?.id, currentUser?.id]);
+
   // Update root CSS variables when theme changes
   useEffect(() => {
     const root = document.documentElement;

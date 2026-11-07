@@ -102,7 +102,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       return;
     }
 
-    const interestPattern = /^\\d+(?:\\.\\d{1,2})?$/;
+    const interestPattern = /^\d+(?:\.\d{1,2})?$/;
     const parsedInterest = interestRate.trim() ? Number(interestRate) : undefined;
     if (parsedInterest !== undefined && (!interestPattern.test(interestRate.trim()) || !Number.isFinite(parsedInterest) || parsedInterest < 0)) {
       setError('שיעור הריבית חייב להיות מספר תקין עם עד שתי ספרות אחרי הנקודה');

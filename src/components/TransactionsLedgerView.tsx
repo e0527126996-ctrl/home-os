@@ -56,6 +56,7 @@ interface TransactionsLedgerViewProps {
   onAddTransfer: () => void;
   onEditTransaction: (tx: LedgerTransaction) => void;
   onDeleteTransaction: (txId: string) => Promise<void>;
+  onVerifyTransaction: (txId: string) => Promise<void>;
   selectedAccountId?: string | null;
   onSelectAccount?: (accId: string | null) => void;
 }
@@ -69,6 +70,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
   onAddTransfer,
   onEditTransaction,
   onDeleteTransaction,
+  onVerifyTransaction,
   selectedAccountId,
   onSelectAccount,
 }) => {
@@ -85,6 +87,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
   const [deletingTx, setDeletingTx] = useState<LedgerTransaction | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [verifyingTxId, setVerifyingTxId] = useState<string | null>(null);
 
   // מיפוי חשבונות לצורך הצגת שמות
   const accountsMap = useMemo(() => {
@@ -273,6 +276,17 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
       setDeleteError(err instanceof Error ? err.message : 'מחיקת העסקה נכשלה. הנתונים לא שונו.');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const confirmVerification = async (transactionId: string) => {
+    setVerifyingTxId(transactionId);
+    try {
+      await onVerifyTransaction(transactionId);
+    } catch {
+      // The parent operation already presents the failure toast.
+    } finally {
+      setVerifyingTxId(null);
     }
   };
 
@@ -744,9 +758,21 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
                       {/* פעולות */}
                       <td className="py-3.5 px-4 text-center whitespace-nowrap">
                         <div className="flex items-center justify-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                          {tx.verificationStatus === 'PENDING' && (
+                            <button
+                              type="button"
+                              onClick={() => void confirmVerification(tx.id)}
+                              disabled={!canEdit || verifyingTxId === tx.id}
+                              title="אשר את העסקה לאחר בדיקה מול דף החשבון"
+                              className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-[10px] font-bold text-emerald-800 transition-colors hover:bg-emerald-100 disabled:opacity-40"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              {verifyingTxId === tx.id ? 'מאמת...' : 'אמת'}
+                            </button>
+                          )}
                           <button
                             type="button"
-                            onClick={() => onEditTransaction(tx)}
+                            onClick={() => onEditTransaction(tx)
                             disabled={!canEdit}
                             title="עריכת עסקה"
                             className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors disabled:opacity-30"

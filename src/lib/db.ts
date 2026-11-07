@@ -23,6 +23,7 @@ import {
 import { formatCents, fromCents, parseCurrencyInput, toCents } from './currency.ts';
 import { buildFinanceAnalytics } from './financeAnalytics.ts';
 import { classifyShoppingCategory, formatIngredientQuantity, mergeQuantityTexts, normalizeShoppingName, splitIngredientName } from './shoppingIntelligence.ts';
+import { defaultPermissionsForRole } from './accessControl.ts';
 
 const DB_NAME = 'home_os_db';
 const DB_VERSION = 5;
@@ -716,17 +717,13 @@ class HomeOSIndexedDB {
       'planning',
       'admin',
     ];
-    for (const d of domains) {
-      const isOwnerOrAdmin = role === 'owner' || role === 'admin';
-      const isMember = role === 'member';
+    for (const domain of domains) {
       await this.savePermissionRule({
-        id: `perm_${m.id}_${d}`,
+        id: `perm_${m.id}_${domain}`,
         membershipId: m.id,
         householdId,
-        domain: d,
-        canRead: true,
-        canWrite: isOwnerOrAdmin || (isMember && d !== 'admin'),
-        canApprove: isOwnerOrAdmin,
+        domain,
+        ...defaultPermissionsForRole(role, domain),
       });
     }
 
@@ -761,8 +758,39 @@ class HomeOSIndexedDB {
       throw new Error('לא ניתן להקצות תפקיד בעלים דרך עדכון תפקיד. יש להשתמש בתהליך העברת בעלות ייעודי');
     }
 
-    const updated = { ...m, role: newRole };
-    await this.saveMembership(updated);
+    // A role change resets domain permissions to that role's defaults.
+    // Keep the membership and all six permission rows in one IndexedDB transaction
+    // so a downgrade cannot leave stale administrator rights behind.
+    const domains: HouseholdPermissionRule['domain'][] = [
+      'finance', 'food', 'documents', 'assets', 'planning', 'admin',
+    ];
+    await this.transaction(['household_memberships', 'household_permissions'], 'readwrite', async (tx) => {
+      const membershipStore = tx.objectStore('household_memberships');
+      const currentMembership = await this.reqToPromise<HouseholdMembership | undefined>(membershipStore.get(membershipId));
+      if (!currentMembership || currentMembership.householdId !== m.householdId) {
+        throw new Error('החברות במשק הבית השתנתה או הוסרה. רענן את המסך ונסה שוב');
+      }
+      if (currentMembership.role === 'owner') {
+        throw new Error('לא ניתן לשנות את תפקיד הבעלים הראשי של משק הבית');
+      }
+      await this.reqToPromise(membershipStore.put({ ...currentMembership, role: newRole }));
+
+      const permissionStore = tx.objectStore('household_permissions');
+      const existingRules = await this.reqToPromise<HouseholdPermissionRule[]>(
+        permissionStore.index('membershipId').getAll(membershipId)
+      );
+      for (const domain of domains) {
+        const existingRule = existingRules.find(rule => rule.domain === domain);
+        const nextRule: HouseholdPermissionRule = {
+          id: existingRule?.id || `perm_${membershipId}_${domain}`,
+          membershipId,
+          householdId: m.householdId,
+          domain,
+          ...defaultPermissionsForRole(newRole, domain),
+        };
+        await this.reqToPromise(permissionStore.put(nextRule));
+      }
+    });
 
     await this.recordAuditLog(
       m.householdId,
@@ -770,7 +798,7 @@ class HomeOSIndexedDB {
       actorEmail,
       'UPDATE_ROLE',
       'RBAC',
-      `עדכון תפקיד משתמש (${m.userId}) ל-${newRole}`
+      `עדכון תפקיד משתמש (${m.userId}) ל-${newRole}; הרשאות התחום אופסו לברירת המחדל של התפקיד`
     );
   }
 

@@ -7,6 +7,7 @@ interface HeaderProps {
   household: Household | null;
   currentUser: User | null;
   activeTheme: ThemeConfig;
+  canManageSystem: boolean;
   onThemeSelect: (themeId: string) => void;
   onOpenHouseholds: () => void;
   onOpenAuth: () => void;
@@ -17,7 +18,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  household, currentUser, activeTheme, onThemeSelect, onOpenHouseholds,
+  household, currentUser, activeTheme, canManageSystem, onThemeSelect, onOpenHouseholds,
   onOpenAuth, onOpenTests, onOpenBackup, onOpenExportHtml,
 }) => {
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
@@ -78,9 +79,11 @@ export const Header: React.FC<HeaderProps> = ({
               </>
             )}
           </div>
-          <button onClick={onOpenBackup} className="homeos-toolbar-button" style={controlStyle} title="גיבוי ושחזור"><Database className="h-4 w-4" /><span className="hidden lg:inline">גיבוי</span></button>
-          <button onClick={onOpenTests} className="homeos-toolbar-button" style={controlStyle} title="בדיקות מערכת"><ShieldCheck className="h-4 w-4" /><span className="hidden xl:inline">בדיקות</span></button>
-          <button onClick={onOpenExportHtml} className="homeos-export-button"><Download className="h-4 w-4" /><span className="hidden sm:inline">ייצוא מערכת</span></button>
+          {canManageSystem && <>
+            <button onClick={onOpenBackup} className="homeos-toolbar-button" style={controlStyle} title="גיבוי ושחזור"><Database className="h-4 w-4" /><span className="hidden lg:inline">גיבוי</span></button>
+            <button onClick={onOpenTests} className="homeos-toolbar-button" style={controlStyle} title="בדיקות מערכת"><ShieldCheck className="h-4 w-4" /><span className="hidden xl:inline">בדיקות</span></button>
+            <button onClick={onOpenExportHtml} className="homeos-export-button"><Download className="h-4 w-4" /><span className="hidden sm:inline">ייצוא מערכת</span></button>
+          </>}
           <button onClick={onOpenAuth} className="homeos-user-button" style={controlStyle} title={currentUser?.fullName || 'משתמש'}>{currentUser?.fullName?.charAt(0) || <Users className="h-4 w-4" />}</button>
         </div>
       </div>

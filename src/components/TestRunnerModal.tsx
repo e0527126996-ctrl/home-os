@@ -28,7 +28,7 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ activeTheme, o
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div className="homeos-themed-modal homeos-test-runner-modal fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
       <div
         className="w-full max-w-2xl rounded-xl border shadow-xl flex flex-col max-h-[90vh] overflow-hidden"
         style={{

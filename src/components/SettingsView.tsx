@@ -1,6 +1,8 @@
 import React from 'react';
-import { Check, Palette, Sparkles } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, ImagePlus, LayoutGrid, Palette, Sparkles, Trash2 } from 'lucide-react';
 import type { ThemeConfig } from '../lib/themes.ts';
+import type { WorkspaceViewMode } from '../lib/workspace.ts';
+import { DASHBOARD_WIDGETS } from '../lib/workspace.ts';
 
 interface SettingsViewProps {
   themes: ThemeConfig[];
@@ -8,9 +10,27 @@ interface SettingsViewProps {
   onThemeSelect: (themeId: string) => void | Promise<void>;
   density: 'compact' | 'balanced' | 'spacious';
   onDensityChange: (density: 'compact' | 'balanced' | 'spacious') => void | Promise<void>;
+  workspaceViewMode: WorkspaceViewMode;
+  onWorkspaceViewModeChange: (mode: WorkspaceViewMode) => void | Promise<void>;
+  dashboardWidgetOrder: string[];
+  visibleDashboardWidgetIds: string[];
+  onDashboardWidgetToggle: (widgetId: string, visible: boolean) => void | Promise<void>;
+  onDashboardWidgetMove: (widgetId: string, direction: 'up' | 'down') => void | Promise<void>;
+  backgroundImage: string | null;
+  onBackgroundImageChange: (file: File | null) => void | Promise<void>;
+  onBackgroundImageClear: () => void | Promise<void>;
 }
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ themes, activeTheme, onThemeSelect, density, onDensityChange }) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({
+  themes, activeTheme, onThemeSelect, density, onDensityChange,
+  workspaceViewMode, onWorkspaceViewModeChange, dashboardWidgetOrder,
+  visibleDashboardWidgetIds, onDashboardWidgetToggle, onDashboardWidgetMove,
+  backgroundImage, onBackgroundImageChange, onBackgroundImageClear,
+}) => {
+  const orderedWidgets = [...DASHBOARD_WIDGETS].sort(
+    (a, b) => dashboardWidgetOrder.indexOf(a.id) - dashboardWidgetOrder.indexOf(b.id),
+  );
+
   return (
     <section className="homeos-settings space-y-7" dir="rtl">
       <header className="homeos-settings-hero">
@@ -19,7 +39,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ themes, activeTheme,
           <div>
             <div className="homeos-section-kicker">PERSONAL WORKSPACE</div>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight">הגדרות אישיות</h1>
-            <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>התאם את סביבת העבודה למראה, לאווירה ולנוחות שלך.</p>
+            <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>שליטה במראה, בצורת העבודה ובתוכן שמופיע בלוח הבקרה.</p>
           </div>
         </div>
         <div className="homeos-settings-current">
@@ -28,61 +48,130 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ themes, activeTheme,
         </div>
       </header>
 
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <div className="homeos-section-kicker">DESIGN COLLECTION · {themes.length} STYLES</div>
-          <h2 className="mt-1 text-lg font-semibold">בחר את שפת העיצוב שלך</h2>
-          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>הבחירה נשמרת במכשיר ותישאר גם בכניסה הבאה.</p>
+      <section className="homeos-settings-section">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div className="homeos-section-kicker">DESIGN COLLECTION · {themes.length} STYLES</div>
+            <h2 className="mt-1 text-lg font-semibold">שפת העיצוב</h2>
+            <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>החלפת ערכה משנה את שכבת התצוגה בלבד.</p>
+          </div>
+          <span className="homeos-settings-count">{themes.length} ערכות עיצוב</span>
         </div>
-        <span className="homeos-settings-count">{themes.length} ערכות עיצוב</span>
-      </div>
-
-      <div className="homeos-theme-grid">
-        {themes.map((theme) => {
-          const selected = activeTheme.id === theme.id;
-          return (
-            <button
-              key={theme.id}
-              type="button"
-              aria-pressed={selected}
-              onClick={() => void onThemeSelect(theme.id)}
-              className={`homeos-theme-option ${selected ? 'is-selected' : ''}`}
-              style={{
-                '--preview-canvas': theme.bgCanvas,
-                '--preview-surface': theme.bgSurface,
-                '--preview-card': theme.bgCard,
-                '--preview-border': theme.borderSubtle,
-                '--preview-text': theme.textPrimary,
-                '--preview-muted': theme.textSecondary,
-                '--preview-accent': theme.accent,
-              } as React.CSSProperties}
-            >
-              <span className="homeos-theme-preview" aria-hidden="true">
-                <span className="homeos-theme-preview-sidebar" />
-                <span className="homeos-theme-preview-main">
-                  <span className="homeos-theme-preview-top" />
-                  <span className="homeos-theme-preview-panel">
-                    <i /><i /><i />
+        <div className="homeos-theme-grid">
+          {themes.map((theme) => {
+            const selected = activeTheme.id === theme.id;
+            return (
+              <button
+                key={theme.id}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => void onThemeSelect(theme.id)}
+                className={`homeos-theme-option ${selected ? 'is-selected' : ''}`}
+                style={{
+                  '--preview-canvas': theme.bgCanvas,
+                  '--preview-surface': theme.bgSurface,
+                  '--preview-card': theme.bgCard,
+                  '--preview-border': theme.borderSubtle,
+                  '--preview-text': theme.textPrimary,
+                  '--preview-muted': theme.textSecondary,
+                  '--preview-accent': theme.accent,
+                } as React.CSSProperties}
+              >
+                <span className="homeos-theme-preview" aria-hidden="true">
+                  <span className="homeos-theme-preview-sidebar" />
+                  <span className="homeos-theme-preview-main">
+                    <span className="homeos-theme-preview-top" />
+                    <span className="homeos-theme-preview-panel"><i /><i /><i /></span>
+                    <span className="homeos-theme-preview-chart"><i /><i /><i /><i /><i /></span>
                   </span>
-                  <span className="homeos-theme-preview-chart"><i /><i /><i /><i /><i /></span>
                 </span>
-              </span>
-              <span className="homeos-theme-option-copy">
-                <span className="min-w-0">
-                  <strong>{theme.nameHe}</strong>
-                  <small>{theme.nameEn}</small>
+                <span className="homeos-theme-option-copy">
+                  <span className="min-w-0"><strong>{theme.nameHe}</strong><small>{theme.nameEn}</small></span>
+                  <span className="homeos-theme-check" aria-hidden="true">{selected && <Check className="h-4 w-4" />}</span>
                 </span>
-                <span className="homeos-theme-check" aria-hidden="true">{selected && <Check className="h-4 w-4" />}</span>
-              </span>
-              <span className="homeos-theme-description">{theme.description}</span>
+                <span className="homeos-theme-description">{theme.description}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="homeos-settings-section">
+        <div>
+          <div className="homeos-section-kicker">WORKSPACE MODE</div>
+          <h2 className="mt-1 text-lg font-semibold">מצב העבודה</h2>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>בחר את סוג המידע שיקבל את מרכז הבמה בלוח הבקרה.</p>
+        </div>
+        <div className="homeos-view-mode-grid">
+          {([
+            { id: 'executive', label: 'Executive', title: 'מנהלים', detail: 'תמונת מצב מהירה, הון, מדדים ותובנות' },
+            { id: 'productivity', label: 'Productivity', title: 'עבודה שוטפת', detail: 'עסקאות אחרונות, משימות ומעקב יום-יומי' },
+            { id: 'analytics', label: 'Analytics', title: 'אנליטיקה', detail: 'מגמות, תחזיות, פילוחים ובקרת איכות' },
+          ] as const).map((mode) => (
+            <button key={mode.id} type="button" aria-pressed={workspaceViewMode === mode.id}
+              className={`homeos-view-mode-option ${workspaceViewMode === mode.id ? 'is-selected' : ''}`}
+              onClick={() => void onWorkspaceViewModeChange(mode.id)}>
+              <span className="homeos-view-mode-label">{mode.label}</span>
+              <strong>{mode.title}</strong>
+              <small>{mode.detail}</small>
+              {workspaceViewMode === mode.id && <span className="homeos-view-mode-check"><Check className="h-4 w-4" /> פעיל</span>}
             </button>
-          );
-        })}
-      </div>
-      <section className="homeos-density-section" aria-labelledby="homeos-density-heading">
+          ))}
+        </div>
+      </section>
+
+      <section className="homeos-settings-section">
+        <div>
+          <div className="homeos-section-kicker">DASHBOARD BUILDER</div>
+          <h2 className="mt-1 text-lg font-semibold">הרכב לוח הבקרה</h2>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>הסתר או הצג אזורים ושנה את סדר הופעתם. השינוי משפיע על לוח הבקרה בלבד.</p>
+        </div>
+        <div className="homeos-widget-editor">
+          {orderedWidgets.map((widget, index) => {
+            const visible = visibleDashboardWidgetIds.includes(widget.id);
+            return (
+              <div className="homeos-widget-editor-row" key={widget.id}>
+                <label className="homeos-widget-toggle">
+                  <input type="checkbox" checked={visible} onChange={(event) => void onDashboardWidgetToggle(widget.id, event.target.checked)} />
+                  <span className="homeos-widget-toggle-mark" />
+                  <span className="min-w-0"><strong>{widget.title}</strong><small>{widget.description}</small></span>
+                </label>
+                <div className="homeos-widget-order">
+                  <span>{index + 1}</span>
+                  <button type="button" title="העבר למעלה" aria-label={`העבר את ${widget.title} למעלה`} disabled={index === 0}
+                    onClick={() => void onDashboardWidgetMove(widget.id, 'up')}><ArrowUp className="h-4 w-4" /></button>
+                  <button type="button" title="העבר למטה" aria-label={`העבר את ${widget.title} למטה`} disabled={index === orderedWidgets.length - 1}
+                    onClick={() => void onDashboardWidgetMove(widget.id, 'down')}><ArrowDown className="h-4 w-4" /></button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="homeos-settings-section">
+        <div>
+          <div className="homeos-section-kicker">PERSONAL BACKDROP</div>
+          <h2 className="mt-1 text-lg font-semibold">תמונת רקע אישית</h2>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>העלה תמונה שתופיע כרקע עדין מאחורי סביבת העבודה.</p>
+        </div>
+        <div className="homeos-background-editor">
+          {backgroundImage ? <div className="homeos-background-preview" style={{ backgroundImage: `url("${backgroundImage}")` }}><span>תמונת רקע פעילה</span></div> : <div className="homeos-background-empty"><ImagePlus className="h-6 w-6" /><span>לא נבחרה תמונת רקע</span></div>}
+          <div className="flex flex-wrap gap-2">
+            <label className="homeos-secondary-action cursor-pointer">
+              <ImagePlus className="h-4 w-4" /> בחירת תמונה
+              <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(event) => { const file = event.target.files?.[0] || null; void onBackgroundImageChange(file); event.currentTarget.value = ''; }} />
+            </label>
+            {backgroundImage && <button type="button" className="homeos-secondary-action" onClick={() => void onBackgroundImageClear()}><Trash2 className="h-4 w-4" /> הסרת תמונה</button>}
+          </div>
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>קובצי JPG, PNG או WebP עד 3MB. התמונה נשמרת מקומית במכשיר.</p>
+        </div>
+      </section>
+
+      <section className="homeos-settings-section">
         <div>
           <div className="homeos-section-kicker">WORKSPACE COMFORT</div>
-          <h2 id="homeos-density-heading" className="mt-1 text-lg font-semibold">צפיפות סביבת העבודה</h2>
+          <h2 className="mt-1 text-lg font-semibold">צפיפות סביבת העבודה</h2>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>קבע כמה מרווח יהיה בין אזורי המידע והפעולות במסכים.</p>
         </div>
         <div className="homeos-density-options" role="group" aria-label="צפיפות סביבת העבודה">
@@ -100,9 +189,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ themes, activeTheme,
           ))}
         </div>
       </section>
-      <p className="text-xs leading-6" style={{ color: 'var(--text-secondary)' }}>
-        החלפת ערכת העיצוב משנה את שכבת התצוגה בלבד. הנתונים, החשבונות, העסקאות וההרשאות אינם משתנים.
-      </p>
+
+      <p className="homeos-settings-footnote">העדפות התצוגה נשמרות במכשיר. החלפת העיצוב או סידור לוח הבקרה אינם משנים נתונים, חשבונות או עסקאות.</p>
     </section>
   );
 };

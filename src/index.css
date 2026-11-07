@@ -1402,3 +1402,57 @@ body {
     white-space: nowrap;
   }
 }
+
+
+/* Personal density preferences: presentation-only, no change to records or calculations. */
+.homeos-density-section {
+  display: grid;
+  gap: 18px;
+  padding: clamp(16px, 2.4vw, 24px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  background: var(--bg-card);
+}
+.homeos-density-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.homeos-density-option {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 13px;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  text-align: right;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.homeos-density-option:hover { transform: translateY(-1px); }
+.homeos-density-option.is-selected {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent), 0 5px 18px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.homeos-density-option:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.homeos-density-option strong { font-size: 13px; }
+.homeos-density-option small { color: var(--text-secondary); font-size: 11px; }
+.homeos-density-preview { display: flex; width: 100%; gap: 4px; align-items: center; }
+.homeos-density-preview i { display: block; height: 22px; flex: 1; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-card); }
+.homeos-density-compact .homeos-main-content { --homeos-density-gap: 12px; }
+.homeos-density-balanced .homeos-main-content { --homeos-density-gap: 20px; }
+.homeos-density-spacious .homeos-main-content { --homeos-density-gap: 28px; }
+.homeos-density-compact .homeos-main-content .homeos-dashboard { --homeos-density-gap: 12px; }
+.homeos-density-spacious .homeos-main-content .homeos-dashboard { --homeos-density-gap: 28px; }
+.homeos-density-compact .homeos-main-content .homeos-navigation-shell { padding: 12px; }
+.homeos-density-spacious .homeos-main-content .homeos-navigation-shell { padding: 22px; }
+.homeos-density-compact .homeos-main-content { padding-top: 18px; padding-bottom: 18px; }
+.homeos-density-spacious .homeos-main-content { padding-top: 34px; padding-bottom: 34px; }
+@media (max-width: 640px) {
+  .homeos-density-options { grid-template-columns: 1fr; }
+  .homeos-density-option { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; column-gap: 12px; }
+  .homeos-density-preview { grid-row: span 2; }
+}

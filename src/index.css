@@ -1301,3 +1301,47 @@ body {
   .homeos-households-view,
   .homeos-members-view { min-width: 0; }
 }
+
+
+/* Modal surfaces inherit the selected workspace palette without changing overlay behavior. */
+.homeos-themed-modal input:not([type="checkbox"]):not([type="radio"]),
+.homeos-themed-modal select,
+.homeos-themed-modal textarea {
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+.homeos-themed-modal input::placeholder,
+.homeos-themed-modal textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: .72;
+}
+.homeos-themed-modal button:focus-visible,
+.homeos-themed-modal input:focus-visible,
+.homeos-themed-modal select:focus-visible,
+.homeos-themed-modal textarea:focus-visible {
+  outline-color: var(--focus-ring);
+}
+.homeos-themed-modal [role="tab"][aria-selected="true"],
+.homeos-themed-modal button[aria-pressed="true"] {
+  outline-color: var(--focus-ring);
+}
+@media (max-width: 640px) {
+  .homeos-themed-modal {
+    align-items: flex-end;
+    padding: 10px;
+  }
+  .homeos-themed-modal > div {
+    max-height: min(92dvh, 900px);
+    overflow-y: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .homeos-themed-modal *,
+  .homeos-themed-modal *::before,
+  .homeos-themed-modal *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

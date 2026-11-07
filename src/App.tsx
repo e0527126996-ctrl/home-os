@@ -457,13 +457,14 @@ export default function App() {
   };
 
   const handleDeleteAccount = async (accountId: string) => {
-    if (!activeHousehold || !currentUser) return;
+    if (!activeHousehold || !currentUser) throw new Error('נדרש משתמש פעיל למחיקת חשבון');
     try {
       await db.deleteAccount(activeHousehold.id, accountId, currentUser.id, currentUser.email);
-      await reloadHouseholdData(activeHousehold.id);
+      await reloadHouseholdData(activeHousehold.id, currentUser.id);
       showToast('החשבון הוסר בהצלחה');
     } catch (err: any) {
       showToast('שגיאה במחיקת חשבון: ' + err.message, 'error');
+      throw err;
     }
   };
 

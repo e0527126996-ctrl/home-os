@@ -70,13 +70,24 @@ function parseDate(value: unknown): string | null {
 }
 
 function parseAmount(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) return Math.round(value * 100);
-  let s = clean(value).replace(/[₪$€£\s]/g, '').replace(/,/g, '');
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const scaled = value * 100;
+    const cents = Math.round(scaled);
+    return Number.isSafeInteger(cents) && Math.abs(scaled - cents) < 0.000001 ? cents : null;
+  }
+
+  let s = clean(value).replace(/[₪$€£\s]/g, '');
   if (!s) return null;
-  const negative = /^\(.*\)$/.test(s) || s.startsWith('-');
-  s = s.replace(/[()−-]/g, '');
-  if (!/^\d+(\.\d{1,2})?$/.test(s)) return null;
-  const cents = Math.round(Number(s) * 100);
+  const negative = /^\(.*\)$/.test(s) || /^[-−]/.test(s);
+  if (/^\(.*\)$/.test(s)) s = s.slice(1, -1);
+  else if (/^[-−]/.test(s)) s = s.slice(1);
+
+  // Accept standard thousands separators and decimal-comma exports, but
+  // never turn malformed values such as "1,23" into 123.
+  if (!s.includes('.')) s = s.replace(/,(\d{1,2})$/, '.$1');
+  if (!/^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?$/.test(s)) return null;
+  const cents = Math.round(Number(s.replace(/,/g, '')) * 100);
+  if (!Number.isSafeInteger(cents)) return null;
   return negative ? -cents : cents;
 }
 

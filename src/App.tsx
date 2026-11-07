@@ -42,6 +42,7 @@ const DocumentCenterView = lazy(() => import('./components/DocumentCenterView.ts
 const HomeManagementView = lazy(() => import('./components/HomeManagementView.tsx').then(({ HomeManagementView }) => ({ default: HomeManagementView })));
 import { db } from './lib/db.ts';
 import { MODERN_EDITORIAL_THEMES, ThemeConfig } from './lib/themes.ts';
+import { DASHBOARD_WIDGETS, DEFAULT_DASHBOARD_WIDGET_ORDER, WorkspaceViewMode, WORKSPACE_VIEW_MODES } from './lib/workspace.ts';
 import { generateStandaloneHomeOSHtml } from './lib/standaloneGenerator.ts';
 import type { ImportedStatementRow } from './lib/statementImport.ts';
 import {
@@ -77,6 +78,10 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'overview' | 'accounts' | 'ledger' | 'members' | 'households' | 'audit' | 'documents' | 'home' | 'settings'>('dashboard');
   const [activeTheme, setActiveTheme] = useState<ThemeConfig>(MODERN_EDITORIAL_THEMES[0]);
   const [workspaceDensity, setWorkspaceDensity] = useState<'compact' | 'balanced' | 'spacious'>('balanced');
+  const [workspaceViewMode, setWorkspaceViewMode] = useState<WorkspaceViewMode>('executive');
+  const [dashboardWidgetOrder, setDashboardWidgetOrder] = useState<string[]>(DEFAULT_DASHBOARD_WIDGET_ORDER);
+  const [visibleDashboardWidgetIds, setVisibleDashboardWidgetIds] = useState<string[]>(DEFAULT_DASHBOARD_WIDGET_ORDER);
+  const [personalBackgroundImage, setPersonalBackgroundImage] = useState<string | null>(null);
   const [ledgerSelectedAccountId, setLedgerSelectedAccountId] = useState<string | null>(null);
 
   // Modal Dialogs
@@ -114,9 +119,13 @@ export default function App() {
 
       const savedHhdId = await db.getSetting<string>('active_household_id', allHhds[0]?.id || '');
       const savedUserId = await db.getSetting<string>('current_user_id', usersList[0]?.id || '');
-      const [savedThemeId, savedDensity] = await Promise.all([
+      const [savedThemeId, savedDensity, savedViewMode, savedWidgetOrder, savedVisibleWidgets, savedBackgroundImage] = await Promise.all([
         db.getSetting<string>('theme', 'warm_editorial'),
         db.getSetting<string>('workspace_density', 'balanced'),
+        db.getSetting<WorkspaceViewMode>('workspace_view_mode', 'executive'),
+        db.getSetting<string[]>('dashboard_widget_order', DEFAULT_DASHBOARD_WIDGET_ORDER),
+        db.getSetting<string[]>('dashboard_widget_visibility', DEFAULT_DASHBOARD_WIDGET_ORDER),
+        db.getSetting<string>('personal_background_image', ''),
       ]);
 
       const initialHhd = allHhds.find((h) => h.id === savedHhdId) || allHhds[0] || null;
@@ -127,6 +136,15 @@ export default function App() {
       setCurrentUser(initialUser);
       setActiveTheme(initialTheme);
       setWorkspaceDensity(savedDensity === 'compact' || savedDensity === 'spacious' ? savedDensity : 'balanced');
+      setWorkspaceViewMode(WORKSPACE_VIEW_MODES.some((mode) => mode.id === savedViewMode) ? savedViewMode : 'executive');
+      const validWidgetOrder = Array.isArray(savedWidgetOrder)
+        ? savedWidgetOrder.filter((id, index) => DASHBOARD_WIDGETS.some((widget) => widget.id === id) && savedWidgetOrder.indexOf(id) === index)
+        : [];
+      setDashboardWidgetOrder([...validWidgetOrder, ...DEFAULT_DASHBOARD_WIDGET_ORDER.filter((id) => !validWidgetOrder.includes(id))]);
+      setVisibleDashboardWidgetIds(Array.isArray(savedVisibleWidgets)
+        ? savedVisibleWidgets.filter((id) => DASHBOARD_WIDGETS.some((widget) => widget.id === id))
+        : [...DEFAULT_DASHBOARD_WIDGET_ORDER]);
+      setPersonalBackgroundImage(typeof savedBackgroundImage === 'string' && savedBackgroundImage.startsWith('data:image/') ? savedBackgroundImage : null);
 
       if (initialHhd) {
         await reloadHouseholdData(initialHhd.id, initialUser?.id);
@@ -183,6 +201,7 @@ export default function App() {
   useEffect(() => {
     const root = document.documentElement;
     root.dataset.theme = activeTheme.id;
+    root.dataset.viewMode = workspaceViewMode;
     root.style.setProperty('--bg-canvas', activeTheme.bgCanvas);
     root.style.setProperty('--bg-surface', activeTheme.bgSurface);
     root.style.setProperty('--bg-card', activeTheme.bgCard);
@@ -197,7 +216,7 @@ export default function App() {
     } else {
       root.classList.remove('dark');
     }
-  }, [activeTheme]);
+  }, [activeTheme, workspaceViewMode]);
 
   // Handlers for Households
   const handleSelectHousehold = async (hhdId: string) => {
@@ -519,6 +538,62 @@ export default function App() {
     showToast(`צפיפות סביבת העבודה עודכנה: ${density === 'compact' ? 'קומפקטי' : density === 'spacious' ? 'מרווח' : 'מאוזן'}`);
   };
 
+  const handleWorkspaceViewModeChange = async (mode: WorkspaceViewMode) => {
+    setWorkspaceViewMode(mode);
+    await db.setSetting('workspace_view_mode', mode);
+    showToast(`מצב העבודה עודכן: ${WORKSPACE_VIEW_MODES.find((item) => item.id === mode)?.nameHe || mode}`);
+  };
+
+  const handleDashboardWidgetToggle = async (widgetId: string, visible: boolean) => {
+    if (!DASHBOARD_WIDGETS.some((widget) => widget.id === widgetId)) return;
+    const next = visible
+      ? [...new Set([...visibleDashboardWidgetIds, widgetId])]
+      : visibleDashboardWidgetIds.filter((id) => id !== widgetId);
+    setVisibleDashboardWidgetIds(next);
+    await db.setSetting('dashboard_widget_visibility', next);
+  };
+
+  const handleDashboardWidgetMove = async (widgetId: string, direction: 'up' | 'down') => {
+    const current = [...dashboardWidgetOrder];
+    const index = current.indexOf(widgetId);
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (index < 0 || target < 0 || target >= current.length) return;
+    [current[index], current[target]] = [current[target], current[index]];
+    setDashboardWidgetOrder(current);
+    await db.setSetting('dashboard_widget_order', current);
+  };
+
+  const handleBackgroundImageChange = async (file: File | null) => {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      showToast('יש לבחור תמונת JPG, PNG או WebP', 'error');
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      showToast('התמונה גדולה מדי. הגודל המרבי הוא 3MB', 'error');
+      return;
+    }
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('לא ניתן לקרוא את התמונה'));
+        reader.onerror = () => reject(new Error('קריאת התמונה נכשלה'));
+        reader.readAsDataURL(file);
+      });
+      await db.setSetting('personal_background_image', dataUrl);
+      setPersonalBackgroundImage(dataUrl);
+      showToast('תמונת הרקע נשמרה במכשיר');
+    } catch (error: any) {
+      showToast('לא ניתן לשמור את תמונת הרקע: ' + error.message, 'error');
+    }
+  };
+
+  const handleBackgroundImageClear = async () => {
+    await db.setSetting('personal_background_image', '');
+    setPersonalBackgroundImage(null);
+    showToast('תמונת הרקע הוסרה');
+  };
+
   const currentMembership = memberships.find((m) => m.userId === currentUser?.id);
   const isOwnerOrAdmin = currentMembership?.role === 'owner' || currentMembership?.role === 'admin';
 
@@ -563,8 +638,13 @@ export default function App() {
       className={`homeos-app-shell homeos-density-${workspaceDensity} ${activeTheme.isDark ? 'dark' : ''} min-h-screen flex flex-col transition-colors duration-200`}
       style={{
         backgroundColor: activeTheme.bgCanvas,
-        backgroundImage: 'radial-gradient(color-mix(in srgb, var(--homeos-accent) 4%, transparent) .7px, transparent .7px)',
-        backgroundSize: '18px 18px',
+        backgroundImage: personalBackgroundImage
+          ? `linear-gradient(${activeTheme.isDark ? 'rgba(15,17,21,.66)' : 'rgba(250,248,245,.68)'}, ${activeTheme.isDark ? 'rgba(15,17,21,.72)' : 'rgba(250,248,245,.72)'}), url("${personalBackgroundImage}")`
+          : 'radial-gradient(color-mix(in srgb, var(--homeos-accent) 4%, transparent) .7px, transparent .7px)',
+        backgroundSize: personalBackgroundImage ? 'cover' : '18px 18px',
+        backgroundPosition: 'center',
+        backgroundRepeat: personalBackgroundImage ? 'no-repeat' : 'repeat',
+        backgroundAttachment: personalBackgroundImage ? 'fixed' : 'scroll',
         color: activeTheme.textPrimary,
         ...({
           '--homeos-accent': activeTheme.accent,
@@ -677,6 +757,15 @@ export default function App() {
             onThemeSelect={handleSelectTheme}
             density={workspaceDensity}
             onDensityChange={handleDensityChange}
+            workspaceViewMode={workspaceViewMode}
+            onWorkspaceViewModeChange={handleWorkspaceViewModeChange}
+            dashboardWidgetOrder={dashboardWidgetOrder}
+            visibleDashboardWidgetIds={visibleDashboardWidgetIds}
+            onDashboardWidgetToggle={handleDashboardWidgetToggle}
+            onDashboardWidgetMove={handleDashboardWidgetMove}
+            backgroundImage={personalBackgroundImage}
+            onBackgroundImageChange={handleBackgroundImageChange}
+            onBackgroundImageClear={handleBackgroundImageClear}
           />
         )}
 
@@ -689,6 +778,9 @@ export default function App() {
             activeTheme={activeTheme}
             onOpenAccounts={() => setActiveTab('accounts')}
             onOpenLedger={() => setActiveTab('ledger')}
+            viewMode={workspaceViewMode}
+            dashboardWidgetOrder={dashboardWidgetOrder}
+            visibleDashboardWidgetIds={visibleDashboardWidgetIds}
           />
         )}
 

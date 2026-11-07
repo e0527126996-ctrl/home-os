@@ -69,6 +69,7 @@ export default function App() {
   const [accounts, setAccounts] = useState<FinancialAccount[]>([]);
   const [transactions, setTransactions] = useState<LedgerTransaction[]>([]);
   const [homeItems, setHomeItems] = useState<HouseholdHomeItem[]>([]);
+  const [currentPermissionRules, setCurrentPermissionRules] = useState<HouseholdPermissionRule[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   // Navigation & Theme
@@ -507,7 +508,31 @@ export default function App() {
 
   const currentMembership = memberships.find((m) => m.userId === currentUser?.id);
   const isOwnerOrAdmin = currentMembership?.role === 'owner' || currentMembership?.role === 'admin';
-  const canPerformFinance = isOwnerOrAdmin || (currentMembership?.role === 'member');
+
+  useEffect(() => {
+    let active = true;
+    if (!currentMembership) {
+      setCurrentPermissionRules([]);
+      return () => { active = false; };
+    }
+    setCurrentPermissionRules([]);
+    db.getPermissionsByMembership(currentMembership.id)
+      .then((rules) => { if (active) setCurrentPermissionRules(rules); })
+      .catch((error) => {
+        console.error('Failed to load current household permissions:', error);
+        if (active) setCurrentPermissionRules([]);
+      });
+    return () => { active = false; };
+  }, [currentMembership?.id]);
+
+  const canPerformFinance = isOwnerOrAdmin || (
+    currentMembership?.role === 'member' &&
+    currentPermissionRules.find((rule) => rule.domain === 'finance')?.canWrite === true
+  );
+  const canPerformFood = isOwnerOrAdmin || (
+    currentMembership?.role === 'member' &&
+    currentPermissionRules.find((rule) => rule.domain === 'food')?.canWrite === true
+  );
 
   if (isInitializing) {
     return (
@@ -651,7 +676,7 @@ export default function App() {
             currentUser={currentUser}
             activeTheme={activeTheme}
             canRead={Boolean(currentMembership)}
-            canWrite={canPerformFinance}
+            canWrite={canPerformFood}
             accounts={accounts}
             transactions={transactions}
             onOpenLedger={() => setActiveTab('ledger')}

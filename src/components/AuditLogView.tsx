@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { History, Search, Filter, ShieldAlert, Clock, User as UserIcon } from 'lucide-react';
 import { AuditLog } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
+import { WorkspacePageHeader } from './WorkspacePageHeader.tsx';
 
 interface AuditLogViewProps {
   logs: AuditLog[];
@@ -27,19 +28,15 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ logs, activeTheme, o
   const uniqueDomains = Array.from(new Set(logs.map((l) => l.domain)));
 
   return (
-    <div className="homeos-audit-view space-y-4">
-      {/* Header and Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4" style={{ borderColor: activeTheme.borderSubtle }}>
-        <div>
-          <h2 className="font-serif text-xl font-semibold flex items-center gap-2">
-            <History className="w-5 h-5 opacity-80" />
-            <span>יומן ביקורת ופעולות (Audit Logs)</span>
-          </h2>
-          <p className="text-xs mt-1" style={{ color: activeTheme.textSecondary }}>
-            רישום בלתי מחיק של כל פעולות הניהול, שינויי ההרשאות והוספת בני הבית
-          </p>
-        </div>
-
+    <div className="homeos-audit-view homeos-workspace-page space-y-4">
+      <WorkspacePageHeader
+        eyebrow="SYSTEM / ACTIVITY & SECURITY"
+        title="יומן פעילות ובקרה"
+        description="עקבות הפעולות שבוצעו במערכת — מי שינה, מתי ובאיזה תחום."
+        meta={<><span>{logs.length} אירועים אחרונים</span><span>{uniqueDomains.length} תחומים</span></>}
+      />
+      {/* Filters */}
+      <div className="homeos-audit-toolbar">
         <div className="flex items-center gap-2">
           {/* Search */}
           <div className="relative">

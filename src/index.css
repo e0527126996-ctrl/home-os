@@ -722,3 +722,25 @@ body {
 .homeos-finance-track span.expense { background:#C49A69; }
 .homeos-lux-panel { border-radius: 14px; box-shadow: 0 4px 18px rgba(34,47,39,.035), inset 0 1px 0 rgba(255,255,255,.65); }
 .homeos-lux-panel:hover { box-shadow: 0 8px 24px rgba(34,47,39,.055), inset 0 1px 0 rgba(255,255,255,.72); }
+
+
+/* Final density pass: navigation and household finance stay open, not card-stacked. */
+.homeos-navigation-shell {
+  border: 0;
+  border-bottom: 1px solid var(--homeos-border);
+  border-radius: 0;
+  padding: .45rem 0 .85rem;
+  background: transparent;
+  box-shadow: none;
+}
+.homeos-finance-foreign {
+  max-width: 58rem;
+  padding: 1rem 1.15rem;
+  border-block: 1px solid var(--homeos-border);
+  background: color-mix(in srgb,var(--homeos-surface) 55%,transparent);
+}
+.homeos-finance-foreign > div { padding-block: .7rem; }
+.homeos-finance-category { padding-block: .2rem; }
+@media (max-width:1179px) {
+  .homeos-navigation-shell { border-radius: 0; }
+}

@@ -286,7 +286,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>}
       </section>
 
-      <details className="homeos-advanced-details" data-widget-id="advanced-analysis" hidden={!widgetVisible('advanced-analysis')} style={widgetOrderStyle('advanced-analysis')}>
+      <details className="homeos-advanced-details" data-widget-id="advanced-analysis" open={viewMode === 'analytics'} hidden={!widgetVisible('advanced-analysis')} style={widgetOrderStyle('advanced-analysis')}>
         <summary>
           <span className="homeos-advanced-title">ניתוח מתקדם</span>
           <span className="homeos-advanced-description">תחזיות, הזדמנויות לחיסכון ובקרת נתונים</span>

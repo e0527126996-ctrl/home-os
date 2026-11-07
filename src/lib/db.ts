@@ -1517,8 +1517,15 @@ class HomeOSIndexedDB {
     await this.assertPermission(householdId, actorUserId, 'finance', 'write');
 
     if (!data.accountId) throw new Error('יש לבחור חשבון משויך לעסקה');
+    if (data.type !== 'INCOME' && data.type !== 'EXPENSE') throw new Error('סוג העסקה אינו תקין');
     if (!isValidISODate(data.date)) {
       throw new Error('יש לציין תאריך עסקה תקין');
+    }
+    if (data.valueDate && !isValidISODate(data.valueDate)) {
+      throw new Error('תאריך הערך אינו תקין');
+    }
+    if (data.verificationStatus && !['PENDING', 'VERIFIED', 'RECONCILED'].includes(data.verificationStatus)) {
+      throw new Error('סטטוס אימות העסקה אינו תקין');
     }
     if (!data.category?.trim()) throw new Error('יש להגדיר קטגוריה לעסקה');
     if (!data.payee?.trim()) throw new Error('יש לציין בית עסק או גורם לעסקה');
@@ -1665,6 +1672,9 @@ class HomeOSIndexedDB {
     if (!isValidISODate(data.date)) {
       throw new Error('יש לציין תאריך תקין להעברה');
     }
+    if (data.valueDate && !isValidISODate(data.valueDate)) {
+      throw new Error('תאריך הערך של ההעברה אינו תקין');
+    }
     if (data.amountCents <= 0 || !Number.isSafeInteger(data.amountCents)) {
       throw new Error('סכום ההעברה חייב להיות מספר שלם חיובי באגורות');
     }
@@ -1778,6 +1788,12 @@ class HomeOSIndexedDB {
     }
     if (patch.date !== undefined && !isValidISODate(patch.date)) {
       throw new Error('יש לציין תאריך עסקה תקין');
+    }
+    if (patch.valueDate !== undefined && patch.valueDate && !isValidISODate(patch.valueDate)) {
+      throw new Error('תאריך הערך אינו תקין');
+    }
+    if (patch.verificationStatus !== undefined && !['PENDING', 'VERIFIED', 'RECONCILED'].includes(patch.verificationStatus)) {
+      throw new Error('סטטוס אימות העסקה אינו תקין');
     }
     if (patch.category !== undefined && !patch.category.trim()) {
       throw new Error('יש להגדיר קטגוריה לעסקה');

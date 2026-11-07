@@ -610,7 +610,7 @@ export default function App() {
 
       <Suspense fallback={<div className="flex min-h-48 items-center justify-center text-sm" style={{ color: activeTheme.textSecondary }}>טוען אזור עבודה...</div>}>
       {/* Main Body */}
-      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-7 lg:px-10 py-7 space-y-8">
+      <main className="homeos-main-content flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-7 lg:px-10 py-7 space-y-8">
         {/* Premium primary navigation */}
         <section className="homeos-navigation-shell">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-2">

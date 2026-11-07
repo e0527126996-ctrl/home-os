@@ -2071,6 +2071,7 @@ class HomeOSIndexedDB {
             counterpart.type !== 'TRANSFER' ||
             counterpart.linkedTransactionId !== transaction.id ||
             counterpart.transferId !== transaction.transferId ||
+            counterpart.accountId !== transaction.counterpartyAccountId ||
             counterpart.counterpartyAccountId !== transaction.accountId ||
             counterpart.amountCents !== transaction.amountCents ||
             counterpart.date !== transaction.date ||

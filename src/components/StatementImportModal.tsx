@@ -62,7 +62,7 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
         </div>
       </header>
       {loading ? <div className="flex flex-1 items-center justify-center gap-3 p-16 text-sm" style={muted}><LoaderCircle className="h-5 w-5 animate-spin"/> מפענח תנועות ומזהה עסקאות...</div> :
-      done ? <div className="p-12 text-center"><CheckCircle2 className="mx-auto h-14 w-14 text-emerald-600"/><h3 className="mt-4 text-xl font-bold">הייבוא הושלם</h3><p className="mt-2 text-sm" style={muted}>העסקאות נוספו לפנקס והיתרות, הגרפים והתחזיות חושבו מחדש.</p><button onClick={onClose} className="homeos-primary-action mt-6">סיום</button></div> :
+      done ? <div className="p-12 text-center"><CheckCircle2 className="mx-auto h-14 w-14 text-emerald-600"/><h3 className="mt-4 text-xl font-bold">הייבוא הושלם</h3><p className="mt-2 text-sm" style={muted}>העסקאות נוספו לפנקס במצב ממתין לבדיקה. הן לא ייכללו ביתרות ובתחזיות עד לאישור.</p><button onClick={onClose} className="homeos-primary-action mt-6">סיום</button></div> :
       <div className="flex min-h-0 flex-1 flex-col">
         {error && <div className="mx-5 mt-4 rounded-xl border border-rose-300 bg-rose-50 p-3 text-xs text-rose-800">{error}</div>}
         {!error && <div className="grid gap-3 border-b p-5 sm:grid-cols-2 xl:grid-cols-4" style={{borderColor:activeTheme.borderSubtle}}>

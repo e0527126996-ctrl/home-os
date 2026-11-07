@@ -1616,7 +1616,8 @@ class HomeOSIndexedDB {
     }));
     await this.transaction(['ledger_transactions'], 'readwrite', async tx => {
       const store = tx.objectStore('ledger_transactions');
-      for (const item of importedRows) await this.reqToPromise(store.add(item));
+      const writes = importedRows.map(item => this.reqToPromise(store.add(item)));
+      await Promise.all(writes);
     });
     await this.recordAuditLog(
       householdId, actorUserId, actorEmail, 'IMPORT_STATEMENT_BATCH', 'FINANCE',

@@ -22,10 +22,11 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
+  const [includeDuplicateIds, setIncludeDuplicateIds] = useState<string[]>([]);
 
   React.useEffect(() => {
     let active = true;
-    parseStatementFile(file, transactions).then(result => { if (active) setRows(result); })
+    parseStatementFile(file, transactions).then(result => { if (active) setRows(result); setIncludeDuplicateIds([]); })
       .catch(err => { if (active) setError(err.message || 'לא ניתן לפענח את הקובץ'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -40,11 +41,11 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
     const batchKeys = new Set<string>();
     return rows.map(row => {
       const key = [row.date, row.type, row.amountCents, row.payee.trim().toLowerCase()].join('|');
-      const duplicate = existingKeys.has(key) || batchKeys.has(key);
+      const duplicate = !includeDuplicateIds.includes(row.id) && (existingKeys.has(key) || batchKeys.has(key));
       batchKeys.add(key);
       return { ...row, duplicate };
     });
-  }, [rows, transactions, accountId]);
+  }, [rows, transactions, accountId, includeDuplicateIds]);
   const eligible = useMemo(() => rowsForAccount.filter(r => !r.duplicate && Boolean(r.date) && Boolean(r.payee.trim()) && Boolean(r.category.trim()) && Number.isSafeInteger(r.amountCents) && r.amountCents > 0), [rowsForAccount]);
   const invalidCount = rowsForAccount.filter(r => !r.duplicate && (!r.date || !r.payee.trim() || !r.category.trim() || !Number.isSafeInteger(r.amountCents) || r.amountCents <= 0)).length;
   const totalIncome = eligible.filter(r => r.type === 'INCOME').reduce((s, r) => s + r.amountCents, 0);
@@ -81,7 +82,7 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
         {error && <div className="mx-5 mt-4 rounded-xl border border-rose-300 bg-rose-50 p-3 text-xs text-rose-800">{error}</div>}
         {!error && <div className="grid gap-3 border-b p-5 sm:grid-cols-2 xl:grid-cols-4" style={{borderColor:activeTheme.borderSubtle}}>
           <label className="sm:col-span-1"><span className="mb-1.5 block text-[11px] font-bold" style={muted}>לאיזה חשבון לשייך?</span><select value={accountId} onChange={e=>setAccountId(e.target.value)} className="w-full rounded-xl border px-3 py-2.5 text-xs" style={panel}>{accounts.filter(a=>a.status==='ACTIVE').map(a=><option key={a.id} value={a.id}>{a.name} · {a.institution}</option>)}</select></label>
-          <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>עסקאות חדשות לקליטה</div><div className="mt-1 text-xl font-bold tabular-nums">{eligible.length}</div><div className="text-[10px]" style={muted}>{rowsForAccount.filter(r=>r.duplicate).length} כפילויות ידועות ידולגו</div></div>
+          <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>עסקאות חדשות לקליטה</div><div className="mt-1 text-xl font-bold tabular-nums">{eligible.length}</div><div className="text-[10px]" style={muted}>{rowsForAccount.filter(r=>r.duplicate).length} התאמות אפשריות לכפילות ידולגו</div></div>
           <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>סיכום תנועות לזיהוי</div><div className="mt-1 flex flex-wrap gap-3 text-xs font-bold"><span className="text-emerald-700">הכנסות ₪{(totalIncome/100).toLocaleString('he-IL')}</span><span className="text-amber-700">הוצאות ₪{(totalExpense/100).toLocaleString('he-IL')}</span></div></div>
           <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>שורות שדורשות תיקון</div><div className={'mt-1 text-xl font-bold tabular-nums ' + (invalidCount ? 'text-rose-700' : 'text-emerald-700')}>{invalidCount}</div><div className="text-[10px]" style={muted}>לא ייכללו בייבוא עד לתיקון</div></div>
         </div>}
@@ -96,7 +97,7 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
               <td className="p-2"><select disabled={row.duplicate} value={row.type} onChange={e=>updateRow(row.id,{type:e.target.value as 'INCOME'|'EXPENSE',category:e.target.value==='INCOME'?'הכנסה אחרת':'הוצאות שונות',confidence:'low'})} className="rounded-lg border px-2 py-2 text-[11px]" style={panel}><option value="EXPENSE">הוצאה</option><option value="INCOME">הכנסה</option></select></td>
               <td className="p-2"><input type="number" min="0.01" step="0.01" disabled={row.duplicate} value={(row.amountCents/100).toFixed(2)} onChange={e=>updateRow(row.id,{amountCents:Math.round(Number(e.target.value)*100)||0})} className="w-[105px] rounded-lg border px-2 py-2 text-[11px] font-bold tabular-nums" style={panel}/></td>
               <td className="p-2"><select disabled={row.duplicate} value={row.category} onChange={e=>updateRow(row.id,{category:e.target.value,confidence:'high'})} className="max-w-[230px] rounded-lg border px-2 py-2 text-[11px]" style={panel}>{categoryOptions.filter(c=>row.type==='INCOME'?!['מזון וסופרמרקט','דיור וחשבונות (שכירות, ארנונה, חשמל)','תחבורה, דלק ורכב','בריאות, רפואה וביטוחים','חינוך, חוגים וילדים','קניות, ביגוד והנעלה','מסעדות, בתי קפה ובילוי','תקשורת ואינטרנט','הוצאות שונות'].includes(c):!['משכורת חודשית','הכנסה מעסק / עצמאי','קצבאות ביטוח לאומי','החזר מס / תגמולים','שכר דירה / הכנסה פסיבית','מתנות ומענקים','הכנסה אחרת'].includes(c)).map(c=><option key={c}>{c}</option>)}</select></td>
-              <td className="p-3">{row.duplicate?<span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-800">כפילות · דילוג</span>:(!row.date || !row.payee.trim() || !row.category.trim() || !Number.isSafeInteger(row.amountCents) || row.amountCents <= 0)?<span className="rounded-full bg-rose-100 px-2 py-1 text-[10px] font-bold text-rose-800">דורש תיקון</span>:<span className="text-[10px]" style={muted}>{row.confidence==='high'?'זיהוי טוב':row.confidence==='medium'?'נדרש אימות':'קטגוריה כללית'}</span>}</td>
+              <td className="p-3">{row.duplicate?<button type="button" onClick={()=>setIncludeDuplicateIds(prev=>prev.includes(row.id)?prev:[...prev,row.id])} className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-800 hover:bg-amber-200">חשד לכפילות · ייבא בכל זאת</button>:(!row.date || !row.payee.trim() || !row.category.trim() || !Number.isSafeInteger(row.amountCents) || row.amountCents <= 0)?<span className="rounded-full bg-rose-100 px-2 py-1 text-[10px] font-bold text-rose-800">דורש תיקון</span>:<span className="text-[10px]" style={muted}>{row.confidence==='high'?'זיהוי טוב':row.confidence==='medium'?'נדרש אימות':'קטגוריה כללית'}</span>}</td>
             </tr>)}</tbody>
           </table>}
         </div>}

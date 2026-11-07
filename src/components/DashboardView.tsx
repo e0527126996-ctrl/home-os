@@ -5,12 +5,13 @@ import {
   ArrowDownRight, ArrowLeftRight, ChartNoAxesCombined, ReceiptText, ArrowLeft, CheckCircle2,
   PiggyBank, ShieldCheck, ChevronLeft, CircleDollarSign
 } from 'lucide-react';
-import { FinancialAccount, LedgerTransaction } from '../types.ts';
+import { FinancialAccount, LedgerTransaction, HouseholdHomeItem } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
 
 interface DashboardViewProps {
   accounts: FinancialAccount[];
   transactions: LedgerTransaction[];
+  homeItems: HouseholdHomeItem[];
   householdName: string;
   activeTheme: ThemeConfig;
   onOpenAccounts: () => void;
@@ -23,7 +24,7 @@ const money = (value: number, currency: string = 'ILS') => new Intl.NumberFormat
 const monthLabel = (date: Date) => new Intl.DateTimeFormat('he-IL', { month: 'short' }).format(date);
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
-  accounts, transactions, householdName, activeTheme, onOpenAccounts, onOpenLedger,
+  accounts, transactions, homeItems, householdName, activeTheme, onOpenAccounts, onOpenLedger,
 }) => {
   const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[] } | null>(null);
   const accountCurrencies = useMemo(() => new Map(accounts.map(account => [account.id, account.currency])), [accounts]);
@@ -163,6 +164,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, reconciledTransactionCount, uncategorizedExpenseCount };
   }, [accounts, transactions, confirmedTransactions, accountCurrencies]);
 
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const householdSnapshot = useMemo(() => {
+    const meals = homeItems.filter(item => item.kind === 'meal' && String(item.data.date || '') >= todayKey && String(item.data.date || '') <= new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10));
+    const openTasks = homeItems.filter(item => item.kind === 'task' && !Boolean(item.data.done));
+    const openShopping = homeItems.filter(item => item.kind === 'shopping' && !Boolean(item.data.checked));
+    return { meals: meals.length, openTasks: openTasks.length, openShopping: openShopping.length };
+  }, [homeItems, todayKey]);
   const currency = (cents: number, currencyCode: string = 'ILS') => money(cents / 100, currencyCode);
   const muted = { color: activeTheme.textSecondary };
   const panel = 'homeos-lux-panel';
@@ -403,7 +411,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </details>
 
-      <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]">
+      <section className="homeos-home-snapshot">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div><div className="homeos-section-kicker">HOUSEHOLD OPERATIONS</div><h2 className="mt-1 text-lg font-bold">תמונת מצב הבית</h2><p className="mt-1 text-xs" style={muted}>נתוני ניהול הבית מסונכרנים עם לוח הבקרה</p></div>
+          <button onClick={onOpenLedger} className="homeos-text-link">מעבר לפנקס העסקאות <ArrowLeft className="h-4 w-4" /></button>
+        </div>
+        <div className="homeos-home-snapshot-metrics">
+          <div><span>ארוחות בשבעת הימים הקרובים</span><strong>{householdSnapshot.meals}</strong></div>
+          <div><span>משימות פתוחות</span><strong>{householdSnapshot.openTasks}</strong></div>
+          <div><span>פריטים ברשימת הקניות</span><strong>{householdSnapshot.openShopping}</strong></div>
+        </div>
+      </section>
+
+            <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]">
         <div className={panel + ' p-5 sm:p-7'}>
           <div className="mb-4 flex items-center justify-between gap-3"><div><div className="homeos-section-kicker">LATEST ACTIVITY</div><h2 className="mt-1 text-lg font-bold">פעילות אחרונה</h2></div><button onClick={onOpenLedger} className="homeos-text-link">לכל העסקאות <ArrowLeft className="h-4 w-4" /></button></div>
           {data.recent.length ? <div className="divide-y" style={{ borderColor: activeTheme.borderSubtle }}>{data.recent.map(tx => <button type="button" key={tx.id} onClick={onOpenLedger} title="פתיחת פנקס העסקאות" className="flex w-full items-center justify-between gap-3 py-3.5 text-right transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#547D70] dark:hover:bg-white/5"><div className="flex min-w-0 items-center gap-3"><span className={'homeos-transaction-icon ' + (tx.type === 'INCOME' ? 'income' : tx.type === 'TRANSFER' ? '' : 'expense')}>{tx.type === 'INCOME' ? <ArrowDownRight className="h-4 w-4" /> : tx.type === 'TRANSFER' ? <ArrowLeftRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span><div className="min-w-0"><div className="truncate text-sm font-semibold">{tx.payee || tx.category}</div><div className="mt-1 truncate text-[11px]" style={muted}>{tx.category} · {new Date(tx.date + 'T12:00:00').toLocaleDateString('he-IL')}{tx.verificationStatus === 'PENDING' ? ' · ממתינה לבדיקה' : ''}</div></div></div><strong className={'shrink-0 text-sm tabular-nums ' + (tx.type === 'INCOME' ? 'text-[#477866]' : '')}>{tx.type === 'INCOME' ? '+' : tx.type === 'TRANSFER' ? '↔ ' : '−'}{currency(tx.amountCents, accountCurrencies.get(tx.accountId) || 'ILS')}</strong></button>)}</div> : <div className="py-12 text-center text-sm" style={muted}>עדיין לא נרשמו עסקאות. הפעילות שתזין תופיע כאן.</div>}

@@ -2033,7 +2033,7 @@ class HomeOSIndexedDB {
     });
   }
 
-  async saveDocument(document: HouseholdDocument, actorUserId: string): Promise<void> {
+  async saveDocument(document: HouseholdDocument, actorUserId: string, actorEmail: string): Promise<void> {
     await this.assertPermission(document.householdId, actorUserId, 'documents', 'write');
     if (!document.id || !document.householdId || !document.name?.trim() || !(document.blob instanceof Blob)) {
       throw new Error('פרטי המסמך אינם תקינים');
@@ -2044,23 +2044,46 @@ class HomeOSIndexedDB {
       name: document.name.trim(),
       size: document.blob.size,
     };
-    return this.transaction(['household_documents'], 'readwrite', async (tx) => {
+    const now = new Date().toISOString();
+    const auditLog: AuditLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      householdId: safeDocument.householdId,
+      userId: actorUserId,
+      userEmail: actorEmail,
+      action: 'UPLOAD_DOCUMENT',
+      domain: 'DOCUMENTS',
+      details: `העלאת מסמך: ${safeDocument.name} (${safeDocument.size} bytes)`,
+      timestamp: now,
+    };
+    return this.transaction(['household_documents', 'audit_logs'], 'readwrite', async (tx) => {
       const store = tx.objectStore('household_documents');
       const existing = await this.reqToPromise<HouseholdDocument | undefined>(store.get(safeDocument.id));
       if (existing && existing.householdId !== safeDocument.householdId) {
         throw new Error('הפרת בידוד משקי בית: לא ניתן להחליף מסמך השייך למשק בית אחר');
       }
       await this.reqToPromise(store.put(safeDocument));
+      await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
     });
   }
 
-  async deleteDocument(documentId: string, householdId: string, actorUserId: string): Promise<void> {
+  async deleteDocument(documentId: string, householdId: string, actorUserId: string, actorEmail: string): Promise<void> {
     await this.assertPermission(householdId, actorUserId, 'documents', 'write');
-    return this.transaction(['household_documents'], 'readwrite', async (tx) => {
+    const auditLog: AuditLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      householdId,
+      userId: actorUserId,
+      userEmail: actorEmail,
+      action: 'DELETE_DOCUMENT',
+      domain: 'DOCUMENTS',
+      details: `מחיקת מסמך: ${documentId}`,
+      timestamp: new Date().toISOString(),
+    };
+    return this.transaction(['household_documents', 'audit_logs'], 'readwrite', async (tx) => {
       const store = tx.objectStore('household_documents');
       const existing = await this.reqToPromise<HouseholdDocument | undefined>(store.get(documentId));
       if (!existing || existing.householdId !== householdId) throw new Error('המסמך לא נמצא במשק הבית הפעיל');
       await this.reqToPromise(store.delete(documentId));
+      await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
     });
   }
 

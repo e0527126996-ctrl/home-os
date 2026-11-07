@@ -1,4 +1,4 @@
-﻿
+
 import React, { useState, useMemo } from 'react';
 import {
   ArrowDownRight,
@@ -21,6 +21,30 @@ import {
 import { ThemeConfig } from '../lib/themes.ts';
 import { formatCents } from '../lib/currency.ts';
 import { buildFinanceAnalytics } from '../lib/financeAnalytics.ts';
+
+// Imported legacy rows can occasionally contain Markdown table syntax instead of plain cell text.
+// Normalize only the presentation layer; never mutate the stored transaction or its audit trail.
+const displayLedgerText = (value: string | undefined | null): string => {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '—';
+  const lines = raw.split(/\\r?\\n/).map(line => line.trim()).filter(Boolean);
+  const isMarkdownTable = lines.some(line => /^\\|/.test(line)) && lines.some(line => /^\\|?\\s*:?-{3,}/.test(line));
+  const cleanCell = (cell: string) => cell
+    .replace(/<br\\s*\\/?\\s*>/gi, ' ')
+    .replace(/\\*\\*(.*?)\\*\\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/\\s+/g, ' ')
+    .trim();
+  if (isMarkdownTable) {
+    const cells = lines
+      .filter(line => !/^\\|?\\s*:?-{3,}/.test(line))
+      .flatMap(line => line.replace(/^\\|/, '').replace(/\\|$/, '').split('|'))
+      .map(cleanCell)
+      .filter(Boolean);
+    if (cells.length) return cells.join(' · ');
+  }
+  return cleanCell(raw);
+};
 
 interface TransactionsLedgerViewProps {
   transactions: LedgerTransaction[];
@@ -621,7 +645,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
 
                           <div>
                             <div className="font-semibold text-stone-900 flex items-center gap-1.5">
-                              <span>{tx.payee}</span>
+                              <span>{displayLedgerText(tx.payee)}</span>
 
                               {isTransfer && (
                                 <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 font-sans font-medium">
@@ -632,7 +656,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
 
                             {tx.notes && (
                               <div className="text-[11px] text-stone-500 mt-0.5 line-clamp-1">
-                                {tx.notes}
+                                {displayLedgerText(tx.notes)}
                               </div>
                             )}
                           </div>
@@ -650,7 +674,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
                           />
 
                           <span>
-                            {account ? account.name : 'חשבון הוסר'}
+                            {account ? displayLedgerText(account.name) : 'חשבון הוסר'}
                           </span>
                         </span>
                       </td>
@@ -658,7 +682,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
                       {/* קטגוריה */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <span className="text-stone-700 font-sans font-medium">
-                          {tx.category}
+                          {displayLedgerText(tx.category)}
                         </span>
                       </td>
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowDown, ArrowUp, Check, ImagePlus, LayoutGrid, Palette, Sparkles, Trash2 } from 'lucide-react';
 import type { ThemeConfig } from '../lib/themes.ts';
-import type { WorkspaceViewMode } from '../lib/workspace.ts';
+import type { WorkspaceViewMode, DashboardWidgetSize } from '../lib/workspace.ts';
 import { DASHBOARD_WIDGETS } from '../lib/workspace.ts';
 
 interface SettingsViewProps {
@@ -16,6 +16,8 @@ interface SettingsViewProps {
   visibleDashboardWidgetIds: string[];
   onDashboardWidgetToggle: (widgetId: string, visible: boolean) => void | Promise<void>;
   onDashboardWidgetMove: (widgetId: string, direction: 'up' | 'down') => void | Promise<void>;
+  dashboardWidgetSizes: Record<string, DashboardWidgetSize>;
+  onDashboardWidgetSizeChange: (widgetId: string, size: DashboardWidgetSize) => void | Promise<void>;
   backgroundImage: string | null;
   onBackgroundImageChange: (file: File | null) => void | Promise<void>;
   onBackgroundImageClear: () => void | Promise<void>;
@@ -25,6 +27,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   themes, activeTheme, onThemeSelect, density, onDensityChange,
   workspaceViewMode, onWorkspaceViewModeChange, dashboardWidgetOrder,
   visibleDashboardWidgetIds, onDashboardWidgetToggle, onDashboardWidgetMove,
+  dashboardWidgetSizes, onDashboardWidgetSizeChange,
   backgroundImage, onBackgroundImageChange, onBackgroundImageClear,
 }) => {
   const orderedWidgets = [...DASHBOARD_WIDGETS].sort(
@@ -137,6 +140,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <span className="min-w-0"><strong>{widget.title}</strong><small>{widget.description}</small></span>
                 </label>
                 <div className="homeos-widget-order">
+                  <select aria-label={`גודל אזור ${widget.title}`} className="homeos-widget-size-select"
+                    value={dashboardWidgetSizes[widget.id] || 'standard'}
+                    onChange={(event) => void onDashboardWidgetSizeChange(widget.id, event.target.value as DashboardWidgetSize)}>
+                    <option value="compact">קומפקטי</option>
+                    <option value="standard">רגיל</option>
+                    <option value="expanded">מורחב</option>
+                  </select>
                   <span>{index + 1}</span>
                   <button type="button" title="העבר למעלה" aria-label={`העבר את ${widget.title} למעלה`} disabled={index === 0}
                     onClick={() => void onDashboardWidgetMove(widget.id, 'up')}><ArrowUp className="h-4 w-4" /></button>

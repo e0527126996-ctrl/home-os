@@ -428,7 +428,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                     className="w-full px-3 py-2 rounded-lg border border-stone-300 text-xs bg-white focus:outline-none focus:border-blue-500"
                   >
                     {accounts.map((a) => (
-                      <option key={a.id} value={a.id} disabled={a.id === fromAccountId}>
+                      <option key={a.id} value={a.id} disabled={a.id === fromAccountId || a.currency !== selectedCurrency}>
                         {a.name} ({a.institution}) {a.id === fromAccountId ? '(חשבון מקור)' : ''}
                       </option>
                     ))}
@@ -436,7 +436,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
                 </div>
               </div>
               <p className="text-[11px] text-blue-700/90 leading-relaxed">
-                העברות פנימיות ופירעון כרטיסי אשראי מהעו״ש מעדכנות את היתרות בשני החשבונות ואינן נחשבות כהכנסה או הוצאה נוספת בתקציב.
+                העברות פנימיות מתבצעות בין חשבונות באותו מטבע בלבד, מעדכנות את שתי היתרות ואינן נחשבות כהכנסה או הוצאה נוספת בתקציב.
               </p>
             </div>
           ) : (

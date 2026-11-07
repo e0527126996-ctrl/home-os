@@ -175,8 +175,18 @@ export default function App() {
       db.getMembershipsByHousehold(householdId),
       db.getPersonsByHousehold(householdId),
       db.getAuditLogs(householdId, 100),
-      db.getAccountsByHousehold(householdId),
-      db.getTransactionsByHousehold(householdId),
+      actorUserId
+        ? db.getAccountsByHousehold(householdId, actorUserId).catch((error) => {
+            console.warn('Financial accounts are unavailable for this member:', error);
+            return [] as FinancialAccount[];
+          })
+        : Promise.resolve([] as FinancialAccount[]),
+      actorUserId
+        ? db.getTransactionsByHousehold(householdId, actorUserId).catch((error) => {
+            console.warn('Financial transactions are unavailable for this member:', error);
+            return [] as LedgerTransaction[];
+          })
+        : Promise.resolve([] as LedgerTransaction[]),
       actorUserId
         ? db.getHomeItemsByHousehold(householdId, actorUserId).catch((error) => {
             console.warn('Household operations data is unavailable for this member:', error);

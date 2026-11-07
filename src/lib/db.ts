@@ -2261,6 +2261,8 @@ class HomeOSIndexedDB {
     assertHousehold(backup.transactions, 'עסקאות');
     if ((backup.accounts || []).some(account =>
       !(['ILS', 'USD', 'EUR', 'GBP'] as string[]).includes(account.currency) ||
+      !(['CHECKING', 'SAVINGS', 'CREDIT_CARD', 'LOAN_MORTGAGE'] as string[]).includes(account.type) ||
+      !(['ACTIVE', 'ARCHIVED', 'CLOSED'] as string[]).includes(account.status) ||
       (account.openingBalanceCents !== undefined
         ? !Number.isSafeInteger(account.openingBalanceCents)
         : !parseCurrencyInput(String(account.openingBalance)).valid) ||

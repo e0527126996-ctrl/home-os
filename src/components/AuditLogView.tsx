@@ -27,7 +27,7 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ logs, activeTheme, o
   const uniqueDomains = Array.from(new Set(logs.map((l) => l.domain)));
 
   return (
-    <div className="space-y-4">
+    <div className="homeos-audit-view space-y-4">
       {/* Header and Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4" style={{ borderColor: activeTheme.borderSubtle }}>
         <div>

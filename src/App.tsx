@@ -139,7 +139,12 @@ export default function App() {
       db.getAuditLogs(householdId, 100),
       db.getAccountsByHousehold(householdId),
       db.getTransactionsByHousehold(householdId),
-      actorUserId ? db.getHomeItemsByHousehold(householdId, actorUserId) : Promise.resolve([] as HouseholdHomeItem[]),
+      actorUserId
+        ? db.getHomeItemsByHousehold(householdId, actorUserId).catch((error) => {
+            console.warn('Household operations data is unavailable for this member:', error);
+            return [] as HouseholdHomeItem[];
+          })
+        : Promise.resolve([] as HouseholdHomeItem[]),
     ]);
     setMemberships(mems);
     setPersons(prs);

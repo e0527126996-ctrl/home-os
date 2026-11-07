@@ -58,7 +58,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = async () => {
-    if (!currentUser) { setDocuments([]); return; }
+    if (!canRead || !currentUser) { setDocuments([]); return; }
     setDocuments(await db.getDocumentsByHousehold(household.id, currentUser.id));
   };
   const notifyDocumentsChanged = () => {
@@ -71,7 +71,14 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
   };
   useEffect(() => {
     let active = true;
-    const refreshSafely = () => { if (active) refresh().catch((e) => setError(e.message)); };
+    const refreshSafely = () => {
+      if (!active) return;
+      if (!canRead || !currentUser) {
+        setDocuments([]);
+        return;
+      }
+      refresh().catch((e) => { if (active) setError(e.message || 'לא ניתן לטעון מסמכים'); });
+    };
     const onVisibility = () => { if (document.visibilityState === 'visible') refreshSafely(); };
     const onLocalChange = (event: Event) => {
       const detail = (event as CustomEvent<{ householdId?: string }>).detail;
@@ -92,7 +99,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
       window.removeEventListener('homeos:documents-changed', onLocalChange as EventListener);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [household.id]);
+  }, [household.id, currentUser?.id, canRead]);
 
   const visibleDocuments = useMemo(() => documents.filter((doc) => {
     const matchesText = !query || doc.name.toLowerCase().includes(query.toLowerCase());

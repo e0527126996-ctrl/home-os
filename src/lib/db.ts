@@ -21,6 +21,7 @@ import {
   VerificationStatus,
 } from '../types.ts';
 import { formatCents, fromCents, parseCurrencyInput, toCents } from './currency.ts';
+import { buildFinanceAnalytics } from './financeAnalytics.ts';
 
 const DB_NAME = 'home_os_db';
 const DB_VERSION = 5;
@@ -3547,6 +3548,86 @@ class HomeOSIndexedDB {
         passed: false,
         message: e.message,
         durationMs: Math.round(performance.now() - t22Start),
+      });
+    }
+
+    // Test 23: Shared finance analytics, pending exclusion and forecast integrity
+    const t23Start = performance.now();
+    try {
+      const now = new Date();
+      const account: FinancialAccount = {
+        id: 'analytics_test_account',
+        householdId: 'analytics_test_household',
+        name: 'חשבון בדיקת אנליטיקה',
+        type: 'CHECKING',
+        institution: 'בדיקה',
+        currency: 'ILS',
+        openingBalanceCents: 0,
+        openingBalance: 0,
+        currentBalanceCents: 0,
+        currentBalance: 0,
+        status: 'ACTIVE',
+        isLiability: false,
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
+      };
+      const makeTx = (id: string, date: string, amountCents: number, type: 'INCOME' | 'EXPENSE', category: string, verificationStatus: 'VERIFIED' | 'PENDING' = 'VERIFIED'): LedgerTransaction => ({
+        id,
+        householdId: account.householdId,
+        accountId: account.id,
+        date,
+        amountCents,
+        type,
+        category,
+        payee: category,
+        source: 'MANUAL',
+        verificationStatus,
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
+        createdBy: 'analytics_test',
+      });
+      const txs: LedgerTransaction[] = [];
+      for (let offset = 3; offset >= 1; offset -= 1) {
+        const date = new Date(now.getFullYear(), now.getMonth() - offset, 12);
+        const key = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+        txs.push(
+          makeTx('history_' + offset + '_income', key + '-12', 500000, 'INCOME', 'שכר'),
+          makeTx('history_' + offset + '_food_a', key + '-13', 5000, 'EXPENSE', 'סופר'),
+          makeTx('history_' + offset + '_food_b', key + '-14', 5000, 'EXPENSE', 'סופר'),
+        );
+      }
+      const currentKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+      txs.push(
+        makeTx('current_food_a', currentKey + '-03', 10000, 'EXPENSE', 'סופר'),
+        makeTx('current_food_b', currentKey + '-05', 10000, 'EXPENSE', 'סופר'),
+        makeTx('current_salary', currentKey + '-04', 500000, 'INCOME', 'שכר'),
+        makeTx('current_transport_a', currentKey + '-05', 2500, 'EXPENSE', 'תחבורה'),
+        makeTx('current_transport_b', currentKey + '-06', 2500, 'EXPENSE', 'תחבורה'),
+        makeTx('pending_expense', currentKey + '-06', 99000, 'EXPENSE', 'סופר', 'PENDING'),
+      );
+      const analytics = buildFinanceAnalytics([account], txs, now);
+      const success =
+        analytics.verifiedTransactions.length === 14 &&
+        analytics.pendingTransactions.length === 1 &&
+        analytics.currentMonth.expenseCents === 25000 &&
+        analytics.pendingAmountIlsCents === 99000 &&
+        analytics.forecast.available &&
+        analytics.forecast.horizons.find(item => item.months === 12)?.netCents === analytics.forecast.averageNetCents * 12 &&
+        analytics.spendingAlerts.some(item => item.category === 'סופר');
+      results.push({
+        testName: '23. מנוע אנליטיקה משותף, החרגת עסקאות ממתינות ותחזית תזרים',
+        passed: success,
+        message: success
+          ? 'העסקאות המאומתות והממתינות הופרדו, התחזית חושבה והתרעת קצב הוצאה זוהתה'
+          : 'נמצאה אי-התאמה בסיכומי העסקאות, בתחזית או בזיהוי קצב הוצאה חריג',
+        durationMs: Math.round(performance.now() - t23Start),
+      });
+    } catch (e: any) {
+      results.push({
+        testName: '23. מנוע אנליטיקה משותף, החרגת עסקאות ממתינות ותחזית תזרים',
+        passed: false,
+        message: e.message,
+        durationMs: Math.round(performance.now() - t23Start),
       });
     }
 

@@ -8,6 +8,7 @@ import {
 import { FinancialAccount, LedgerTransaction, HouseholdHomeItem } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
 import { buildFinanceAnalytics } from '../lib/financeAnalytics.ts';
+import type { WorkspaceViewMode } from '../lib/workspace.ts';
 
 interface DashboardViewProps {
   accounts: FinancialAccount[];
@@ -17,6 +18,9 @@ interface DashboardViewProps {
   activeTheme: ThemeConfig;
   onOpenAccounts: () => void;
   onOpenLedger: () => void;
+  viewMode: WorkspaceViewMode;
+  dashboardWidgetOrder: string[];
+  visibleDashboardWidgetIds: string[];
 }
 
 const money = (value: number, currency: string = 'ILS') => new Intl.NumberFormat('he-IL', {
@@ -26,6 +30,7 @@ const monthLabel = (date: Date) => new Intl.DateTimeFormat('he-IL', { month: 'sh
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   accounts, transactions, homeItems, householdName, activeTheme, onOpenAccounts, onOpenLedger,
+  viewMode, dashboardWidgetOrder, visibleDashboardWidgetIds,
 }) => {
   const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[] } | null>(null);
   const financeAnalytics = useMemo(() => buildFinanceAnalytics(accounts, transactions), [accounts, transactions]);
@@ -153,13 +158,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const currency = (cents: number, currencyCode: string = 'ILS') => money(cents / 100, currencyCode);
   const muted = { color: activeTheme.textSecondary };
   const panel = 'homeos-lux-panel';
+  const widgetOrderStyle = (id: string): React.CSSProperties => ({ order: Math.max(0, dashboardWidgetOrder.indexOf(id)) });
+  const widgetVisible = (id: string) => visibleDashboardWidgetIds.includes(id);
   const categoryTotal = data.topCategories.reduce((sum, item) => sum + item[1], 0);
   const categoryColors = [activeTheme.accent, activeTheme.isDark ? '#A3B7C8' : activeTheme.accentMuted, '#8295A7', '#A97972', '#9C9A7D'];
   const monthName = new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' }).format(new Date());
   const hasActivity = data.current.income > 0 || data.current.expense > 0;
 
   return (
-    <div className="homeos-dashboard space-y-6 pb-10" dir="rtl">
+    <div className="homeos-dashboard space-y-6 pb-10" dir="rtl" data-view-mode={viewMode}>
       <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <div className="homeos-kicker"><span className="homeos-live-dot" /> HOME OS <span className="opacity-30">/</span> מרכז פיננסי למשק הבית</div>
@@ -173,7 +180,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </header>
 
-      <section className="homeos-wealth-hero">
+      <section className="homeos-wealth-hero" data-widget-id="net-worth" hidden={!widgetVisible('net-worth')} style={widgetOrderStyle('net-worth')}>
         <div className="homeos-hero-orbit homeos-orbit-one" />
         <div className="homeos-hero-orbit homeos-orbit-two" />
         <div className="homeos-hero-glow" />
@@ -199,7 +206,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="homeos-hero-footer"><span>תמונת ההון של משק הבית</span><span>01 — מצב פיננסי</span></div>
       </section>
 
-      <section className="homeos-kpi-strip" aria-label="מדדי החודש">
+      <section className="homeos-kpi-strip" aria-label="מדדי החודש" data-widget-id="monthly-kpis" hidden={!widgetVisible('monthly-kpis')} style={widgetOrderStyle('monthly-kpis')}>
         <button type="button" onClick={() => setChartDetail({ title: "הכנסות החודש", subtitle: "כל ההכנסות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'INCOME' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>הכנסות החודש</span><span className="homeos-icon-tile green"><ArrowDownLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value green">{currency(data.current.income)}</div><div className="homeos-card-foot">לחץ לפירוט ההכנסות</div></button>
         <button type="button" onClick={() => setChartDetail({ title: "הוצאות החודש", subtitle: "כל ההוצאות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>הוצאות החודש</span><span className="homeos-icon-tile copper"><ArrowUpLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{currency(data.current.expense)}</div><div className="homeos-card-foot">לחץ לפירוט ההוצאות</div></button>
         <button type="button" onClick={() => setChartDetail({ title: "מאזן חודשי", subtitle: "הכנסות והוצאות בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.date?.slice(0, 7) === data.months[5]?.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>מאזן חודשי</span><span className="homeos-icon-tile blue"><Activity className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.cashflow >= 0 ? 'green' : 'negative')}>{currency(data.cashflow)}</div><div className="homeos-card-foot">לחץ לפירוט התזרים</div></button>
@@ -213,7 +220,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </aside>
       )}
 
-      <section className="grid gap-5 xl:grid-cols-[1.55fr_.85fr]">
+      <section className="grid gap-5 xl:grid-cols-[1.55fr_.85fr]" data-widget-id="cashflow-analysis" hidden={!widgetVisible('cashflow-analysis')} style={widgetOrderStyle('cashflow-analysis')}>
         <div className={panel + ' p-5 sm:p-7'}>
           <div className="mb-7 flex flex-wrap items-start justify-between gap-3">
             <div><div className="homeos-section-kicker">ניתוח תזרים מזומנים</div><h2 className="mt-1 text-lg font-bold">תנועת הכסף לאורך זמן</h2><p className="mt-1 text-xs" style={muted}>השוואת הכנסות והוצאות · ששת החודשים האחרונים</p></div>
@@ -242,7 +249,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
-      <section className={panel + ' p-5 sm:p-7'}>
+      <section className={panel + ' p-5 sm:p-7'} data-widget-id="cashflow-forecast" hidden={!widgetVisible('cashflow-forecast')} style={widgetOrderStyle('cashflow-forecast')}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="homeos-section-kicker">תחזית תזרים רב-חודשית</div>
@@ -279,7 +286,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>}
       </section>
 
-      <details className="homeos-advanced-details">
+      <details className="homeos-advanced-details" data-widget-id="advanced-analysis" hidden={!widgetVisible('advanced-analysis')} style={widgetOrderStyle('advanced-analysis')}>
         <summary>
           <span className="homeos-advanced-title">ניתוח מתקדם</span>
           <span className="homeos-advanced-description">תחזיות, הזדמנויות לחיסכון ובקרת נתונים</span>
@@ -435,7 +442,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </details>
 
       {data.foreignCurrencySummaries.length > 0 && (
-        <section className="homeos-foreign-currency">
+        <section className="homeos-foreign-currency" data-widget-id="foreign-currency" hidden={!widgetVisible('foreign-currency')} style={widgetOrderStyle('foreign-currency')}>
           <div className="mb-4"><div className="homeos-section-kicker">פעילות לפי מטבע</div><h2 className="mt-1 text-lg font-bold">חשבונות במטבע זר</h2><p className="mt-1 text-xs" style={muted}>הכנסות והוצאות מוצגות בנפרד לכל מטבע, ללא המרה משוערת לשקלים</p></div>
           <div className="space-y-4">
             {data.foreignCurrencySummaries.map(item => {
@@ -452,7 +459,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </section>
       )}
 
-            <section className="homeos-home-snapshot">
+            <section className="homeos-home-snapshot" data-widget-id="household-snapshot" hidden={!widgetVisible('household-snapshot')} style={widgetOrderStyle('household-snapshot')}>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div><div className="homeos-section-kicker">ניהול הבית</div><h2 className="mt-1 text-lg font-bold">תמונת מצב הבית</h2><p className="mt-1 text-xs" style={muted}>נתוני ניהול הבית מסונכרנים עם לוח הבקרה</p></div>
           <button onClick={onOpenLedger} className="homeos-text-link">מעבר לפנקס העסקאות <ArrowLeft className="h-4 w-4" /></button>
@@ -464,7 +471,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
-            <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]">
+            <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]" data-widget-id="recent-activity" hidden={!widgetVisible('recent-activity')} style={widgetOrderStyle('recent-activity')}>
         <div className={panel + ' p-5 sm:p-7'}>
           <div className="mb-4 flex items-center justify-between gap-3"><div><div className="homeos-section-kicker">פעילות אחרונה</div><h2 className="mt-1 text-lg font-bold">פעילות אחרונה</h2></div><button onClick={onOpenLedger} className="homeos-text-link">לכל העסקאות <ArrowLeft className="h-4 w-4" /></button></div>
           {data.recent.length ? <div className="divide-y" style={{ borderColor: activeTheme.borderSubtle }}>{data.recent.map(tx => <button type="button" key={tx.id} onClick={onOpenLedger} title="פתיחת פנקס העסקאות" className="flex w-full items-center justify-between gap-3 py-3.5 text-right transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#547D70] dark:hover:bg-white/5"><div className="flex min-w-0 items-center gap-3"><span className={'homeos-transaction-icon ' + (tx.type === 'INCOME' ? 'income' : tx.type === 'TRANSFER' ? '' : 'expense')}>{tx.type === 'INCOME' ? <ArrowDownRight className="h-4 w-4" /> : tx.type === 'TRANSFER' ? <ArrowLeftRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span><div className="min-w-0"><div className="truncate text-sm font-semibold">{tx.payee || tx.category}</div><div className="mt-1 truncate text-[11px]" style={muted}>{tx.category} · {new Date(tx.date + 'T12:00:00').toLocaleDateString('he-IL')}{tx.verificationStatus === 'PENDING' ? ' · ממתינה לבדיקה' : ''}</div></div></div><strong className={'shrink-0 text-sm tabular-nums ' + (tx.type === 'INCOME' ? 'text-[#477866]' : '')}>{tx.type === 'INCOME' ? '+' : tx.type === 'TRANSFER' ? '↔ ' : '−'}{currency(tx.amountCents, accountCurrencies.get(tx.accountId) || 'ILS')}</strong></button>)}</div> : <div className="py-12 text-center text-sm" style={muted}>עדיין לא נרשמו עסקאות. הפעילות שתזין תופיע כאן.</div>}
@@ -496,7 +503,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       )}
 
-      <section className="homeos-insight">
+      <section className="homeos-insight" data-widget-id="financial-insight" hidden={!widgetVisible('financial-insight')} style={widgetOrderStyle('financial-insight')}>
         <span className="homeos-insight-icon"><Lightbulb className="h-5 w-5" /></span>
         <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="font-bold">תובנה פיננסית</h2><span className="rounded-full bg-[#547D70]/10 px-2 py-1 text-[10px] font-semibold text-[#547D70]">מבוסס נתונים בפועל</span></div><p className="mt-1 text-sm leading-6" style={muted}>{!hasActivity ? 'עדיין לא נרשמה פעילות החודש. לאחר הזנת עסקאות יופיע כאן ניתוח של התזרים וההוצאות.' : data.cashflow >= 0 ? 'התזרים החודשי כרגע חיובי ועומד על ' + currency(data.cashflow) + (data.topCategories[0] ? '. סעיף ההוצאה הגדול כרגע הוא ' + data.topCategories[0][0] + ' בסך ' + currency(data.topCategories[0][1]) + '. מומלץ לעקוב אחריו עד סוף החודש.' : '. מומלץ להמשיך לעקוב אחר ההוצאות לאורך החודש.') : 'ההוצאות גבוהות מההכנסות שנרשמו החודש ב-' + currency(Math.abs(data.cashflow)) + (data.topCategories[0] ? '. כדאי להתחיל בבדיקת סעיף ' + data.topCategories[0][0] + ' שהוא הגדול כרגע.' : '. כדאי לבדוק את העסקאות האחרונות.')}</p></div>
         <button onClick={onOpenLedger} className="homeos-text-link hidden sm:flex">ניתוח עסקאות <ArrowLeft className="h-4 w-4" /></button>

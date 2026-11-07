@@ -518,6 +518,24 @@ export default function App() {
     }
   };
 
+  const handleVerifyTransaction = async (id: string) => {
+    if (!activeHousehold || !currentUser) throw new Error('יש להתחבר למשק הבית לפני אימות עסקה');
+    try {
+      await db.updateTransaction(
+        activeHousehold.id,
+        id,
+        { verificationStatus: 'VERIFIED' },
+        currentUser.id,
+        currentUser.email,
+      );
+      await reloadHouseholdData(activeHousehold.id);
+      showToast('העסקה אומתה ונכללת כעת ביתרות ובגרפים');
+    } catch (err: any) {
+      showToast('אימות העסקה נכשל: ' + err.message, 'error');
+      throw err;
+    }
+  };
+
   const handleDeleteTransaction = async (txId: string) => {
     if (!activeHousehold || !currentUser) return;
     try {
@@ -1034,6 +1052,7 @@ export default function App() {
               setShowTransactionModal(true);
             }}
             onDeleteTransaction={handleDeleteTransaction}
+            onVerifyTransaction={handleVerifyTransaction}
             selectedAccountId={ledgerSelectedAccountId}
             onSelectAccount={(accId) => setLedgerSelectedAccountId(accId)}
           />

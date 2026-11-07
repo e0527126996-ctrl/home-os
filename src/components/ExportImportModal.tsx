@@ -26,10 +26,11 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExport = async () => {
+    if (!currentUser) { setErrorMsg('יש להתחבר לפני ייצוא גיבוי'); return; }
     setIsProcessing(true);
     setErrorMsg('');
     try {
-      const backup = await db.exportFullBackup(household.id);
+      const backup = await db.exportFullBackup(household.id, currentUser.id);
       const jsonStr = JSON.stringify(backup, null, 2);
       const blob = new Blob([jsonStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -73,14 +74,15 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
 
   const handleConfirmRestore = async () => {
     if (!pendingBackupData) return;
+    if (!currentUser) { setErrorMsg('יש להתחבר לפני שחזור גיבוי'); return; }
     setIsProcessing(true);
     setErrorMsg('');
 
     try {
       await db.importFullBackup(
         pendingBackupData,
-        currentUser?.id || 'usr_unknown',
-        currentUser?.email || 'unknown@homeos.local',
+        currentUser.id,
+        currentUser.email,
         true // Explicit user confirmation!
       );
 

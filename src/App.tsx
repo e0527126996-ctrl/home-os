@@ -25,6 +25,7 @@ import {
   Utensils,
 } from 'lucide-react';
 import { Header } from './components/Header.tsx';
+import { SettingsView } from './components/SettingsView.tsx';
 const DashboardView = lazy(() => import('./components/DashboardView.tsx').then(({ DashboardView }) => ({ default: DashboardView })));
 const HouseholdsView = lazy(() => import('./components/HouseholdsView.tsx').then(({ HouseholdsView }) => ({ default: HouseholdsView })));
 const MembersAndPersonsView = lazy(() => import('./components/MembersAndPersonsView.tsx').then(({ MembersAndPersonsView }) => ({ default: MembersAndPersonsView })));
@@ -73,7 +74,7 @@ export default function App() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   // Navigation & Theme
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'overview' | 'accounts' | 'ledger' | 'members' | 'households' | 'audit' | 'documents' | 'home'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'overview' | 'accounts' | 'ledger' | 'members' | 'households' | 'audit' | 'documents' | 'home' | 'settings'>('dashboard');
   const [activeTheme, setActiveTheme] = useState<ThemeConfig>(MODERN_EDITORIAL_THEMES[0]);
   const [ledgerSelectedAccountId, setLedgerSelectedAccountId] = useState<string | null>(null);
 
@@ -621,6 +622,7 @@ export default function App() {
               { id: 'members', label: 'משפחה והרשאות', icon: UsersRound, count: memberships.length + persons.length },
               { id: 'households', label: 'משקי בית', icon: House, count: households.length },
               { id: 'audit', label: 'יומן ביקורת', icon: ClipboardList, count: auditLogs.length },
+              { id: 'settings', label: 'הגדרות אישיות', icon: Settings },
             ] as const).map((item) => {
               const selected = activeTab === item.id;
               const Icon = item.icon;
@@ -644,6 +646,14 @@ export default function App() {
             })}
           </nav>
         </section>
+
+        {activeTab === 'settings' && (
+          <SettingsView
+            themes={MODERN_EDITORIAL_THEMES}
+            activeTheme={activeTheme}
+            onThemeSelect={handleSelectTheme}
+          />
+        )}
 
         {activeTab === 'dashboard' && activeHousehold && (
           <DashboardView

@@ -2517,8 +2517,6 @@ html[data-theme="carbon_gold_luxury"] .homeos-app-shell .homeos-theme-option.is-
 .homeos-dashboard[data-view-mode="analytics"] [data-widget-id="household-snapshot"],
 .homeos-dashboard[data-view-mode="analytics"] [data-widget-id="recent-activity"] { display: none; }
 .homeos-dashboard[data-view-mode="analytics"] [data-widget-id="advanced-analysis"] { display: block; }
-.homeos-dashboard[data-view-mode="analytics"] [data-widget-id="advanced-analysis"] .homeos-advanced-content { display: flex; }
-.homeos-dashboard[data-view-mode="analytics"] [data-widget-id="advanced-analysis"] .homeos-advanced-content > section { display: block; }
 
 /* Every shared module reads the same theme tokens. */
 .homeos-app-shell :is(

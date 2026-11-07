@@ -5,7 +5,7 @@ import { FinancialAccount, Household, HouseholdHomeItem, LedgerTransaction, User
 import { ThemeConfig } from '../lib/themes.ts';
 import { buildFinanceAnalytics } from '../lib/financeAnalytics.ts';
 
-type Props = { household: Household; currentUser: User | null; activeTheme: ThemeConfig; canRead: boolean; canWrite: boolean; accounts: FinancialAccount[]; transactions: LedgerTransaction[]; onOpenLedger: () => void; onItemsChange: (items: HouseholdHomeItem[]) => void };
+type Props = { household: Household; currentUser: User | null; activeTheme: ThemeConfig; canRead: boolean; canWrite: boolean; accounts: FinancialAccount[]; transactions: LedgerTransaction[]; onOpenLedger: () => void; initialTab?: 'planner'|'recipes'|'shopping'|'tasks'|'finance'; onItemsChange: (items: HouseholdHomeItem[]) => void };
 type Recipe = { name: string; ingredients: string[]; instructions: string; category: string };
 type Meal = { date: string; slot: string; recipeId: string; recipeName: string };
 type Shopping = { name: string; quantity: string; checked: boolean; source?: string };
@@ -17,9 +17,10 @@ const monday = (d: Date) => { const x = new Date(d); x.setDate(x.getDate()-((x.g
 const days = ['יום שני','יום שלישי','יום רביעי','יום חמישי','יום שישי','שבת','יום ראשון'];
 const slots = ['בוקר','צהריים','ערב'];
 
-export function HomeManagementView({ household, currentUser, activeTheme, canRead, canWrite, accounts, transactions, onOpenLedger, onItemsChange }: Props) {
+export function HomeManagementView({ household, currentUser, activeTheme, canRead, canWrite, accounts, transactions, onOpenLedger, initialTab = 'planner', onItemsChange }: Props) {
   const [items,setItems] = useState<HouseholdHomeItem[]>([]);
-  const [tab,setTab] = useState<'planner'|'recipes'|'shopping'|'tasks'|'finance'>('planner');
+  const [tab,setTab] = useState<'planner'|'recipes'|'shopping'|'tasks'|'finance'>(initialTab);
+  useEffect(()=>{setTab(initialTab);},[initialTab]);
   const [week,setWeek] = useState(()=>monday(new Date()));
   const [name,setName] = useState(''); const [ingredients,setIngredients] = useState(''); const [instructions,setInstructions] = useState(''); const [category,setCategory] = useState('ארוחה משפחתית'); const [editingRecipeId,setEditingRecipeId] = useState<string|null>(null);
   const [mealDate,setMealDate] = useState(iso(new Date())); const [mealSlot,setMealSlot] = useState('צהריים'); const [recipeId,setRecipeId] = useState(''); const [editingMealId,setEditingMealId] = useState<string|null>(null);

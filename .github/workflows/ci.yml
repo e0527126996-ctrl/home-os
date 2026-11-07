@@ -35,5 +35,7 @@ jobs:
         run: npm run test:statements
       - name: Finance analytics regression tests
         run: npm run test:finance
+      - name: Access control regression tests
+        run: npm run test:access
       - name: Production build
         run: npm run build

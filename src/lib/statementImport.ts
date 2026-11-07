@@ -163,16 +163,19 @@ function rowFromValues(values: unknown[], headers: string[], index: number, xlsx
   const amountCell = parseStatementAmount(find(['סכום','amount','סכוםהתנועה','תנועה']));
   let amount: number | null = amountCell;
   let amountColumnType: 'INCOME' | 'EXPENSE' | null = null;
-  if (debit !== null || credit !== null) {
-    if (credit !== null && Math.abs(credit) > 0) {
-      amount = Math.abs(credit);
-      amountColumnType = 'INCOME';
-    } else if (debit !== null && Math.abs(debit) > 0) {
-      amount = -Math.abs(debit);
-      amountColumnType = 'EXPENSE';
-    } else {
-      amount = 0;
-    }
+  const hasDebitAmount = debit !== null && Math.abs(debit) > 0;
+  const hasCreditAmount = credit !== null && Math.abs(credit) > 0;
+  // Some exports put zero in both debit/credit columns while the actual value
+  // is stored in a separate Amount column. Only use debit/credit when one side
+  // contains a non-zero amount; ambiguous rows fall back to Amount for review.
+  if (hasCreditAmount && !hasDebitAmount) {
+    amount = Math.abs(credit!);
+    amountColumnType = 'INCOME';
+  } else if (hasDebitAmount && !hasCreditAmount) {
+    amount = -Math.abs(debit!);
+    amountColumnType = 'EXPENSE';
+  } else if (hasCreditAmount && hasDebitAmount) {
+    amount = amountCell;
   }
   if (!date || !payee || amount === null || amount === 0) return null;
   const directionIsIncome = /זכות|זיכוי|הפקדה|קבלה|credit|deposit|income|כניסה/.test(direction);

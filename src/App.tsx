@@ -43,6 +43,7 @@ const HomeManagementView = lazy(() => import('./components/HomeManagementView.ts
 import { db } from './lib/db.ts';
 import { MODERN_EDITORIAL_THEMES, ThemeConfig } from './lib/themes.ts';
 import { DASHBOARD_WIDGETS, DEFAULT_DASHBOARD_WIDGET_ORDER, WorkspaceViewMode, WORKSPACE_VIEW_MODES } from './lib/workspace.ts';
+import type { DashboardWidgetSize } from './lib/workspace.ts';
 import { generateStandaloneHomeOSHtml } from './lib/standaloneGenerator.ts';
 import type { ImportedStatementRow } from './lib/statementImport.ts';
 import {
@@ -81,6 +82,7 @@ export default function App() {
   const [workspaceViewMode, setWorkspaceViewMode] = useState<WorkspaceViewMode>('executive');
   const [dashboardWidgetOrder, setDashboardWidgetOrder] = useState<string[]>(DEFAULT_DASHBOARD_WIDGET_ORDER);
   const [visibleDashboardWidgetIds, setVisibleDashboardWidgetIds] = useState<string[]>(DEFAULT_DASHBOARD_WIDGET_ORDER);
+  const [dashboardWidgetSizes, setDashboardWidgetSizes] = useState<Record<string, DashboardWidgetSize>>({});
   const [personalBackgroundImage, setPersonalBackgroundImage] = useState<string | null>(null);
   const [ledgerSelectedAccountId, setLedgerSelectedAccountId] = useState<string | null>(null);
 
@@ -119,12 +121,13 @@ export default function App() {
 
       const savedHhdId = await db.getSetting<string>('active_household_id', allHhds[0]?.id || '');
       const savedUserId = await db.getSetting<string>('current_user_id', usersList[0]?.id || '');
-      const [savedThemeId, savedDensity, savedViewMode, savedWidgetOrder, savedVisibleWidgets, savedBackgroundImage] = await Promise.all([
+      const [savedThemeId, savedDensity, savedViewMode, savedWidgetOrder, savedVisibleWidgets, savedWidgetSizes, savedBackgroundImage] = await Promise.all([
         db.getSetting<string>('theme', 'warm_editorial'),
         db.getSetting<string>('workspace_density', 'balanced'),
         db.getSetting<WorkspaceViewMode>('workspace_view_mode', 'executive'),
         db.getSetting<string[]>('dashboard_widget_order', DEFAULT_DASHBOARD_WIDGET_ORDER),
         db.getSetting<string[]>('dashboard_widget_visibility', DEFAULT_DASHBOARD_WIDGET_ORDER),
+        db.getSetting<Record<string, DashboardWidgetSize>>('dashboard_widget_sizes', {}),
         db.getSetting<string>('personal_background_image', ''),
       ]);
 
@@ -144,6 +147,12 @@ export default function App() {
       setVisibleDashboardWidgetIds(Array.isArray(savedVisibleWidgets)
         ? savedVisibleWidgets.filter((id) => DASHBOARD_WIDGETS.some((widget) => widget.id === id))
         : [...DEFAULT_DASHBOARD_WIDGET_ORDER]);
+      const normalizedWidgetSizes: Record<string, DashboardWidgetSize> = {};
+      for (const widget of DASHBOARD_WIDGETS) {
+        const size = savedWidgetSizes?.[widget.id];
+        normalizedWidgetSizes[widget.id] = size === 'compact' || size === 'expanded' ? size : 'standard';
+      }
+      setDashboardWidgetSizes(normalizedWidgetSizes);
       setPersonalBackgroundImage(typeof savedBackgroundImage === 'string' && savedBackgroundImage.startsWith('data:image/') ? savedBackgroundImage : null);
 
       if (initialHhd) {
@@ -553,6 +562,13 @@ export default function App() {
     await db.setSetting('dashboard_widget_visibility', next);
   };
 
+  const handleDashboardWidgetSizeChange = async (widgetId: string, size: DashboardWidgetSize) => {
+    if (!DASHBOARD_WIDGETS.some((widget) => widget.id === widgetId)) return;
+    const next = { ...dashboardWidgetSizes, [widgetId]: size };
+    setDashboardWidgetSizes(next);
+    await db.setSetting('dashboard_widget_sizes', next);
+  };
+
   const handleDashboardWidgetMove = async (widgetId: string, direction: 'up' | 'down') => {
     const current = [...dashboardWidgetOrder];
     const index = current.indexOf(widgetId);
@@ -763,6 +779,8 @@ export default function App() {
             visibleDashboardWidgetIds={visibleDashboardWidgetIds}
             onDashboardWidgetToggle={handleDashboardWidgetToggle}
             onDashboardWidgetMove={handleDashboardWidgetMove}
+            dashboardWidgetSizes={dashboardWidgetSizes}
+            onDashboardWidgetSizeChange={handleDashboardWidgetSizeChange}
             backgroundImage={personalBackgroundImage}
             onBackgroundImageChange={handleBackgroundImageChange}
             onBackgroundImageClear={handleBackgroundImageClear}
@@ -781,6 +799,7 @@ export default function App() {
             viewMode={workspaceViewMode}
             dashboardWidgetOrder={dashboardWidgetOrder}
             visibleDashboardWidgetIds={visibleDashboardWidgetIds}
+            dashboardWidgetSizes={dashboardWidgetSizes}
           />
         )}
 

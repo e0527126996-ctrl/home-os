@@ -2217,3 +2217,104 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .homeos-app-shell :is(button, a, [role="button"]) { transition: none !important; }
 }
+
+
+/* Carbon Gold Luxury — dedicated selectable executive theme */
+.homeos-app-shell[data-theme="carbon_gold_luxury"] {
+  --homeos-metal: #D4AF37;
+  --homeos-metal-soft: rgba(212,175,55,.18);
+  --homeos-glass: rgba(24,28,36,.88);
+  --homeos-elevation: 0 12px 32px rgba(0,0,0,.5);
+  background-color: #0F1115 !important;
+  color: #F4F1E8;
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"]::before {
+  background:
+    radial-gradient(ellipse at 8% 0%, rgba(212,175,55,.11), transparent 34%),
+    radial-gradient(ellipse at 94% 48%, rgba(20,110,74,.09), transparent 32%);
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-topbar {
+  background: rgba(15,17,21,.86);
+  border-bottom-color: rgba(212,175,55,.25);
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-navigation-shell,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-dashboard .homeos-kpi-item,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-lux-panel,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-home-panel,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-settings-hero,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-density-section,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-theme-option {
+  background: rgba(24,28,36,.88);
+  border: 1px solid rgba(212,175,55,.25);
+  border-radius: 20px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.035);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-dashboard > header {
+  background:
+    radial-gradient(ellipse at 82% 0%, rgba(212,175,55,.15), transparent 38%),
+    linear-gradient(135deg, #181C24, #11151C);
+  border: 1px solid rgba(212,175,55,.25);
+  box-shadow: 0 12px 32px rgba(0,0,0,.5);
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-wealth-hero {
+  background:
+    radial-gradient(ellipse at 85% 8%, rgba(212,175,55,.24), transparent 36%),
+    radial-gradient(ellipse at 8% 95%, rgba(18,105,72,.23), transparent 42%),
+    linear-gradient(125deg, rgba(24,28,36,.94), rgba(15,17,21,.96));
+  border: 1px solid rgba(212,175,55,.4);
+  box-shadow: 0 12px 32px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter: blur(16px);
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-hero-metric {
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(212,175,55,.2);
+  backdrop-filter: blur(16px);
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-main-nav .homeos-nav-item[aria-current="page"] {
+  background: linear-gradient(120deg, #D4AF37, #A98525) !important;
+  color: #171710 !important;
+  border-color: rgba(212,175,55,.7) !important;
+  box-shadow: 0 8px 24px rgba(212,175,55,.18) !important;
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-section-kicker,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-kicker,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-settings-icon {
+  color: #D4AF37;
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-primary-action,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-export-button,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-hero-button {
+  background: linear-gradient(135deg, #E2C45B, #B58B24);
+  color: #171710;
+  border: 1px solid rgba(255,230,153,.45);
+  box-shadow: 0 8px 24px rgba(212,175,55,.2);
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-dashboard .homeos-kpi-item:hover,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-lux-panel:hover,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-home-panel:hover,
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-theme-option:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212,175,55,.62);
+  box-shadow: 0 18px 40px rgba(0,0,0,.58), 0 0 0 1px rgba(212,175,55,.08);
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"] :is(.text-emerald-500,.text-emerald-600,.text-green-500,.text-green-600) {
+  color: #36B37E !important;
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"] :is(input,select,textarea) {
+  background: #141820;
+  border-color: rgba(212,175,55,.2);
+  color: #F4F1E8;
+}
+.homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-theme-option.is-selected {
+  border-color: #D4AF37;
+  box-shadow: 0 0 0 1px rgba(212,175,55,.5), 0 14px 34px rgba(0,0,0,.45);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-dashboard .homeos-kpi-item,
+  .homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-lux-panel,
+  .homeos-app-shell[data-theme="carbon_gold_luxury"] .homeos-home-panel {
+    transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease;
+  }
+}

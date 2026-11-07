@@ -754,12 +754,12 @@ class HomeOSIndexedDB {
     });
 
     if (!m) throw new Error('חברות במשק בית לא נמצאה');
+    await this.assertPermission(m.householdId, actorUserId, 'admin', 'write');
+
     if (m.role === 'owner') throw new Error('לא ניתן לשנות את תפקיד הבעלים הראשי של משק הבית');
     if (!['admin', 'member', 'read_only'].includes(newRole)) {
       throw new Error('לא ניתן להקצות תפקיד בעלים דרך עדכון תפקיד. יש להשתמש בתהליך העברת בעלות ייעודי');
     }
-
-    await this.assertPermission(m.householdId, actorUserId, 'admin', 'write');
 
     const updated = { ...m, role: newRole };
     await this.saveMembership(updated);

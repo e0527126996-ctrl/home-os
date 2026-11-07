@@ -2128,7 +2128,8 @@ class HomeOSIndexedDB {
   // -------------------------------------------------------------
   // BACKUP EXPORT & IMPORT
   // -------------------------------------------------------------
-  async exportFullBackup(householdId: string): Promise<BackupData> {
+  async exportFullBackup(householdId: string, actorUserId: string): Promise<BackupData> {
+    await this.assertPermission(householdId, actorUserId, 'admin', 'read');
     const [households, users, memberships, persons, permissions, auditLogs, accounts, transactions, documents, homeItems] = await Promise.all([
       this.getHouseholds(),
       this.getUsers(),
@@ -2142,7 +2143,7 @@ class HomeOSIndexedDB {
       this.getAuditLogs(householdId, 500),
       this.getAccountsByHousehold(householdId),
       this.getTransactionsByHousehold(householdId),
-      this.getDocumentsByHousehold(householdId),
+      this.getDocumentsByHousehold(householdId, actorUserId),
       this.transaction(['household_home_items'], 'readonly', async (tx) => this.reqToPromise<HouseholdHomeItem[]>(tx.objectStore('household_home_items').index('householdId').getAll(householdId))),
     ]);
 
@@ -2600,7 +2601,7 @@ class HomeOSIndexedDB {
     try {
       const hhd = await this.createHousehold('בית גיבוי', '₪', 'u_bk', 'bk@t.l');
       await this.addPerson(hhd.id, { displayName: 'דנה', personType: 'adult', portionFactor: 1.0, dietaryNotes: '' }, 'u_bk', 'bk@t.l');
-      const backup = await this.exportFullBackup(hhd.id);
+      const backup = await this.exportFullBackup(hhd.id, 'u_bk');
       const isIntegrityValid =
         (backup.version === '1.0.0' || backup.version === '2.0.0') &&
         backup.households.length === 1 &&
@@ -3431,7 +3432,7 @@ class HomeOSIndexedDB {
       );
 
       // Export full backup
-      const backup = await this.exportFullBackup(hhd22.id);
+      const backup = await this.exportFullBackup(hhd22.id, 'u_t22');
       const hasTransactions = Boolean(backup.transactions && backup.transactions.length > 0);
       const txFound = backup.transactions?.some((t) => t.householdId === hhd22.id);
 

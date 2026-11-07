@@ -2911,3 +2911,24 @@ html[data-theme="carbon_gold_luxury"] .homeos-app-shell .homeos-view-mode-chip {
   border-radius: 16px;
   background: var(--homeos-surface);
 }
+
+
+.homeos-foreign-row-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--homeos-text);
+  text-align: right;
+  cursor: pointer;
+  border-radius: 12px;
+  padding-inline: .8rem;
+  transition: background .18s ease, transform .18s ease;
+}
+.homeos-foreign-row-button:hover {
+  background: color-mix(in srgb, var(--homeos-accent) 7%, var(--homeos-card));
+  transform: translateY(-1px);
+}
+.homeos-foreign-row-button:focus-visible {
+  outline: 3px solid var(--homeos-accent);
+  outline-offset: 2px;
+}

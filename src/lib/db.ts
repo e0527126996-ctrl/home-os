@@ -1732,7 +1732,7 @@ class HomeOSIndexedDB {
         throw new Error('העברה זו אינה מקושרת לרגל הנגדית שלה; לא ניתן לעדכן אותה');
       }
       const counterLeg = await this.getTransactionById(existing.linkedTransactionId, householdId);
-      if (!counterLeg || counterLeg.type !== 'TRANSFER' || counterLeg.linkedTransactionId !== existing.id || counterLeg.transferId !== existing.transferId) {
+      if (!counterLeg || counterLeg.type !== 'TRANSFER' || counterLeg.linkedTransactionId !== existing.id || counterLeg.transferId !== existing.transferId || counterLeg.accountId !== existing.counterpartyAccountId || counterLeg.counterpartyAccountId !== existing.accountId || counterLeg.transferDirection === existing.transferDirection) {
         throw new Error('רגל ההעברה הנגדית חסרה או אינה תואמת; העדכון בוטל כדי למנוע חוסר איזון');
       }
 
@@ -1794,7 +1794,7 @@ class HomeOSIndexedDB {
         throw new Error('העברה זו אינה מקושרת לרגל הנגדית שלה; לא ניתן למחוק אותה בבטחה');
       }
       counterLeg = await this.getTransactionById(existing.linkedTransactionId, householdId);
-      if (!counterLeg || counterLeg.type !== 'TRANSFER' || counterLeg.linkedTransactionId !== existing.id || counterLeg.transferId !== existing.transferId) {
+      if (!counterLeg || counterLeg.type !== 'TRANSFER' || counterLeg.linkedTransactionId !== existing.id || counterLeg.transferId !== existing.transferId || counterLeg.accountId !== existing.counterpartyAccountId || counterLeg.counterpartyAccountId !== existing.accountId || counterLeg.transferDirection === existing.transferDirection) {
         throw new Error('רגל ההעברה הנגדית חסרה או אינה תואמת; המחיקה בוטלה כדי למנוע פגיעה ביתרות');
       }
     }

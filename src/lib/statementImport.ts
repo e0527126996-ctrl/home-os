@@ -49,7 +49,7 @@ const clean = (v: unknown) => String(v ?? '').replace(/\s+/g, ' ').trim();
 export const normalizeStatementPayee = (value: string) => value.normalize('NFKC').toLocaleLowerCase('he-IL').replace(/[\u0591-\u05C7]/g, '').replace(/[^\p{L}\p{N}]/gu, '');
 const normalizeHeader = (v: unknown) => clean(v).toLowerCase().replace(/[\s_״"'׳-]/g, '');
 
-function parseDate(value: unknown, xlsx: SpreadsheetEngine): string | null {
+function parseDate(value: unknown, xlsx?: SpreadsheetEngine): string | null {
   const toIso = (year: number, month: number, day: number): string | null => {
     if (!Number.isInteger(year) || year < 2000 || year > 2100 || month < 1 || month > 12 || day < 1) return null;
     const check = new Date(Date.UTC(year, month - 1, day));
@@ -60,13 +60,13 @@ function parseDate(value: unknown, xlsx: SpreadsheetEngine): string | null {
     return toIso(value.getFullYear(), value.getMonth() + 1, value.getDate());
   }
   if (typeof value === 'number' && value > 20000 && value < 80000) {
-    const d = XLSX.SSF.parse_date_code(value);
+    const d = xlsx?.SSF.parse_date_code(value);
     return d ? toIso(d.y, d.m, d.d) : null;
   }
   const s = clean(value);
   // Some bank exports store Excel serial dates as text rather than numeric cells.
   if (/^\d{5}(?:\.\d+)?$/.test(s)) {
-    const d = XLSX.SSF.parse_date_code(Number(s));
+    const d = xlsx?.SSF.parse_date_code(Number(s));
     if (d) return toIso(d.y, d.m, d.d);
   }
   // Ignore a time suffix while retaining the date portion.

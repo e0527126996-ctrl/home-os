@@ -52,13 +52,16 @@ export function formatCents(cents: number, currency: string = 'ILS'): string {
  * Parses user input in currency form to cents, returning { valid: boolean, cents: number, error?: string }
  */
 export function parseCurrencyInput(input: string): { valid: boolean; cents: number; error?: string } {
-  const trimmed = input.trim().replace(/,/g, '');
-  if (!trimmed) {
+  const raw = input.trim();
+  if (!raw) {
     return { valid: false, cents: 0, error: 'יש להזין סכום' };
   }
-  if (!/^-?\d+(\.\d{1,2})?$/.test(trimmed)) {
+  // Commas are accepted only as valid thousands separators (1,234.56).
+  // This prevents an input such as "1,23" from silently becoming 123.
+  if (!/^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?$/.test(raw)) {
     return { valid: false, cents: 0, error: 'סכום אינו חוקי (יש להזין ספרות ועד 2 ספרות אחרי הנקודה)' };
   }
+  const trimmed = raw.replace(/,/g, '');
   const match = trimmed.match(/^(-?)(\d+)(?:\.(\d{1,2}))?$/);
   if (!match) {
     return { valid: false, cents: 0, error: 'סכום אינו חוקי (יש להזין ספרות ועד 2 ספרות אחרי הנקודה)' };

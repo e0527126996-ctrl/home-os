@@ -17,8 +17,8 @@ interface DashboardViewProps {
   onOpenLedger: () => void;
 }
 
-const money = (value: number) => new Intl.NumberFormat('he-IL', {
-  style: 'currency', currency: 'ILS', maximumFractionDigits: 0,
+const money = (value: number, currency: string = 'ILS') => new Intl.NumberFormat('he-IL', {
+  style: 'currency', currency, maximumFractionDigits: 0,
 }).format(value);
 const monthLabel = (date: Date) => new Intl.DateTimeFormat('he-IL', { month: 'short' }).format(date);
 
@@ -42,8 +42,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const activeAccounts = accounts.filter(a => a.status === 'ACTIVE');
     // Keep displayed account counts consistent with the exact balance classifications.
     // An overdrawn checking account is a liability, not a negative asset.
-    const assetAccounts = activeAccounts.filter(a => !a.isLiability && (a.currentBalanceCents || 0) > 0);
-    const liabilityAccounts = activeAccounts.filter(a => a.isLiability || (a.type === 'CHECKING' && (a.currentBalanceCents || 0) < 0));
+    const assetAccounts = activeAccounts.filter(a => a.currency === 'ILS' && !a.isLiability && (a.currentBalanceCents || 0) > 0);
+    const liabilityAccounts = activeAccounts.filter(a => a.currency === 'ILS' && (a.isLiability || (a.type === 'CHECKING' && (a.currentBalanceCents || 0) < 0)));
     const assets = assetAccounts.reduce((s, a) => s + (a.currentBalanceCents || 0), 0);
     const liabilities = liabilityAccounts.reduce((s, a) => s + Math.abs(a.currentBalanceCents || 0), 0);
     const now = new Date();
@@ -153,10 +153,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .sort((a, b) => b.averageAmount - a.averageAmount)
       .slice(0, 4);
 
-    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, reconciledTransactionCount, uncategorizedExpenseCount };
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, reconciledTransactionCount, uncategorizedExpenseCount };
   }, [accounts, transactions, confirmedTransactions]);
 
-  const currency = (cents: number) => money(cents / 100);
+  const currency = (cents: number, currencyCode: string = 'ILS') => money(cents / 100, currencyCode);
   const muted = { color: activeTheme.textSecondary };
   const panel = 'homeos-lux-panel';
   const categoryTotal = data.topCategories.reduce((sum, item) => sum + item[1], 0);
@@ -190,7 +190,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <strong className="homeos-net-worth">{currency(data.netWorth)}</strong>
               <span className="mb-2 rounded-full border border-white/15 bg-white/[.07] px-3 py-1.5 text-[11px] text-white/65">נכסים פחות התחייבויות</span>
             </div>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-white/55">תמונת ההון של משק הבית, המחושבת מתוך היתרות בחשבונות הפעילים שלך.</p>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-white/55">תמונת ההון בשקלים בלבד. חשבונות במטבע זר מוצגים במטבע המקורי ואינם מומרות ללא שער חליפין מאומת.</p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <button onClick={onOpenAccounts} className="homeos-hero-button">סקירת הנכסים <ChevronLeft className="h-4 w-4" /></button>
               <span className="flex items-center gap-2 text-xs text-white/45"><ShieldCheck className="h-4 w-4 text-[#B7C9B8]" /> נתונים מקומיים ומאובטחים במכשיר</span>
@@ -393,7 +393,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
         <div className={panel + ' p-5 sm:p-7'}>
           <div className="homeos-section-kicker">PORTFOLIO SNAPSHOT</div><h2 className="mt-1 text-lg font-bold">מבט על החשבונות</h2><p className="mt-1 text-xs" style={muted}>היתרות הפעילות במשק הבית</p>
-          <div className="mt-5 space-y-3">{data.activeAccounts.slice(0, 4).map(acc => <button type="button" key={acc.id} onClick={onOpenAccounts} title="פתיחת ניהול חשבונות" className="flex w-full items-center justify-between gap-3 rounded-2xl border p-3 text-right transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#547D70]" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}><div className="flex min-w-0 items-center gap-3"><span className="rounded-xl bg-[#547D70]/10 p-2.5 text-[#547D70]"><PiggyBank className="h-4 w-4" /></span><div className="min-w-0"><div className="truncate text-sm font-semibold">{acc.name}</div><div className="mt-0.5 text-[11px]" style={muted}>{acc.institution}</div></div></div><strong className="shrink-0 text-sm tabular-nums">{currency(acc.currentBalanceCents || 0)}</strong></button>)}</div>
+          <div className="mt-5 space-y-3">{data.activeAccounts.slice(0, 4).map(acc => <button type="button" key={acc.id} onClick={onOpenAccounts} title="פתיחת ניהול חשבונות" className="flex w-full items-center justify-between gap-3 rounded-2xl border p-3 text-right transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#547D70]" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}><div className="flex min-w-0 items-center gap-3"><span className="rounded-xl bg-[#547D70]/10 p-2.5 text-[#547D70]"><PiggyBank className="h-4 w-4" /></span><div className="min-w-0"><div className="truncate text-sm font-semibold">{acc.name}</div><div className="mt-0.5 text-[11px]" style={muted}>{acc.institution}</div></div></div><strong className="shrink-0 text-sm tabular-nums">{currency(acc.currentBalanceCents || 0, acc.currency)}</strong></button>)}</div>
           <button onClick={onOpenAccounts} className="homeos-wide-link mt-4">לכל החשבונות <ChevronLeft className="h-4 w-4" /></button>
         </div>
       </section>

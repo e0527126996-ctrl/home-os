@@ -111,7 +111,46 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         .sort((a, b) => b.increase - a.increase)
         .slice(0, 3)
       : [];
-    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, pendingReviewCount, uncategorizedExpenseCount };
+    // Surface possible recurring expense patterns from repeated merchant/category activity.
+    // This is deliberately a review signal, not proof of a subscription or fixed bill.
+    const monthKeys = new Set(months.map(month => month.key));
+    const recurringGroups = new Map<string, { payee: string; category: string; monthlyAmounts: Map<string, number>; items: LedgerTransaction[] }>();
+    for (const tx of transactions) {
+      if (tx.type !== 'EXPENSE' || !tx.date || !monthKeys.has(tx.date.slice(0, 7)) || !tx.payee?.trim()) continue;
+      const payee = tx.payee.trim().replace(/\\s+/g, ' ');
+      const normalizedPayee = payee.toLocaleLowerCase('he-IL');
+      const category = tx.category?.trim() || 'ללא קטגוריה';
+      const key = normalizedPayee + '|' + category;
+      let group = recurringGroups.get(key);
+      if (!group) {
+        group = { payee, category, monthlyAmounts: new Map<string, number>(), items: [] };
+        recurringGroups.set(key, group);
+      }
+      const monthKey = tx.date.slice(0, 7);
+      group.monthlyAmounts.set(monthKey, (group.monthlyAmounts.get(monthKey) || 0) + tx.amountCents);
+      group.items.push(tx);
+    }
+    const recurringExpenses = [...recurringGroups.values()].map(group => {
+      const amounts = [...group.monthlyAmounts.values()];
+      const averageAmount = amounts.reduce((sum, amount) => sum + amount, 0) / Math.max(1, amounts.length);
+      const minAmount = Math.min(...amounts);
+      const maxAmount = Math.max(...amounts);
+      return {
+        payee: group.payee,
+        category: group.category,
+        monthCount: amounts.length,
+        averageAmount: Math.round(averageAmount),
+        currentMonthAmount: group.monthlyAmounts.get(currentKey) || 0,
+        minAmount,
+        maxAmount,
+        items: group.items,
+      };
+    })
+      .filter(item => item.monthCount >= 3 && item.averageAmount >= 5000 && item.minAmount > 0 && item.maxAmount <= item.minAmount * 1.5)
+      .sort((a, b) => b.averageAmount - a.averageAmount)
+      .slice(0, 4);
+
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, uncategorizedExpenseCount };
   }, [accounts, transactions]);
 
   const currency = (cents: number) => money(cents / 100);
@@ -289,6 +328,33 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         )}
         <p className="mt-3 text-[10px] leading-5" style={muted}>ההתראות הן סימני בדיקה בלבד. הן אינן מעידות בהכרח על בזבוז ואינן מבטיחות חיסכון; יש להתחשב בעונתיות, חיובים חד-פעמיים והוצאות שטרם נרשמו.</p>
+      </section>
+
+      <section className={panel + ' p-5 sm:p-7'}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="homeos-section-kicker">REPEATED SPENDING PATTERNS</div>
+            <h2 className="mt-1 text-lg font-bold">חיובים ודפוסי הוצאה שחוזרים</h2>
+            <p className="mt-1 text-xs" style={muted}>זיהוי ספקים וקטגוריות שהופיעו בסכומים דומים בלפחות 3 מתוך 6 החודשים האחרונים</p>
+          </div>
+          <span className="rounded-full bg-[#B98B58]/10 px-3 py-1.5 text-[10px] font-semibold text-[#9B7549]">לבדיקה · לא חיוב ודאי</span>
+        </div>
+        {data.recurringExpenses.length ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {data.recurringExpenses.map(item => (
+              <button type="button" key={item.payee + item.category} onClick={() => setChartDetail({ title: "דפוס הוצאה: " + item.payee, subtitle: item.category + " · הופיע ב-" + item.monthCount + " מתוך 6 חודשים", items: item.items })} className="rounded-2xl border p-4 text-right transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#547D70]" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+                <div className="flex items-center justify-between gap-2"><span className="truncate text-sm font-semibold">{item.payee}</span><span className="shrink-0 rounded-full bg-[#547D70]/10 px-2 py-1 text-[9px] font-semibold text-[#547D70]">{item.monthCount}/6 חודשים</span></div>
+                <div className="mt-3 text-[10px]" style={muted}>{item.category}</div>
+                <div className="mt-1 text-xl font-bold tabular-nums">{currency(item.averageAmount)}</div>
+                <div className="mt-1 text-[10px]" style={muted}>ממוצע בחודשים שבהם הופיע</div>
+                <div className="mt-3 border-t pt-2 text-[10px]" style={{ borderColor: activeTheme.borderSubtle, color: item.currentMonthAmount > 0 ? '#477866' : activeTheme.textSecondary }}>{item.currentMonthAmount > 0 ? 'נרשם החודש: ' + currency(item.currentMonthAmount) : 'טרם נרשם החודש'}</div>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 rounded-2xl border p-4 text-sm leading-6" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface, color: activeTheme.textSecondary }}>עדיין לא זוהו דפוסים חוזרים שעומדים בסף. נדרש ספק או תיאור שחוזר בלפחות 3 חודשים, עם סכומים בטווח דומה.</div>
+        )}
+        <p className="mt-3 text-[10px] leading-5" style={muted}>הזיהוי מבוסס על התאמה בין שם הספק והקטגוריה ועל סכומים דומים. ייתכן שמדובר בקניות חוזרות ולא במנוי או בהוראת קבע; לחיצה פותחת את העסקאות שעליהן מבוסס הזיהוי.</p>
       </section>
 
       <section className={panel + ' p-5 sm:p-7'}>

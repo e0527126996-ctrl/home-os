@@ -410,7 +410,7 @@ export default function App() {
           type: row.type,
           category: row.category,
           payee: row.payee,
-          notes: 'יובא מדף חשבון · נדרש אימות מול המסמך המקורי',
+          notes: `מקור: ${row.sourceFileName || 'דף חשבון'} · ${row.sourceText.slice(0, 320)} · נדרש אימות מול המסמך המקורי`,
         })),
         currentUser.id,
         currentUser.email

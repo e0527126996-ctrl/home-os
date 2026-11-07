@@ -459,13 +459,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="space-y-4">
             {data.foreignCurrencySummaries.map(item => {
               const maxAmount = Math.max(1, item.income, item.expense);
-              return <div key={item.currencyCode} className="homeos-foreign-row">
-                <div className="flex items-center justify-between gap-3"><strong className="text-sm">{item.currencyCode}</strong><span className="text-[10px]" style={muted}>{item.count} תנועות החודש</span></div>
+              return <button type="button" key={item.currencyCode} className="homeos-foreign-row homeos-foreign-row-button" title={"פתיחת עסקאות במטבע " + item.currencyCode} onClick={() => setChartDetail({ title: "פעילות בחשבונות " + item.currencyCode, subtitle: "הכנסות " + currency(item.income, item.currencyCode) + " · הוצאות " + currency(item.expense, item.currencyCode), items: confirmedTransactions.filter(tx => accountCurrencies.get(tx.accountId) === item.currencyCode && tx.date?.slice(0, 7) === data.months[5]?.key) })}>
+                <div className="flex items-center justify-between gap-3"><strong className="text-sm">{item.currencyCode}</strong><span className="text-[10px]" style={muted}>{item.count} תנועות החודש · לחץ לפירוט</span></div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <div><div className="mb-1 flex justify-between text-xs"><span style={muted}>הכנסות</span><strong>{currency(item.income, item.currencyCode)}</strong></div><div className="homeos-finance-track"><span className="income" style={{width:(item.income/maxAmount*100)+'%'}}/></div></div>
                   <div><div className="mb-1 flex justify-between text-xs"><span style={muted}>הוצאות</span><strong>{currency(item.expense, item.currencyCode)}</strong></div><div className="homeos-finance-track"><span className="expense" style={{width:(item.expense/maxAmount*100)+'%'}}/></div></div>
                 </div>
-              </div>;
+              </button>;
             })}
           </div>
         </section>

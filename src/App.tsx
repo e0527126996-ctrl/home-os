@@ -563,6 +563,15 @@ export default function App() {
           '--homeos-border': activeTheme.borderSubtle,
           '--homeos-text': activeTheme.textPrimary,
           '--homeos-muted': activeTheme.textSecondary,
+          '--accent': activeTheme.accent,
+          '--accent-muted': activeTheme.accentMuted,
+          '--bg-canvas': activeTheme.bgCanvas,
+          '--bg-surface': activeTheme.bgSurface,
+          '--bg-card': activeTheme.bgCard,
+          '--border-subtle': activeTheme.borderSubtle,
+          '--text-primary': activeTheme.textPrimary,
+          '--text-secondary': activeTheme.textSecondary,
+          '--focus-ring': activeTheme.accent,
         } as React.CSSProperties),
       }}
       dir="rtl"

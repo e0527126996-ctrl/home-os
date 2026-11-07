@@ -772,7 +772,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
                           )}
                           <button
                             type="button"
-                            onClick={() => onEditTransaction(tx)
+                            onClick={() => onEditTransaction(tx)}
                             disabled={!canEdit}
                             title="עריכת עסקה"
                             className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors disabled:opacity-30"

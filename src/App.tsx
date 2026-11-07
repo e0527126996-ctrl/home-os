@@ -41,7 +41,7 @@ const AuthModal = lazy(() => import('./components/AuthModal.tsx').then(({ AuthMo
 const DocumentCenterView = lazy(() => import('./components/DocumentCenterView.tsx').then(({ DocumentCenterView }) => ({ default: DocumentCenterView })));
 const HomeManagementView = lazy(() => import('./components/HomeManagementView.tsx').then(({ HomeManagementView }) => ({ default: HomeManagementView })));
 import { db } from './lib/db.ts';
-import { canReadHouseholdDomain, canWriteHouseholdDomain, filterHouseholdsByMembership, isHouseholdManager } from './lib/accessControl.ts';
+import { canApproveHouseholdDomain, canReadHouseholdDomain, canWriteHouseholdDomain, filterHouseholdsByMembership, isHouseholdManager } from './lib/accessControl.ts';
 import { MODERN_EDITORIAL_THEMES, ThemeConfig } from './lib/themes.ts';
 import { BACKGROUND_PRESETS, DASHBOARD_WIDGETS, DEFAULT_DASHBOARD_WIDGET_ORDER, WorkspaceViewMode, WORKSPACE_VIEW_MODES } from './lib/workspace.ts';
 import type { DashboardWidgetSize, WorkspaceBackgroundPresetId } from './lib/workspace.ts';
@@ -764,6 +764,8 @@ export default function App() {
   const canWriteDocuments = canWriteDomain('documents');
   const canReadAdmin = canReadDomain('admin');
   const canManageSystem = isOwnerOrAdmin;
+  const canManageMembers = canWriteDomain('admin');
+  const canConfigurePermissions = canApproveHouseholdDomain(currentMembership?.role, currentPermissionRules, 'admin');
 
   useEffect(() => {
     const financeTabs = activeTab === 'accounts' || activeTab === 'ledger';
@@ -1190,6 +1192,9 @@ export default function App() {
             onAddPerson={handleAddPerson}
             onDeletePerson={handleDeletePerson}
             onConfigurePermissions={handleConfigurePermissions}
+            canManageMembers={canManageMembers}
+            canConfigurePermissions={canConfigurePermissions}
+            canManagePersons={canPerformFood}
           />
         )}
 

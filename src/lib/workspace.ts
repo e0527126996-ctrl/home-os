@@ -25,3 +25,5 @@ export const DASHBOARD_WIDGETS = [
 
 export type DashboardWidgetId = typeof DASHBOARD_WIDGETS[number]['id'];
 export const DEFAULT_DASHBOARD_WIDGET_ORDER: DashboardWidgetId[] = DASHBOARD_WIDGETS.map((widget) => widget.id);
+
+export type DashboardWidgetSize = 'compact' | 'standard' | 'expanded';

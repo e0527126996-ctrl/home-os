@@ -85,8 +85,6 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 }) => {
   const isEditing = Boolean(initialTransaction);
   const isExistingTransfer = initialTransaction?.type === 'TRANSFER';
-  const selectedCurrency = accounts.find(account => account.id === (mode === 'TRANSFER' ? fromAccountId : accountId))?.currency || 'ILS';
-  const selectedCurrencySymbol = selectedCurrency === 'USD' ? '
 
   const [mode, setMode] = useState<TransactionType>(
     initialTransaction ? initialTransaction.type : 'EXPENSE'
@@ -122,6 +120,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const selectedCurrency = accounts.find(account => account.id === (mode === 'TRANSFER' ? fromAccountId : accountId))?.currency || 'ILS';
+  const selectedCurrencySymbol = selectedCurrency;
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {

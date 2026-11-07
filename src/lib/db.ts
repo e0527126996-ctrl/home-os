@@ -2024,7 +2024,8 @@ class HomeOSIndexedDB {
   // -------------------------------------------------------------
   // HOUSEHOLD DOCUMENT VAULT
   // -------------------------------------------------------------
-  async getDocumentsByHousehold(householdId: string): Promise<HouseholdDocument[]> {
+  async getDocumentsByHousehold(householdId: string, actorUserId: string): Promise<HouseholdDocument[]> {
+    await this.assertPermission(householdId, actorUserId, 'documents', 'read');
     return this.transaction(['household_documents'], 'readonly', async (tx) => {
       const store = tx.objectStore('household_documents');
       const records = await this.reqToPromise<HouseholdDocument[]>(store.index('householdId').getAll(householdId));
@@ -2032,7 +2033,8 @@ class HomeOSIndexedDB {
     });
   }
 
-  async saveDocument(document: HouseholdDocument): Promise<void> {
+  async saveDocument(document: HouseholdDocument, actorUserId: string): Promise<void> {
+    await this.assertPermission(document.householdId, actorUserId, 'documents', 'write');
     if (!document.id || !document.householdId || !document.name?.trim() || !(document.blob instanceof Blob)) {
       throw new Error('פרטי המסמך אינם תקינים');
     }
@@ -2052,7 +2054,8 @@ class HomeOSIndexedDB {
     });
   }
 
-  async deleteDocument(documentId: string, householdId: string): Promise<void> {
+  async deleteDocument(documentId: string, householdId: string, actorUserId: string): Promise<void> {
+    await this.assertPermission(householdId, actorUserId, 'documents', 'write');
     return this.transaction(['household_documents'], 'readwrite', async (tx) => {
       const store = tx.objectStore('household_documents');
       const existing = await this.reqToPromise<HouseholdDocument | undefined>(store.get(documentId));

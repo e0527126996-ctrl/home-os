@@ -2127,6 +2127,12 @@ class HomeOSIndexedDB {
       }
     );
 
+    // Rebuild balances from the restored opening balances and confirmed ledger
+    // entries instead of trusting cached balance values embedded in the backup.
+    if (backup.accounts?.length) {
+      await this.computeAccountBalances(targetHouseholdId, backup.accounts);
+    }
+
     if (backup.households[0]) {
       await this.recordAuditLog(
         backup.households[0].id,

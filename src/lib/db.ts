@@ -1081,6 +1081,9 @@ class HomeOSIndexedDB {
       if (tx.verificationStatus === 'PENDING' || !Number.isSafeInteger(tx.amountCents) || tx.amountCents <= 0) continue;
       if (!balanceMap.has(tx.accountId)) continue;
       const current = balanceMap.get(tx.accountId)!;
+      if (tx.type === 'TRANSFER' && !['IN', 'OUT'].includes(tx.transferDirection || '')) {
+        throw new Error('עסקת העברה חסרה כיוון תנועה תקין');
+      }
 
       let nextBalance = current;
       if (tx.type === 'INCOME' || (tx.type === 'TRANSFER' && tx.transferDirection === 'IN')) {

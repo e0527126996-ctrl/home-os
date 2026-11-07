@@ -125,7 +125,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
         if (!currentUser || !canWrite) throw new Error('אין לך הרשאה לשמור מסמכים במשק הבית');
         await db.saveDocument(doc, currentUser.id, currentUser.email);
         saved++;
-        if (category === 'BANK' && /\.(pdf|xlsx?|csv)$/i.test(file.name)) statementsToImport.push(file);
+        if (category === 'BANK' && /\.(pdf|xlsx?|csv|png|jpe?g|webp)$/i.test(file.name)) statementsToImport.push(file);
       }
       await refresh();
       notifyDocumentsChanged();
@@ -241,7 +241,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
               return <div key={doc.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-center gap-3"><span className="rounded-xl p-3" style={{background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted,color:activeTheme.accent}}><Icon className="h-5 w-5" /></span><div className="min-w-0"><div className="truncate text-sm font-bold">{doc.name}</div><div className="mt-1 text-[11px]" style={muted}>{categories.find((item) => item.value === doc.category)?.label} · {formatSize(doc.size)} · {formatDate(doc.uploadedAt)}</div></div></div>
                 <div className="flex items-center gap-2">
-                  {doc.category === 'BANK' && /\.(pdf|xlsx?|csv)$/i.test(doc.name) && <button onClick={() => handleAnalyzeStatement(doc)} className="rounded-lg border px-3 py-2 text-xs font-bold" style={{borderColor:activeTheme.borderSubtle,background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted,color:activeTheme.accent}}>נתח דף חשבון</button>}
+                  {doc.category === 'BANK' && /\.(pdf|xlsx?|csv|png|jpe?g|webp)$/i.test(doc.name) && <button onClick={() => handleAnalyzeStatement(doc)} className="rounded-lg border px-3 py-2 text-xs font-bold" style={{borderColor:activeTheme.borderSubtle,background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted,color:activeTheme.accent}}>נתח דף חשבון</button>}
                   <button onClick={() => handlePreview(doc)} className="rounded-lg border px-3 py-2 text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5" style={{ borderColor: activeTheme.borderSubtle }}>פתח</button>
                   <button onClick={() => handleDownload(doc)} title="הורדה" className="rounded-lg border p-2 hover:bg-black/5 dark:hover:bg-white/5" style={{ borderColor: activeTheme.borderSubtle }}><Download className="h-4 w-4" /></button>
                   {canWrite && <button onClick={() => handleDelete(doc)} title="מחיקה" className="rounded-lg border p-2 text-rose-600 hover:bg-rose-50" style={{ borderColor: activeTheme.borderSubtle }}><Trash2 className="h-4 w-4" /></button>}

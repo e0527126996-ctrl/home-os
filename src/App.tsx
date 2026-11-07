@@ -76,6 +76,7 @@ export default function App() {
   // Navigation & Theme
   const [activeTab, setActiveTab] = useState<'dashboard' | 'overview' | 'accounts' | 'ledger' | 'members' | 'households' | 'audit' | 'documents' | 'home' | 'settings'>('dashboard');
   const [activeTheme, setActiveTheme] = useState<ThemeConfig>(MODERN_EDITORIAL_THEMES[0]);
+  const [workspaceDensity, setWorkspaceDensity] = useState<'compact' | 'balanced' | 'spacious'>('balanced');
   const [ledgerSelectedAccountId, setLedgerSelectedAccountId] = useState<string | null>(null);
 
   // Modal Dialogs
@@ -113,7 +114,10 @@ export default function App() {
 
       const savedHhdId = await db.getSetting<string>('active_household_id', allHhds[0]?.id || '');
       const savedUserId = await db.getSetting<string>('current_user_id', usersList[0]?.id || '');
-      const savedThemeId = await db.getSetting<string>('theme', 'warm_editorial');
+      const [savedThemeId, savedDensity] = await Promise.all([
+        db.getSetting<string>('theme', 'warm_editorial'),
+        db.getSetting<string>('workspace_density', 'balanced'),
+      ]);
 
       const initialHhd = allHhds.find((h) => h.id === savedHhdId) || allHhds[0] || null;
       const initialUser = usersList.find((u) => u.id === savedUserId) || usersList[0] || null;
@@ -122,6 +126,7 @@ export default function App() {
       setActiveHousehold(initialHhd);
       setCurrentUser(initialUser);
       setActiveTheme(initialTheme);
+      setWorkspaceDensity(savedDensity === 'compact' || savedDensity === 'spacious' ? savedDensity : 'balanced');
 
       if (initialHhd) {
         await reloadHouseholdData(initialHhd.id, initialUser?.id);
@@ -507,6 +512,12 @@ export default function App() {
     }
   };
 
+  const handleDensityChange = async (density: 'compact' | 'balanced' | 'spacious') => {
+    setWorkspaceDensity(density);
+    await db.setSetting('workspace_density', density);
+    showToast(`צפיפות סביבת העבודה עודכנה: ${density === 'compact' ? 'קומפקטי' : density === 'spacious' ? 'מרווח' : 'מאוזן'}`);
+  };
+
   const currentMembership = memberships.find((m) => m.userId === currentUser?.id);
   const isOwnerOrAdmin = currentMembership?.role === 'owner' || currentMembership?.role === 'admin';
 
@@ -548,7 +559,7 @@ export default function App() {
 
   return (
     <div
-      className="homeos-app-shell min-h-screen flex flex-col transition-colors duration-200"
+      className={`homeos-app-shell homeos-density-${workspaceDensity} min-h-screen flex flex-col transition-colors duration-200`}
       style={{
         backgroundColor: activeTheme.bgCanvas,
         backgroundImage: 'radial-gradient(color-mix(in srgb, var(--homeos-accent) 4%, transparent) .7px, transparent .7px)',
@@ -661,6 +672,8 @@ export default function App() {
             themes={MODERN_EDITORIAL_THEMES}
             activeTheme={activeTheme}
             onThemeSelect={handleSelectTheme}
+            density={workspaceDensity}
+            onDensityChange={handleDensityChange}
           />
         )}
 

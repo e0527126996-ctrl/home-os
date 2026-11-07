@@ -33,5 +33,7 @@ jobs:
         run: npm run test:shopping
       - name: Statement parser regression tests
         run: npm run test:statements
+      - name: Finance analytics regression tests
+        run: npm run test:finance
       - name: Production build
         run: npm run build

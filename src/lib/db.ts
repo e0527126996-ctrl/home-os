@@ -3555,6 +3555,7 @@ class HomeOSIndexedDB {
     const t23Start = performance.now();
     try {
       const now = new Date();
+      now.setDate(15);
       const account: FinancialAccount = {
         id: 'analytics_test_account',
         householdId: 'analytics_test_household',

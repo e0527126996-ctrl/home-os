@@ -111,19 +111,40 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Initialize DB and load initial data
+  const clearHouseholdData = () => {
+    setActiveHousehold(null);
+    setMemberships([]);
+    setPersons([]);
+    setAuditLogs([]);
+    setAccounts([]);
+    setTransactions([]);
+    setHomeItems([]);
+    setCurrentPermissionRules([]);
+    setLedgerSelectedAccountId(null);
+    setEditingTransaction(null);
+    setEditingPermissionsFor(null);
+    setShowTransactionModal(false);
+    setActiveTab('dashboard');
+  };
+
+  const getAccessibleHouseholds = async (userId: string): Promise<Household[]> => {
+    const [allHouseholds, userMemberships] = await Promise.all([
+      db.getHouseholds(),
+      db.getMembershipsByUser(userId),
+    ]);
+    const allowedIds = new Set(userMemberships.map(membership => membership.householdId));
+    return allHouseholds.filter(household => allowedIds.has(household.id));
+  };
+
+  // Initialize DB and load only the households this local user belongs to.
   const loadInitialData = async () => {
     try {
       await db.initDefaultSeed();
-
-      const [allHhds, usersList] = await Promise.all([db.getHouseholds(), db.getUsers()]);
-
-      setHouseholds(allHhds);
-      setAllUsers(usersList);
-
-      const savedHhdId = await db.getSetting<string>('active_household_id', allHhds[0]?.id || '');
+      const usersList = await db.getUsers();
       const savedUserId = await db.getSetting<string>('current_user_id', usersList[0]?.id || '');
-      const [savedThemeId, savedDensity, savedViewMode, savedWidgetOrder, savedVisibleWidgets, savedWidgetSizes, savedBackgroundImage, savedBackgroundPreset] = await Promise.all([
+      const initialUser = usersList.find(user => user.id === savedUserId) || usersList[0] || null;
+      const [savedHhdId, savedThemeId, savedDensity, savedViewMode, savedWidgetOrder, savedVisibleWidgets, savedWidgetSizes, savedBackgroundImage, savedBackgroundPreset] = await Promise.all([
+        db.getSetting<string>('active_household_id', ''),
         db.getSetting<string>('theme', 'warm_editorial'),
         db.getSetting<string>('workspace_density', 'balanced'),
         db.getSetting<WorkspaceViewMode>('workspace_view_mode', 'executive'),
@@ -134,21 +155,24 @@ export default function App() {
         db.getSetting<WorkspaceBackgroundPresetId>('personal_background_preset', 'warm_linen'),
       ]);
 
-      const initialHhd = allHhds.find((h) => h.id === savedHhdId) || allHhds[0] || null;
-      const initialUser = usersList.find((u) => u.id === savedUserId) || usersList[0] || null;
-      const initialTheme = MODERN_EDITORIAL_THEMES.find((t) => t.id === savedThemeId) || MODERN_EDITORIAL_THEMES[0];
+      const accessibleHouseholds = initialUser ? await getAccessibleHouseholds(initialUser.id) : [];
+      const initialHhd = accessibleHouseholds.find(household => household.id === savedHhdId) || accessibleHouseholds[0] || null;
+      const initialTheme = MODERN_EDITORIAL_THEMES.find(theme => theme.id === savedThemeId) || MODERN_EDITORIAL_THEMES[0];
 
+      setAllUsers(usersList);
+      setHouseholds(accessibleHouseholds);
       setActiveHousehold(initialHhd);
       setCurrentUser(initialUser);
       setActiveTheme(initialTheme);
       setWorkspaceDensity(savedDensity === 'compact' || savedDensity === 'spacious' ? savedDensity : 'balanced');
-      setWorkspaceViewMode(WORKSPACE_VIEW_MODES.some((mode) => mode.id === savedViewMode) ? savedViewMode : 'executive');
+      setWorkspaceViewMode(WORKSPACE_VIEW_MODES.some(mode => mode.id === savedViewMode) ? savedViewMode : 'executive');
+
       const validWidgetOrder = Array.isArray(savedWidgetOrder)
-        ? savedWidgetOrder.filter((id, index) => DASHBOARD_WIDGETS.some((widget) => widget.id === id) && savedWidgetOrder.indexOf(id) === index)
+        ? savedWidgetOrder.filter((id, index) => DASHBOARD_WIDGETS.some(widget => widget.id === id) && savedWidgetOrder.indexOf(id) === index)
         : [];
-      setDashboardWidgetOrder([...validWidgetOrder, ...DEFAULT_DASHBOARD_WIDGET_ORDER.filter((id) => !validWidgetOrder.includes(id))]);
+      setDashboardWidgetOrder([...validWidgetOrder, ...DEFAULT_DASHBOARD_WIDGET_ORDER.filter(id => !validWidgetOrder.includes(id))]);
       setVisibleDashboardWidgetIds(Array.isArray(savedVisibleWidgets)
-        ? savedVisibleWidgets.filter((id) => DASHBOARD_WIDGETS.some((widget) => widget.id === id))
+        ? savedVisibleWidgets.filter(id => DASHBOARD_WIDGETS.some(widget => widget.id === id))
         : [...DEFAULT_DASHBOARD_WIDGET_ORDER]);
       const normalizedWidgetSizes: Record<string, DashboardWidgetSize> = {};
       for (const widget of DASHBOARD_WIDGETS) {
@@ -157,10 +181,15 @@ export default function App() {
       }
       setDashboardWidgetSizes(normalizedWidgetSizes);
       setPersonalBackgroundImage(typeof savedBackgroundImage === 'string' && savedBackgroundImage.startsWith('data:image/') ? savedBackgroundImage : null);
-      setBackgroundPresetId(BACKGROUND_PRESETS.some((preset) => preset.id === savedBackgroundPreset) ? savedBackgroundPreset : BACKGROUND_PRESETS[0].id);
+      setBackgroundPresetId(BACKGROUND_PRESETS.some(preset => preset.id === savedBackgroundPreset) ? savedBackgroundPreset : BACKGROUND_PRESETS[0].id);
 
-      if (initialHhd) {
-        await reloadHouseholdData(initialHhd.id, initialUser?.id);
+      if (initialUser) await db.setSetting('current_user_id', initialUser.id);
+      if (initialHhd && initialUser) {
+        await db.setSetting('active_household_id', initialHhd.id);
+        await reloadHouseholdData(initialHhd.id, initialUser.id);
+      } else {
+        clearHouseholdData();
+        if (initialUser) setShowHouseholdsModal(true);
       }
     } catch (err: any) {
       console.error('Failed to initialize local database:', err);
@@ -171,24 +200,44 @@ export default function App() {
   };
 
   const reloadHouseholdData = async (householdId: string, actorUserId = currentUser?.id) => {
+    if (!actorUserId) throw new Error('נדרש משתמש פעיל כדי לטעון נתוני משק בית');
+    const userMemberships = await db.getMembershipsByUser(actorUserId);
+    const ownMembership = userMemberships.find(membership => membership.householdId === householdId);
+    if (!ownMembership) throw new Error('אין למשתמש הנוכחי חברות במשק הבית המבוקש');
+
+    const isOwnerOrAdmin = ownMembership.role === 'owner' || ownMembership.role === 'admin';
+    const permissionRules = isOwnerOrAdmin ? [] : await db.getPermissionsByMembership(ownMembership.id);
+    const canReadDomain = (domain: HouseholdPermissionRule['domain']) =>
+      isOwnerOrAdmin || permissionRules.some(rule => rule.domain === domain && (rule.canRead || rule.canWrite));
+    const canReadFinance = canReadDomain('finance');
+    const canReadFood = canReadDomain('food');
+    const canReadDocuments = canReadDomain('documents');
+    const canReadAdmin = canReadDomain('admin');
+
     const [mems, prs, logs, accs, txs, home] = await Promise.all([
-      db.getMembershipsByHousehold(householdId),
-      db.getPersonsByHousehold(householdId),
-      db.getAuditLogs(householdId, 100),
-      actorUserId
-        ? db.getAccountsByHousehold(householdId, actorUserId).catch((error) => {
+      canReadAdmin
+        ? db.getMembershipsByHousehold(householdId)
+        : Promise.resolve([ownMembership]),
+      canReadAdmin || canReadFood
+        ? db.getPersonsByHousehold(householdId)
+        : Promise.resolve([] as HouseholdPerson[]),
+      canReadAdmin
+        ? db.getAuditLogs(householdId, 100)
+        : Promise.resolve([] as AuditLog[]),
+      canReadFinance
+        ? db.getAccountsByHousehold(householdId, actorUserId).catch(error => {
             console.warn('Financial accounts are unavailable for this member:', error);
             return [] as FinancialAccount[];
           })
         : Promise.resolve([] as FinancialAccount[]),
-      actorUserId
-        ? db.getTransactionsByHousehold(householdId, actorUserId).catch((error) => {
+      canReadFinance
+        ? db.getTransactionsByHousehold(householdId, actorUserId).catch(error => {
             console.warn('Financial transactions are unavailable for this member:', error);
             return [] as LedgerTransaction[];
           })
         : Promise.resolve([] as LedgerTransaction[]),
-      actorUserId
-        ? db.getHomeItemsByHousehold(householdId, actorUserId).catch((error) => {
+      canReadFood
+        ? db.getHomeItemsByHousehold(householdId, actorUserId).catch(error => {
             console.warn('Household operations data is unavailable for this member:', error);
             return [] as HouseholdHomeItem[];
           })
@@ -200,6 +249,7 @@ export default function App() {
     setAccounts(accs);
     setTransactions(txs);
     setHomeItems(home);
+    setCurrentPermissionRules(permissionRules);
   };
 
   useEffect(() => {

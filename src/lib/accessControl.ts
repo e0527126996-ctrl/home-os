@@ -44,3 +44,21 @@ export function canApproveHouseholdDomain(
   return isHouseholdManager(role) ||
     rules.some(rule => rule.domain === domain && rule.canApprove);
 }
+
+export interface RoleDomainPermissionDefaults {
+  canRead: boolean;
+  canWrite: boolean;
+  canApprove: boolean;
+}
+
+export function defaultPermissionsForRole(
+  role: Role,
+  domain: DomainPermission,
+): RoleDomainPermissionDefaults {
+  const manager = isHouseholdManager(role);
+  return {
+    canRead: true,
+    canWrite: manager || (role === 'member' && domain !== 'admin'),
+    canApprove: manager,
+  };
+}

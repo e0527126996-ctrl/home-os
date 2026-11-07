@@ -2716,18 +2716,20 @@ html[data-theme="carbon_gold_luxury"] .homeos-app-shell ::selection { background
 }
 
 /* Per-widget footprint controls: compact / standard / expanded. */
-.homeos-dashboard [data-widget-size="compact"] > .homeos-lux-panel {
+.homeos-dashboard :is([data-widget-size="compact"] .homeos-lux-panel, [data-widget-size="compact"].homeos-lux-panel) {
   padding: 14px !important;
 }
-.homeos-dashboard [data-widget-size="compact"] > .homeos-wealth-hero {
+.homeos-dashboard [data-widget-size="compact"].homeos-wealth-hero {
   padding: 18px !important;
 }
-.homeos-dashboard [data-widget-size="expanded"] > .homeos-lux-panel {
+.homeos-dashboard :is([data-widget-size="expanded"] .homeos-lux-panel, [data-widget-size="expanded"].homeos-lux-panel) {
   padding: clamp(26px, 3vw, 38px) !important;
 }
-.homeos-dashboard [data-widget-size="expanded"] > .homeos-wealth-hero {
+.homeos-dashboard [data-widget-size="expanded"].homeos-wealth-hero {
   padding: clamp(30px, 3.4vw, 42px) !important;
 }
+.homeos-dashboard > header { order: -2; }
+.homeos-dashboard > aside[role="status"] { order: -1; }
 .homeos-dashboard [data-widget-size="compact"] .homeos-kpi-item {
   min-height: 116px;
   padding: 14px;

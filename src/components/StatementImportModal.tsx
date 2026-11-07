@@ -31,7 +31,8 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
     return () => { active = false; };
   }, [file, transactions]);
 
-  const eligible = useMemo(() => rows.filter(r => !r.duplicate && r.date && r.payee.trim() && Number.isSafeInteger(r.amountCents) && r.amountCents > 0), [rows]);
+  const eligible = useMemo(() => rows.filter(r => !r.duplicate && Boolean(r.date) && Boolean(r.payee.trim()) && Boolean(r.category.trim()) && Number.isSafeInteger(r.amountCents) && r.amountCents > 0), [rows]);
+  const invalidCount = rows.filter(r => !r.duplicate && (!r.date || !r.payee.trim() || !r.category.trim() || !Number.isSafeInteger(r.amountCents) || r.amountCents <= 0)).length;
   const totalIncome = eligible.filter(r => r.type === 'INCOME').reduce((s, r) => s + r.amountCents, 0);
   const totalExpense = eligible.filter(r => r.type === 'EXPENSE').reduce((s, r) => s + r.amountCents, 0);
   const updateRow = (id: string, patch: Partial<ImportedStatementRow>) => setRows(prev => prev.map(row => row.id === id ? { ...row, ...patch } : row));
@@ -64,10 +65,11 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
       done ? <div className="p-12 text-center"><CheckCircle2 className="mx-auto h-14 w-14 text-emerald-600"/><h3 className="mt-4 text-xl font-bold">הייבוא הושלם</h3><p className="mt-2 text-sm" style={muted}>העסקאות נוספו לפנקס והיתרות, הגרפים והתחזיות חושבו מחדש.</p><button onClick={onClose} className="homeos-primary-action mt-6">סיום</button></div> :
       <div className="flex min-h-0 flex-1 flex-col">
         {error && <div className="mx-5 mt-4 rounded-xl border border-rose-300 bg-rose-50 p-3 text-xs text-rose-800">{error}</div>}
-        {!error && <div className="grid gap-3 border-b p-5 sm:grid-cols-3" style={{borderColor:activeTheme.borderSubtle}}>
+        {!error && <div className="grid gap-3 border-b p-5 sm:grid-cols-2 xl:grid-cols-4" style={{borderColor:activeTheme.borderSubtle}}>
           <label className="sm:col-span-1"><span className="mb-1.5 block text-[11px] font-bold" style={muted}>לאיזה חשבון לשייך?</span><select value={accountId} onChange={e=>setAccountId(e.target.value)} className="w-full rounded-xl border px-3 py-2.5 text-xs" style={panel}>{accounts.filter(a=>a.status==='ACTIVE').map(a=><option key={a.id} value={a.id}>{a.name} · {a.institution}</option>)}</select></label>
           <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>עסקאות חדשות לקליטה</div><div className="mt-1 text-xl font-bold tabular-nums">{eligible.length}</div><div className="text-[10px]" style={muted}>{rows.filter(r=>r.duplicate).length} כפילויות ידועות ידולגו</div></div>
           <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>סיכום תנועות לזיהוי</div><div className="mt-1 flex flex-wrap gap-3 text-xs font-bold"><span className="text-emerald-700">הכנסות ₪{(totalIncome/100).toLocaleString('he-IL')}</span><span className="text-amber-700">הוצאות ₪{(totalExpense/100).toLocaleString('he-IL')}</span></div></div>
+          <div className="rounded-xl border p-3" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}><div className="text-[10px]" style={muted}>שורות שדורשות תיקון</div><div className={'mt-1 text-xl font-bold tabular-nums ' + (invalidCount ? 'text-rose-700' : 'text-emerald-700')}>{invalidCount}</div><div className="text-[10px]" style={muted}>לא ייכללו בייבוא עד לתיקון</div></div>
         </div>}
         {error ? <div className="flex-1 p-8 text-center text-sm" style={muted}>לא בוצע שינוי בפנקס העסקאות. אפשר לסגור ולנסות קובץ אחר.</div> :
         <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-5">
@@ -80,13 +82,13 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
               <td className="p-2"><select disabled={row.duplicate} value={row.type} onChange={e=>updateRow(row.id,{type:e.target.value as 'INCOME'|'EXPENSE',category:e.target.value==='INCOME'?'הכנסה אחרת':'הוצאות שונות',confidence:'high'})} className="rounded-lg border px-2 py-2 text-[11px]" style={panel}><option value="EXPENSE">הוצאה</option><option value="INCOME">הכנסה</option></select></td>
               <td className="p-2"><input type="number" min="0.01" step="0.01" disabled={row.duplicate} value={(row.amountCents/100).toFixed(2)} onChange={e=>updateRow(row.id,{amountCents:Math.round(Number(e.target.value)*100)||0})} className="w-[105px] rounded-lg border px-2 py-2 text-[11px] font-bold tabular-nums" style={panel}/></td>
               <td className="p-2"><select disabled={row.duplicate} value={row.category} onChange={e=>updateRow(row.id,{category:e.target.value,confidence:'high'})} className="max-w-[230px] rounded-lg border px-2 py-2 text-[11px]" style={panel}>{categoryOptions.filter(c=>row.type==='INCOME'?!['מזון וסופרמרקט','דיור וחשבונות (שכירות, ארנונה, חשמל)','תחבורה, דלק ורכב','בריאות, רפואה וביטוחים','חינוך, חוגים וילדים','קניות, ביגוד והנעלה','מסעדות, בתי קפה ובילוי','תקשורת ואינטרנט','הוצאות שונות'].includes(c):!['משכורת חודשית','הכנסה מעסק / עצמאי','קצבאות ביטוח לאומי','החזר מס / תגמולים','שכר דירה / הכנסה פסיבית','מתנות ומענקים','הכנסה אחרת'].includes(c)).map(c=><option key={c}>{c}</option>)}</select></td>
-              <td className="p-3">{row.duplicate?<span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-800">כפילות · דילוג</span>:<span className="text-[10px]" style={muted}>{row.confidence==='high'?'זיהוי טוב':row.confidence==='medium'?'נדרש אימות':'קטגוריה כללית'}</span>}</td>
+              <td className="p-3">{row.duplicate?<span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-800">כפילות · דילוג</span>:(!row.date || !row.payee.trim() || !row.category.trim() || !Number.isSafeInteger(row.amountCents) || row.amountCents <= 0)?<span className="rounded-full bg-rose-100 px-2 py-1 text-[10px] font-bold text-rose-800">דורש תיקון</span>:<span className="text-[10px]" style={muted}>{row.confidence==='high'?'זיהוי טוב':row.confidence==='medium'?'נדרש אימות':'קטגוריה כללית'}</span>}</td>
             </tr>)}</tbody>
           </table>}
         </div>}
         {!error && <footer className="flex flex-col-reverse gap-3 border-t p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}>
-          <p className="text-[10px] leading-5" style={muted}>הייבוא יוצר עסקאות במצב ממתין לבדיקה. שורות כפולות מזוהות לפי תאריך, סכום, סוג ותיאור.</p>
-          <div className="flex gap-2"><button onClick={onClose} className="rounded-xl border px-4 py-2.5 text-xs font-bold" style={{borderColor:activeTheme.borderSubtle}}>ביטול</button><button disabled={saving||!accountId||eligible.length===0} onClick={submit} className="homeos-primary-action disabled:opacity-40">{saving?<LoaderCircle className="h-4 w-4 animate-spin"/>:<FileSpreadsheet className="h-4 w-4"/>}ייבא {eligible.length} עסקאות</button></div>
+          <p className="text-[10px] leading-5" style={muted}>הייבוא יוצר עסקאות במצב ממתין לבדיקה. שורות כפולות מדולגות; יש לתקן את כל {invalidCount} השורות המסומנות לפני הייבוא.</p>
+          <div className="flex gap-2"><button onClick={onClose} className="rounded-xl border px-4 py-2.5 text-xs font-bold" style={{borderColor:activeTheme.borderSubtle}}>ביטול</button><button disabled={saving||!accountId||eligible.length===0||invalidCount>0} onClick={submit} className="homeos-primary-action disabled:opacity-40">{saving?<LoaderCircle className="h-4 w-4 animate-spin"/>:<FileSpreadsheet className="h-4 w-4"/>}ייבא {eligible.length} עסקאות</button></div>
         </footer>}
       </div>}
     </div>

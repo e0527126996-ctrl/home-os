@@ -1516,13 +1516,13 @@ body {
 .homeos-ledger-view .text-emerald-700 { color: #168052; }
 .homeos-ledger-view .text-rose-700 { color: #C05A58; }
 .homeos-ledger-view .text-blue-700,.homeos-ledger-view .text-blue-800 { color: #477DA5; }
-:root.dark .homeos-ledger-view :is(.bg-white,.bg-stone-50,.bg-stone-50\/70,.bg-stone-100,.bg-stone-100\/90,.bg-blue-50,.bg-blue-50\/70,.bg-emerald-50,.bg-rose-50) {
+.homeos-app-shell.dark .homeos-ledger-view :is(.bg-white,.bg-stone-50,.bg-stone-50\/70,.bg-stone-100,.bg-stone-100\/90,.bg-blue-50,.bg-blue-50\/70,.bg-emerald-50,.bg-rose-50) {
   background-color: var(--bg-surface) !important;
 }
-:root.dark .homeos-ledger-view :is(.text-stone-900,.text-stone-800,.text-stone-700,.text-stone-600) {
+.homeos-app-shell.dark .homeos-ledger-view :is(.text-stone-900,.text-stone-800,.text-stone-700,.text-stone-600) {
   color: var(--text-primary) !important;
 }
-:root.dark .homeos-ledger-view :is(.text-stone-500,.text-stone-400) {
+.homeos-app-shell.dark .homeos-ledger-view :is(.text-stone-500,.text-stone-400) {
   color: var(--text-secondary) !important;
 }
 .homeos-dashboard :is(.homeos-kpi-value,.homeos-card-top,.homeos-card-foot) { color: var(--text-primary); }
@@ -1556,7 +1556,7 @@ body {
 }
 .homeos-accounts-view :is(.text-stone-500,.text-stone-600,.text-slate-500) { color: var(--text-secondary); }
 .homeos-accounts-view :is(.bg-white,.bg-stone-50,.bg-stone-100) { background-color: var(--bg-card); }
-:root.dark .homeos-accounts-view :is(.bg-white,.bg-stone-50,.bg-stone-100) { background-color: var(--bg-surface); }
+.homeos-app-shell.dark .homeos-accounts-view :is(.bg-white,.bg-stone-50,.bg-stone-100) { background-color: var(--bg-surface); }
 
 
 /* Density presets now adjust the real dashboard rhythm, not only tokens. */

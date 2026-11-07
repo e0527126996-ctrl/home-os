@@ -67,6 +67,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     });
     const currentKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     const current = months.find(m => m.key === currentKey) || { income: 0, expense: 0, label: '' };
+    const foreignTotals = new Map<string, { income: number; expense: number; count: number }>();
+    for (const tx of transactions) {
+      const currencyCode = accountCurrencies.get(tx.accountId);
+      if (!currencyCode || currencyCode === 'ILS' || tx.verificationStatus === 'PENDING' || tx.date?.slice(0, 7) !== currentKey || !Number.isSafeInteger(tx.amountCents) || tx.amountCents <= 0 || (tx.type !== 'INCOME' && tx.type !== 'EXPENSE')) continue;
+      const totals = foreignTotals.get(currencyCode) || { income: 0, expense: 0, count: 0 };
+      if (tx.type === 'INCOME') totals.income += tx.amountCents;
+      else totals.expense += tx.amountCents;
+      totals.count += 1;
+      foreignTotals.set(currencyCode, totals);
+    }
+    const foreignCurrencySummaries = [...foreignTotals.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([currencyCode, totals]) => ({ currencyCode, ...totals }));
     const previous = months[months.length - 2] || { income: 0, expense: 0, label: '' };
     const currentDay = now.getDate();
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
@@ -162,7 +173,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .sort((a, b) => b.averageAmount - a.averageAmount)
       .slice(0, 4);
 
-    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, pendingReviewAmount, reconciledTransactionCount, uncategorizedExpenseCount };
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, foreignCurrencySummaries, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, pendingReviewAmount, reconciledTransactionCount, uncategorizedExpenseCount };
   }, [accounts, transactions, confirmedTransactions, accountCurrencies]);
 
   const today = new Date();
@@ -423,7 +434,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </details>
 
-      <section className="homeos-home-snapshot">
+      {data.foreignCurrencySummaries.length > 0 && (
+        <section className="homeos-foreign-currency">
+          <div className="mb-4"><div className="homeos-section-kicker">פעילות לפי מטבע</div><h2 className="mt-1 text-lg font-bold">חשבונות במטבע זר</h2><p className="mt-1 text-xs" style={muted}>הכנסות והוצאות מוצגות בנפרד לכל מטבע, ללא המרה משוערת לשקלים</p></div>
+          <div className="space-y-4">
+            {data.foreignCurrencySummaries.map(item => {
+              const maxAmount = Math.max(1, item.income, item.expense);
+              return <div key={item.currencyCode} className="homeos-foreign-row">
+                <div className="flex items-center justify-between gap-3"><strong className="text-sm">{item.currencyCode}</strong><span className="text-[10px]" style={muted}>{item.count} תנועות החודש</span></div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <div><div className="mb-1 flex justify-between text-xs"><span style={muted}>הכנסות</span><strong>{currency(item.income, item.currencyCode)}</strong></div><div className="homeos-finance-track"><span className="income" style={{width:(item.income/maxAmount*100)+'%'}}/></div></div>
+                  <div><div className="mb-1 flex justify-between text-xs"><span style={muted}>הוצאות</span><strong>{currency(item.expense, item.currencyCode)}</strong></div><div className="homeos-finance-track"><span className="expense" style={{width:(item.expense/maxAmount*100)+'%'}}/></div></div>
+                </div>
+              </div>;
+            })}
+          </div>
+        </section>
+      )}
+
+            <section className="homeos-home-snapshot">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div><div className="homeos-section-kicker">ניהול הבית</div><h2 className="mt-1 text-lg font-bold">תמונת מצב הבית</h2><p className="mt-1 text-xs" style={muted}>נתוני ניהול הבית מסונכרנים עם לוח הבקרה</p></div>
           <button onClick={onOpenLedger} className="homeos-text-link">מעבר לפנקס העסקאות <ArrowLeft className="h-4 w-4" /></button>

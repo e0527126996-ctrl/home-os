@@ -118,9 +118,17 @@ export function parseStatementAmount(value: unknown): number | null {
   if (/^\(.*\)$/.test(s)) s = s.slice(1, -1);
   else if (/^[-−]/.test(s)) s = s.slice(1);
 
-  // Accept standard thousands separators and decimal-comma exports, but
-  // never turn malformed values such as "1,23" into 123.
-  if (!s.includes('.')) s = s.replace(/,(\d{1,2})$/, '.$1');
+  // Accept both Israeli/US (1,234.56) and European (1.234,56)
+  // exports. A lone comma followed by 1–2 digits is a decimal separator.
+  if (s.includes('.') && s.includes(',')) {
+    if (/^\d{1,3}(?:\.\d{3})+,\d{1,2}$/.test(s)) {
+      s = s.replace(/\./g, '').replace(',', '.');
+    } else if (!/^\d{1,3}(?:,\d{3})+\.\d{1,2}$/.test(s)) {
+      return null;
+    }
+  } else if (!s.includes('.')) {
+    s = s.replace(/,(\d{1,2})$/, '.$1');
+  }
   if (!/^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?$/.test(s)) return null;
   const cents = Math.round(Number(s.replace(/,/g, '')) * 100);
   if (!Number.isSafeInteger(cents)) return null;
@@ -203,6 +211,9 @@ async function extractPdfText(pdf: any): Promise<string> {
 export function parsePdfLines(text: string): ImportedStatementRow[] {
   const rows: ImportedStatementRow[] = [];
   const lines = text.split(/\r?\n/).map(clean).filter(Boolean);
+  const hasBalanceColumn = lines.some(line =>
+    /(?:יתרה|balance)/i.test(line) && /(?:תאריך|date|חובה|זכות|debit|credit)/i.test(line)
+  );
   const datePattern = /(?:^|\s)(\d{1,2}[./-]\d{1,2}[./-]\d{2,4})(?=\s|$)/;
   const amountPattern = /(?:₪\s*)?\(?[-−]?\d[\d,]*(?:\.\d{1,2})?\)?(?:\s*₪)?/g;
   for (let i = 0; i < lines.length; i++) {
@@ -222,10 +233,13 @@ export function parsePdfLines(text: string): ImportedStatementRow[] {
     let selected = candidates.at(-1)!;
     if (marked.length >= 2) {
       selected = marked[marked.length - 2];
+    } else if (hasBalanceColumn && candidates.length >= 2) {
+      // When the statement header explicitly declares a balance column,
+      // the last numeric field is the running balance even if both values
+      // are whole numbers without decimal/currency markers.
+      selected = candidates[candidates.length - 2];
     } else if (marked.length === 1) {
       const markedIndex = candidates.indexOf(marked[0]);
-      // If the only decimal/currency value is the final numeric column,
-      // it is commonly the running balance; use the amount immediately before it.
       selected = markedIndex === candidates.length - 1 && candidates.length > 1
         ? candidates[markedIndex - 1]
         : marked[0];

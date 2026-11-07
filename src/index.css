@@ -936,3 +936,18 @@ body {
 @media(prefers-reduced-motion:reduce) {
   .homeos-home-panel, .homeos-nav-item { transition:none !important; }
 }
+
+.homeos-workspace-stat {
+  display:inline-flex;
+  align-items:center;
+  gap:.42rem;
+  min-height:28px;
+  border:1px solid var(--border-subtle,#E6E0D8);
+  border-radius:999px;
+  padding:.28rem .62rem;
+  background:var(--bg-surface,#F3EFEA);
+}
+.homeos-status-dot { width:6px; height:6px; flex:0 0 auto; border-radius:50%; }
+.homeos-status-dot.verified { background:#5B9477; box-shadow:0 0 0 3px rgba(91,148,119,.12); }
+.homeos-status-dot.pending { background:#C28D52; box-shadow:0 0 0 3px rgba(194,141,82,.12); }
+.dark .homeos-workspace-stat { background:var(--bg-surface,#111827); border-color:var(--border-subtle,#334155); }

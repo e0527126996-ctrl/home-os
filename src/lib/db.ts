@@ -2210,6 +2210,41 @@ class HomeOSIndexedDB {
     });
   }
 
+  async syncShoppingItemsBatch(
+    householdId: string,
+    items: HouseholdHomeItem[],
+    deleteItemIds: string[],
+    actorUserId: string,
+  ): Promise<void> {
+    if (!householdId || items.some(item => item.householdId !== householdId || item.kind !== 'shopping')) {
+      throw new Error('אצוות סנכרון הקניות כוללת רשומות לא תקינות או משקי בית שונים');
+    }
+    if (new Set(deleteItemIds).size !== deleteItemIds.length) {
+      throw new Error('רשימת המחיקה כוללת מזהים כפולים');
+    }
+    await this.assertPermission(householdId, actorUserId, 'food', 'write');
+    for (const item of items) {
+      if (!item.id || !item.createdAt || !item.updatedAt) throw new Error('פריט קנייה חסר שדות חובה');
+    }
+    return this.transaction(['household_home_items'], 'readwrite', async (tx) => {
+      const store = tx.objectStore('household_home_items');
+      for (const id of deleteItemIds) {
+        const existing = await this.reqToPromise<HouseholdHomeItem | undefined>(store.get(id));
+        if (existing && (existing.householdId !== householdId || existing.kind !== 'shopping')) {
+          throw new Error('לא ניתן למחוק פריט שאינו שייך לרשימת הקניות של משק הבית הפעיל');
+        }
+      }
+      for (const item of items) {
+        const existing = await this.reqToPromise<HouseholdHomeItem | undefined>(store.get(item.id));
+        if (existing && (existing.householdId !== householdId || existing.kind !== 'shopping')) {
+          throw new Error('הפרת בידוד משקי בית: לא ניתן לעדכן רשומה שאינה פריט קניות במשק הבית הפעיל');
+        }
+      }
+      for (const id of deleteItemIds) await this.reqToPromise(store.delete(id));
+      for (const item of items) await this.reqToPromise(store.put(item));
+    });
+  }
+
   async deleteHomeItem(itemId: string, householdId: string, actorUserId: string): Promise<void> {
     await this.assertPermission(householdId, actorUserId, 'food', 'write');
     return this.transaction(['household_home_items'], 'readwrite', async (tx) => {

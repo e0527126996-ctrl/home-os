@@ -578,9 +578,13 @@ export default function App() {
       <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-7 lg:px-10 py-7 space-y-8">
         {/* Premium primary navigation */}
         <section className="homeos-navigation-shell">
-          <div className="mb-3 flex items-center justify-between px-2">
-            <div><div className="homeos-section-kicker">YOUR HOUSEHOLD WORKSPACE</div><div className="mt-1 text-sm font-bold" style={{ color: activeTheme.textPrimary }}>מרחבי העבודה</div></div>
-            <div className="text-[10px] font-semibold tabular-nums" style={{ color: activeTheme.textSecondary }}>{transactions.length} תנועות <span className="mx-1 opacity-40">/</span> {accounts.length} חשבונות</div>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-2">
+            <div><div className="homeos-section-kicker">מרחב ניהול משק הבית</div><div className="mt-1 text-sm font-bold" style={{ color: activeTheme.textPrimary }}>מרחבי העבודה</div></div>
+            <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold tabular-nums" style={{ color: activeTheme.textSecondary }}>
+              <span className="homeos-workspace-stat"><span className="homeos-status-dot verified"/> {transactions.filter(tx => tx.verificationStatus !== 'PENDING').length} מאומתות</span>
+              <span className="homeos-workspace-stat"><span className="homeos-status-dot pending"/> {transactions.filter(tx => tx.verificationStatus === 'PENDING').length} לאימות</span>
+              <span className="homeos-workspace-stat">{accounts.length} חשבונות</span>
+            </div>
           </div>
           <nav aria-label="ניווט ראשי" className="homeos-main-nav">
             {([

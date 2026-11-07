@@ -31,20 +31,24 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
     let active = true;
     setLoading(true);
     setError('');
+    setDone(false);
+    setRows([]);
     setDiagnostics(null);
     setParseProgress(null);
+    setIncludeDuplicateIds([]);
+    // Parse once per selected file. Duplicate checks are recalculated below from
+    // the live transaction list, so a save/reload must not restart this file's OCR.
     parseStatementFileWithDiagnostics(file, transactions, progress => {
       if (active) setParseProgress(progress);
     }).then(result => {
       if (!active) return;
       setRows(result.rows);
       setDiagnostics(result.diagnostics);
-      setIncludeDuplicateIds([]);
     })
       .catch(err => { if (active) setError(err.message || 'לא ניתן לפענח את הקובץ'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [file, transactions]);
+  }, [file]);
 
   // A matching transaction in another account is not a duplicate. Re-evaluate
   // duplicate status against the account currently selected for this import.

@@ -1309,7 +1309,7 @@ export default function App() {
         </div>
       )}
 
-      {showAuditModal && activeHousehold && (
+      {showAuditModal && activeHousehold && canReadAdmin && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div
             className="w-full max-w-4xl rounded-xl border shadow-xl flex flex-col max-h-[90vh] overflow-hidden p-5"
@@ -1337,7 +1337,7 @@ export default function App() {
         </div>
       )}
 
-      {showTestsModal && (
+      {showTestsModal && canManageSystem && (
         <TestRunnerModal
           activeTheme={activeTheme}
           onClose={() => setShowTestsModal(false)}
@@ -1347,7 +1347,7 @@ export default function App() {
         />
       )}
 
-      {showBackupModal && activeHousehold && (
+      {showBackupModal && activeHousehold && canManageSystem && (
         <ExportImportModal
           household={activeHousehold}
           currentUser={currentUser}
@@ -1365,7 +1365,7 @@ export default function App() {
         />
       )}
 
-      {showExportHtmlModal && (
+      {showExportHtmlModal && canManageSystem && (
         <StandaloneExportModal
           activeTheme={activeTheme}
           onClose={() => setShowExportHtmlModal(false)}

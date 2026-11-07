@@ -11,7 +11,7 @@ type Shopping = { name: string; quantity: string; checked: boolean; source?: str
 type Task = { title: string; dueDate: string; assignee: string; done: boolean };
 const uid = (p: string) => p + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
 const iso = (d: Date) => [d.getFullYear(), String(d.getMonth()+1).padStart(2,'0'), String(d.getDate()).padStart(2,'0')].join('-');
-const validISODate = (value: string) => /^\\d{4}-\\d{2}-\\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00.000Z`).getTime()) && new Date(`${value}T00:00:00.000Z`).toISOString().slice(0,10) === value;
+const validISODate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00.000Z`).getTime()) && new Date(`${value}T00:00:00.000Z`).toISOString().slice(0,10) === value;
 const monday = (d: Date) => { const x = new Date(d); x.setDate(x.getDate()-((x.getDay()+6)%7)); x.setHours(12,0,0,0); return x; };
 const days = ['יום שני','יום שלישי','יום רביעי','יום חמישי','יום שישי','שבת','יום ראשון'];
 const slots = ['בוקר','צהריים','ערב'];

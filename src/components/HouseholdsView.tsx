@@ -56,7 +56,7 @@ export const HouseholdsView: React.FC<HouseholdsViewProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="homeos-households-view space-y-6">
       {/* Header section */}
       <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: activeTheme.borderSubtle }}>
         <div>

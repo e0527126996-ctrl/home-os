@@ -276,7 +276,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
   };
 
   return (
-    <div className="space-y-7" dir="rtl">
+    <div className="homeos-ledger-view space-y-7" dir="rtl">
       {/* סרגל סיכום פיננסי */}
       <p className="text-xs leading-5 text-stone-500">הסיכומים כוללים עסקאות מאושרות בשקלים בלבד. עסקאות שממתינות לבדיקה מוצגות בפנקס אך אינן נכללות ביתרות ובסכומים.</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

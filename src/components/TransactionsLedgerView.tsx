@@ -647,6 +647,11 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
                               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                               <span>מאומת</span>
                             </span>
+                          ) : tx.verificationStatus === 'RECONCILED' ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] text-blue-700 font-medium">
+                              <CheckCircle2 className="w-3 h-3 text-blue-600" />
+                              <span>מותאם לדף חשבון</span>
+                            </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 text-[10px] text-amber-700 font-medium">
                               <Clock className="w-3 h-3 text-amber-600" />

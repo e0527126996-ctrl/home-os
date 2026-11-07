@@ -2399,7 +2399,7 @@ class HomeOSIndexedDB {
         }
         for (const u of backupUsers) {
           const existing = await this.reqToPromise<User | undefined>(uStore.get(u.id));
-          if (existing && existing.email.toLowerCase() !== u.email.toLowerCase()) {
+          if (existing && existing.email.toLowerCase() !== u.email.toLowerCase() && u.id !== actorUserId) {
             throw new Error('הגיבוי מכיל מזהה משתמש שכבר משויך לכתובת דוא״ל אחרת');
           }
           await this.reqToPromise(uStore.put(u));

@@ -53,6 +53,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [statementFile, setStatementFile] = useState<File | null>(null);
+  const [statementQueue, setStatementQueue] = useState<File[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = async () => setDocuments(await db.getDocumentsByHousehold(household.id));
@@ -100,7 +101,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
     if (!files.length) return;
     setBusy(true); setError(''); setMessage('');
     let saved = 0;
-    let statementToImport: File | null = null;
+    const statementsToImport: File[] = [];
     try {
       for (const file of files) {
         if (file.size > 25 * 1024 * 1024) throw new Error(`הקובץ "${file.name}" גדול מ-25MB`);
@@ -125,7 +126,10 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
       await refresh();
       notifyDocumentsChanged();
       setMessage(`${saved} מסמכים נשמרו בכספת המקומית`);
-      if (statementToImport) setStatementFile(statementToImport);
+      if (statementsToImport.length) {
+        setStatementFile(statementsToImport[0]);
+        setStatementQueue(prev => [...prev, ...statementsToImport.slice(1)]);
+      }
     } catch (e: any) {
       setError(e.message || 'שגיאה בהעלאת המסמכים');
       if (saved) {
@@ -241,7 +245,11 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
             })}
           </div>}
       </section>
-      {statementFile && <StatementImportModal file={statementFile} accounts={accounts} transactions={transactions} activeTheme={activeTheme} onClose={() => setStatementFile(null)} onImport={onImportTransactions} />}
+      {statementFile && <StatementImportModal file={statementFile} accounts={accounts} transactions={transactions} activeTheme={activeTheme} onClose={() => {
+        const [next, ...remaining] = statementQueue;
+        setStatementQueue(remaining);
+        setStatementFile(next || null);
+      }} onImport={onImportTransactions} />}
     </div>
   );
 };

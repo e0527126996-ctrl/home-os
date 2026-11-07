@@ -325,7 +325,7 @@ export default function App() {
 
   // Handlers for Financial Accounts (Phase 2 - Sub-phase A)
   const handleSaveAccount = async (data: any, accountId?: string) => {
-    if (!activeHousehold || !currentUser) return;
+    if (!activeHousehold || !currentUser) throw new Error('יש להתחבר למשק הבית לפני שמירת חשבון');
     try {
       if (accountId) {
         await db.updateAccount(activeHousehold.id, accountId, data, currentUser.id, currentUser.email);
@@ -337,6 +337,8 @@ export default function App() {
       await reloadHouseholdData(activeHousehold.id);
     } catch (err: any) {
       showToast('שגיאה בשמירת חשבון: ' + err.message, 'error');
+      // AccountModal relies on rejection to keep the form open and preserve user input.
+      throw err;
     }
   };
 

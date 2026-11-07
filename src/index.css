@@ -2751,3 +2751,22 @@ html[data-theme="carbon_gold_luxury"] .homeos-app-shell ::selection { background
   color: var(--text-primary);
   font-size: 10px;
 }
+
+.homeos-view-mode-chip {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-card));
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .04em;
+}
+html[data-theme="carbon_gold_luxury"] .homeos-app-shell .homeos-view-mode-chip {
+  border-color: rgba(212,175,55,.28);
+  background: rgba(212,175,55,.09);
+  color: #E2C45B;
+}

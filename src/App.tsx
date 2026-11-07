@@ -42,8 +42,8 @@ const DocumentCenterView = lazy(() => import('./components/DocumentCenterView.ts
 const HomeManagementView = lazy(() => import('./components/HomeManagementView.tsx').then(({ HomeManagementView }) => ({ default: HomeManagementView })));
 import { db } from './lib/db.ts';
 import { MODERN_EDITORIAL_THEMES, ThemeConfig } from './lib/themes.ts';
-import { DASHBOARD_WIDGETS, DEFAULT_DASHBOARD_WIDGET_ORDER, WorkspaceViewMode, WORKSPACE_VIEW_MODES } from './lib/workspace.ts';
-import type { DashboardWidgetSize } from './lib/workspace.ts';
+import { BACKGROUND_PRESETS, DASHBOARD_WIDGETS, DEFAULT_DASHBOARD_WIDGET_ORDER, WorkspaceViewMode, WORKSPACE_VIEW_MODES } from './lib/workspace.ts';
+import type { DashboardWidgetSize, WorkspaceBackgroundPresetId } from './lib/workspace.ts';
 import { generateStandaloneHomeOSHtml } from './lib/standaloneGenerator.ts';
 import type { ImportedStatementRow } from './lib/statementImport.ts';
 import {
@@ -84,6 +84,7 @@ export default function App() {
   const [visibleDashboardWidgetIds, setVisibleDashboardWidgetIds] = useState<string[]>(DEFAULT_DASHBOARD_WIDGET_ORDER);
   const [dashboardWidgetSizes, setDashboardWidgetSizes] = useState<Record<string, DashboardWidgetSize>>({});
   const [personalBackgroundImage, setPersonalBackgroundImage] = useState<string | null>(null);
+  const [backgroundPresetId, setBackgroundPresetId] = useState<WorkspaceBackgroundPresetId>('warm_linen');
   const [ledgerSelectedAccountId, setLedgerSelectedAccountId] = useState<string | null>(null);
 
   // Modal Dialogs
@@ -121,7 +122,7 @@ export default function App() {
 
       const savedHhdId = await db.getSetting<string>('active_household_id', allHhds[0]?.id || '');
       const savedUserId = await db.getSetting<string>('current_user_id', usersList[0]?.id || '');
-      const [savedThemeId, savedDensity, savedViewMode, savedWidgetOrder, savedVisibleWidgets, savedWidgetSizes, savedBackgroundImage] = await Promise.all([
+      const [savedThemeId, savedDensity, savedViewMode, savedWidgetOrder, savedVisibleWidgets, savedWidgetSizes, savedBackgroundImage, savedBackgroundPreset] = await Promise.all([
         db.getSetting<string>('theme', 'warm_editorial'),
         db.getSetting<string>('workspace_density', 'balanced'),
         db.getSetting<WorkspaceViewMode>('workspace_view_mode', 'executive'),
@@ -129,6 +130,7 @@ export default function App() {
         db.getSetting<string[]>('dashboard_widget_visibility', DEFAULT_DASHBOARD_WIDGET_ORDER),
         db.getSetting<Record<string, DashboardWidgetSize>>('dashboard_widget_sizes', {}),
         db.getSetting<string>('personal_background_image', ''),
+        db.getSetting<WorkspaceBackgroundPresetId>('personal_background_preset', 'warm_linen'),
       ]);
 
       const initialHhd = allHhds.find((h) => h.id === savedHhdId) || allHhds[0] || null;
@@ -154,6 +156,7 @@ export default function App() {
       }
       setDashboardWidgetSizes(normalizedWidgetSizes);
       setPersonalBackgroundImage(typeof savedBackgroundImage === 'string' && savedBackgroundImage.startsWith('data:image/') ? savedBackgroundImage : null);
+      setBackgroundPresetId(BACKGROUND_PRESETS.some((preset) => preset.id === savedBackgroundPreset) ? savedBackgroundPreset : BACKGROUND_PRESETS[0].id);
 
       if (initialHhd) {
         await reloadHouseholdData(initialHhd.id, initialUser?.id);
@@ -579,6 +582,17 @@ export default function App() {
     await db.setSetting('dashboard_widget_order', current);
   };
 
+  const handleBackgroundPresetChange = async (presetId: WorkspaceBackgroundPresetId) => {
+    if (!BACKGROUND_PRESETS.some((preset) => preset.id === presetId)) return;
+    setBackgroundPresetId(presetId);
+    await db.setSetting('personal_background_preset', presetId);
+    if (personalBackgroundImage) {
+      await db.setSetting('personal_background_image', '');
+      setPersonalBackgroundImage(null);
+    }
+    showToast('הרקע החדש הוחל על סביבת העבודה');
+  };
+
   const handleBackgroundImageChange = async (file: File | null) => {
     if (!file) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
@@ -656,11 +670,11 @@ export default function App() {
         backgroundColor: activeTheme.bgCanvas,
         backgroundImage: personalBackgroundImage
           ? `linear-gradient(${activeTheme.isDark ? 'rgba(15,17,21,.66)' : 'rgba(250,248,245,.68)'}, ${activeTheme.isDark ? 'rgba(15,17,21,.72)' : 'rgba(250,248,245,.72)'}), url("${personalBackgroundImage}")`
-          : 'radial-gradient(color-mix(in srgb, var(--homeos-accent) 4%, transparent) .7px, transparent .7px)',
-        backgroundSize: personalBackgroundImage ? 'cover' : '18px 18px',
+          : BACKGROUND_PRESETS.find((preset) => preset.id === backgroundPresetId)?.background || BACKGROUND_PRESETS[0].background,
+        backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: personalBackgroundImage ? 'no-repeat' : 'repeat',
-        backgroundAttachment: personalBackgroundImage ? 'fixed' : 'scroll',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
         color: activeTheme.textPrimary,
         ...({
           '--homeos-accent': activeTheme.accent,
@@ -782,6 +796,8 @@ export default function App() {
             dashboardWidgetSizes={dashboardWidgetSizes}
             onDashboardWidgetSizeChange={handleDashboardWidgetSizeChange}
             backgroundImage={personalBackgroundImage}
+            backgroundPresetId={backgroundPresetId}
+            onBackgroundPresetChange={handleBackgroundPresetChange}
             onBackgroundImageChange={handleBackgroundImageChange}
             onBackgroundImageClear={handleBackgroundImageClear}
           />

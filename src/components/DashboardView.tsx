@@ -197,7 +197,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <strong className="homeos-net-worth">{currency(data.netWorth)}</strong>
               <span className="mb-2 rounded-full border border-white/15 bg-white/[.07] px-3 py-1.5 text-[11px] text-white/65">נכסים פחות התחייבויות</span>
             </div>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-white/55">תמונת ההון בשקלים בלבד. חשבונות במטבע זר מוצגים במטבע המקורי ואינם מומרים ללא שער חליפין מאומת.</p>
+            <p className="mt-4 max-w-xl text-sm leading-7 text-white/55">תמונת ההון בשקלים בלבד. חשבונות במטבע זר מוצגים במטבע המקורי ואינם מומרים ללא שער חליפין מאומת.{data.foreignAccountCount > 0 ? ' קיימים ' + data.foreignAccountCount + ' חשבונות במטבע זר.' : ''}</p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <button onClick={onOpenAccounts} className="homeos-hero-button">סקירת הנכסים <ChevronLeft className="h-4 w-4" /></button>
               <span className="flex items-center gap-2 text-xs text-white/45"><ShieldCheck className="h-4 w-4 text-[#B7C9B8]" /> נתונים מקומיים ומאובטחים במכשיר</span>

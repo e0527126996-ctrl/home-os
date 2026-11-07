@@ -121,7 +121,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
         };
         await db.saveDocument(doc);
         saved++;
-        if (!statementToImport && category === 'BANK' && /\.(pdf|xlsx?|csv)$/i.test(file.name)) statementToImport = file;
+        if (category === 'BANK' && /\.(pdf|xlsx?|csv)$/i.test(file.name)) statementsToImport.push(file);
       }
       await refresh();
       notifyDocumentsChanged();

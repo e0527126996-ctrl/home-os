@@ -166,6 +166,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const categoryTotal = data.topCategories.reduce((sum, item) => sum + item[1], 0);
   const categoryColors = [activeTheme.accent, activeTheme.isDark ? '#A3B7C8' : activeTheme.accentMuted, '#8295A7', '#A97972', '#9C9A7D'];
   const monthName = new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' }).format(new Date());
+  const viewModeTitle = viewMode === 'executive' ? 'Executive · מנהלים' : viewMode === 'productivity' ? 'Productivity · עבודה שוטפת' : 'Analytics · אנליטיקה';
   const hasActivity = data.current.income > 0 || data.current.expense > 0;
 
   return (
@@ -177,6 +178,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <p className="mt-2 text-sm" style={muted}>כל הנכסים, ההתחייבויות והתזרים — במבט אחד מדויק.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <span className="homeos-view-mode-chip">{viewModeTitle}</span>
           <span className="homeos-date-chip"><CalendarDays className="h-4 w-4" /> {monthName}</span>
           <button onClick={onOpenLedger} className="homeos-primary-action"><ReceiptText className="h-4 w-4" /> פנקס העסקאות</button>
           <button onClick={onOpenAccounts} className="homeos-secondary-action"><Landmark className="h-4 w-4" /> ניהול חשבונות</button>

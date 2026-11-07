@@ -2194,6 +2194,22 @@ class HomeOSIndexedDB {
     if (!targetHouseholdId) throw new Error('מזהה משק הבית בגיבוי חסר');
     await this.assertPermission(targetHouseholdId, actorUserId, 'admin', 'approve');
 
+    const assertUniqueIds = (records: Array<{ id: string }> | undefined, label: string) => {
+      if (records && new Set(records.map(record => record.id)).size !== records.length) {
+        throw new Error('הגיבוי מכיל מזהי ' + label + ' כפולים');
+      }
+    };
+    assertUniqueIds(backup.households, 'משקי בית');
+    assertUniqueIds(backup.users, 'משתמשים');
+    assertUniqueIds(backup.memberships, 'חברויות');
+    assertUniqueIds(backup.persons, 'בני בית');
+    assertUniqueIds(backup.permissions, 'הרשאות');
+    assertUniqueIds(backup.auditLogs, 'רישומי ביקורת');
+    assertUniqueIds(backup.accounts, 'חשבונות');
+    assertUniqueIds(backup.transactions, 'עסקאות');
+    assertUniqueIds(backup.documents, 'מסמכים');
+    assertUniqueIds(backup.homeItems, 'רשומות ניהול בית');
+
     const memberships = backup.memberships || [];
     const membershipIds = new Set(memberships.map(membership => membership.id));
     const membershipUserIds = new Set(memberships.map(membership => membership.userId));
@@ -2229,6 +2245,8 @@ class HomeOSIndexedDB {
       !isValidISODate(transaction.date) ||
       !Number.isSafeInteger(transaction.amountCents) ||
       transaction.amountCents <= 0 ||
+      !['INCOME', 'EXPENSE', 'TRANSFER'].includes(transaction.type) ||
+      (transaction.verificationStatus !== undefined && !['PENDING', 'VERIFIED', 'RECONCILED'].includes(transaction.verificationStatus)) ||
       (transaction.valueDate !== undefined && !isValidISODate(transaction.valueDate))
     )) {
       throw new Error('הגיבוי מכיל עסקה עם תאריך או סכום שאינם תקינים');

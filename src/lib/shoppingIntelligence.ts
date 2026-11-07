@@ -96,7 +96,52 @@ function parseIngredientLine(value: string): { name: string; quantity: ParsedQua
     return { name: remainder, quantity: amount === null ? null : { value: amount, unit: normalizeText('יח׳'), label: 'יח׳' } };
   }
 
-  const suffix = text.match(new RegExp('^(.+?)\\s+(' + numberPattern + ')\\s*(.*?)$'));
+  const suffix = text.match(new RegExp('^(.+?)\\s+' + numberPattern + '\\s*(.*?)
+  if (suffix) {
+    const quantity = parseMeasure(suffix[2] + ' ' + suffix[3]);
+    if (quantity) return { name: suffix[1].trim(), quantity };
+  }
+  return { name: text, quantity: null };
+}
+
+function formatAmount(value: number): string {
+  return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(2)));
+}
+
+export function mergeQuantityTexts(...values: string[]): string {
+  const parts = values.map(value => value.trim()).filter(Boolean);
+  if (!parts.length) return '';
+  const tokens = parts.flatMap(value => value.split(/\s*\+\s*/).map(parseMeasure));
+  if (tokens.every((part): part is ParsedQuantity => part !== null)) {
+    const totals = new Map<string, ParsedQuantity>();
+    for (const part of tokens) {
+      const previous = totals.get(part.unit);
+      totals.set(part.unit, { value: (previous?.value || 0) + part.value, unit: part.unit, label: previous?.label || part.label });
+    }
+    return [...totals.values()].map(part => [formatAmount(part.value), part.label].filter(Boolean).join(' ')).join(' + ');
+  }
+  return [...new Set(parts)].join(' + ');
+}
+
+export function formatIngredientQuantity(rawIngredients: string[], scaleFactor: number): string {
+  const totals = new Map<string, ParsedQuantity>();
+  for (const raw of rawIngredients) {
+    const parsed = parseIngredientLine(raw).quantity;
+    if (!parsed) continue;
+    const previous = totals.get(parsed.unit);
+    totals.set(parsed.unit, {
+      value: (previous?.value || 0) + parsed.value * scaleFactor,
+      unit: parsed.unit,
+      label: previous?.label || parsed.label,
+    });
+  }
+  return [...totals.values()].map(part => [formatAmount(part.value), part.label].filter(Boolean).join(' ')).join(' + ');
+}
+
+export function splitIngredientName(raw: string): string {
+  return parseIngredientLine(raw).name;
+}
+));
   if (suffix) {
     const quantity = parseMeasure(suffix[2] + ' ' + suffix[3]);
     if (quantity) return { name: suffix[1].trim(), quantity };

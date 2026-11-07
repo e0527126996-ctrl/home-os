@@ -58,9 +58,9 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ activeTheme, o
         <div className="p-5 overflow-y-auto space-y-4 text-xs">
           <div className="p-4 rounded border flex items-center justify-between" style={{ backgroundColor: activeTheme.bgSurface, borderColor: activeTheme.borderSubtle }}>
             <div>
-              <h4 className="font-serif font-semibold text-sm">הרצת 22 בדיקות קבלה אוטומטיות (E2E)</h4>
+              <h4 className="font-serif font-semibold text-sm">הרצת 26 בדיקות קבלה אוטומטיות</h4>
               <p className="text-[11px] opacity-75 mt-0.5">
-                ספר עסקאות, העברות פנימיות, דיוק אגורות שלמות, בידוד דיירים, מחיקה אטומית, והגנת גיבוי
+                ספר עסקאות, העברות, דיוק אגורות, בידוד דיירים, גיבוי, פענוח מתכונים וסנכרון קניות
               </p>
             </div>
 

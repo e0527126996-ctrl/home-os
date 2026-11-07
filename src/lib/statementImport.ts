@@ -184,11 +184,13 @@ function parsePdfLines(text: string): ImportedStatementRow[] {
     const payee = clean([before, after].filter(Boolean).join(' ').replace(/(?:אסמכתא|מספר פעולה|יתרה|balance|reference)[:#]?\s*\d+/gi, '').replace(/[|:·-]+/g, ' '));
     if (payee.length < 2 || /^\d+$/.test(payee)) continue;
     const lower = line.toLowerCase();
-    const isIncome = /זכות|זיכוי|הפקדה|משכורת|קצבה|העברה נכנסת|credit|deposit|salary|refund|reversal/.test(lower);
+    const isIncome = /זכות|זיכוי|הפקדה|משכורת|מעסיק|קצבה|ביטוח לאומי|החזר|העברה נכנסת|credit|deposit|salary|payroll|refund|reversal/.test(lower);
     const isExpense = /חובה|חיוב|משיכה|תשלום|הוראת קבע|כרטיס|עמלה|העברה יוצאת|debit|withdrawal|purchase|payment|fee/.test(lower);
-    const type = rawAmount < 0 || (isExpense && !isIncome) ? 'EXPENSE' : isIncome && !isExpense ? 'INCOME' : rawAmount > 0 && !isExpense ? 'INCOME' : 'EXPENSE';
+    // A positive amount in a PDF is not proof of income: many banks print
+    // debits as positive numbers in a separate חובה column. Be conservative.
+    const type = rawAmount < 0 || (isExpense && !isIncome) ? 'EXPENSE' : isIncome && !isExpense ? 'INCOME' : 'EXPENSE';
     const suggestion = categorize(payee, type);
-    const confidence = isIncome || isExpense || rawAmount < 0 ? 'medium' : suggestion.confidence === 'high' ? 'medium' : 'low';
+    const confidence = isIncome || isExpense || rawAmount < 0 ? 'medium' : 'low';
     rows.push({ id: `pdf_${i}_${date}_${Math.abs(rawAmount)}`, date, payee, amountCents: Math.abs(rawAmount), type, category: suggestion.category, confidence, duplicate: false, sourceText: line });
   }
   return rows;

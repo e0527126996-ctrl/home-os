@@ -152,7 +152,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }, [homeItems, todayKey, nextWeekKey]);
   const currency = (cents: number, currencyCode: string = 'ILS') => money(cents / 100, currencyCode);
   const muted = { color: activeTheme.textSecondary };
-  const positive = { color: activeTheme.accent };
   const panel = 'homeos-lux-panel';
   const categoryTotal = data.topCategories.reduce((sum, item) => sum + item[1], 0);
   const categoryColors = [activeTheme.accent, activeTheme.accentMuted, '#8295A7', '#A97972', '#9C9A7D'];

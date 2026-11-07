@@ -88,17 +88,20 @@ function categorize(payee: string, type: 'INCOME' | 'EXPENSE') {
 }
 
 function rowFromValues(values: unknown[], headers: string[], index: number): ImportedStatementRow | null {
-  const find = (terms: string[]) => {
-    const i = headers.findIndex(h => terms.some(t => h.includes(t)));
+  const find = (aliases: string[]) => {
+    const exact = headers.findIndex(h => aliases.includes(h));
+    const i = exact >= 0 ? exact : headers.findIndex(h => aliases.some(t => h.startsWith(t)));
     return i >= 0 ? values[i] : undefined;
   };
-  const date = parseDate(find(['תאריךעסקה','תאריך','date','valuedate','תאריךערך']));
-  const payee = clean(find(['תיאור','פרטים','ביתעסק','מוטב','פעולה','אסמכתא','description','details','payee','merchant','שםפעולה']));
-  let amount = parseAmount(find(['סכום','amount','חיובזכות','תנועה']));
-  const debit = parseAmount(find(['חובה','debit','חיוב']));
-  const credit = parseAmount(find(['זכות','credit','זיכוי']));
+  const date = parseDate(find(['תאריךעסקה','תאריךתנועה','תאריך','date','transactiondate','valuedate','תאריךערך']));
+  const payee = clean(find(['תיאורעסקה','תיאור','פרטים','שםביתעסק','ביתעסק','מוטב','שםפעולה','פעולה','description','details','payee','merchant','transactiondetails']));
+  const debit = parseAmount(find(['חובה','סכוםלחיוב','חיוב','debit','withdrawal']));
+  const credit = parseAmount(find(['זכות','סכוםלזכות','זיכוי','credit','deposit']));
+  const amountCell = parseAmount(find(['סכום','amount','סכוםהתנועה','תנועה']));
+  let amount: number | null = amountCell;
   if (debit !== null || credit !== null) {
-    amount = (credit && Math.abs(credit)) || (debit && -Math.abs(debit)) || 0;
+    amount = credit !== null && Math.abs(credit) > 0 ? Math.abs(credit) :
+      debit !== null && Math.abs(debit) > 0 ? -Math.abs(debit) : 0;
   }
   if (!date || !payee || amount === null || amount === 0) return null;
   const type = amount > 0 ? 'INCOME' : 'EXPENSE';
@@ -109,9 +112,11 @@ function rowFromValues(values: unknown[], headers: string[], index: number): Imp
 function parseTabularRows(rows: unknown[][]): ImportedStatementRow[] {
   if (rows.length < 2) return [];
   const headerIndex = rows.findIndex(row => row.some(cell => /תאריך|date/i.test(clean(cell))) && row.some(cell => /סכום|amount|חובה|זכות|debit|credit/i.test(clean(cell))));
-  if (headerIndex < 0) throw new Error('לא זוהו כותרות עמודות מוכרות. נדרש קובץ עם עמודות תאריך, תיאור וסכום.');
+  if (headerIndex < 0) throw new Error('לא זוהו כותרות עמודות מוכרות. נדרש קובץ עם עמודות תאריך, תיאור וסכום/חובה/זכות.');
   const headers = rows[headerIndex].map(normalizeHeader);
-  return rows.slice(headerIndex + 1).map((row, i) => rowFromValues(row, headers, i)).filter((x): x is ImportedStatementRow => Boolean(x));
+  const parsed = rows.slice(headerIndex + 1).map((row, i) => rowFromValues(row, headers, i)).filter((x): x is ImportedStatementRow => Boolean(x));
+  if (!parsed.length) throw new Error('נמצאו כותרות, אך לא זוהו שורות תנועה תקינות. בדוק שקיימות עמודות תאריך, תיאור וסכום ושפורמט התאריך מוכר.');
+  return parsed;
 }
 
 async function extractPdfText(file: File): Promise<string> {
@@ -121,15 +126,19 @@ async function extractPdfText(file: File): Promise<string> {
   for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
     const page = await pdf.getPage(pageNo);
     const content = await page.getTextContent();
-    const items = content.items as Array<{ str?: string; transform?: number[] }>;
-    const byY = new Map<number, string[]>();
+    const items = (content.items as Array<{ str?: string; transform?: number[] }>)
+      .map((item, order) => ({ text: clean(item.str), x: item.transform?.[4] ?? 0, y: item.transform?.[5] ?? 0, order }))
+      .filter(item => item.text)
+      .sort((a, b) => b.y - a.y || a.order - b.order);
+    const lines: Array<{ y: number; items: typeof items }> = [];
     for (const item of items) {
-      const str = clean(item.str);
-      if (!str) continue;
-      const y = Math.round(item.transform?.[5] ?? 0);
-      byY.set(y, [...(byY.get(y) || []), str]);
+      let line = lines.find(candidate => Math.abs(candidate.y - item.y) <= 2.5);
+      if (!line) { line = { y: item.y, items: [] }; lines.push(line); }
+      line.items.push(item);
     }
-    pages.push([...byY.entries()].sort((a, b) => b[0] - a[0]).map(([, parts]) => parts.join(' ')).join('\n'));
+    pages.push(lines.sort((a, b) => b.y - a.y)
+      .map(line => line.items.sort((a, b) => a.order - b.order).map(item => item.text).join(' '))
+      .join('\n'));
   }
   return pages.join('\n');
 }
@@ -137,24 +146,33 @@ async function extractPdfText(file: File): Promise<string> {
 function parsePdfLines(text: string): ImportedStatementRow[] {
   const rows: ImportedStatementRow[] = [];
   const lines = text.split(/\r?\n/).map(clean).filter(Boolean);
+  const datePattern = /(?:^|\s)(\d{1,2}[./-]\d{1,2}[./-]\d{2,4})(?=\s|$)/;
+  const amountPattern = /(?:₪\s*)?\(?-?\d[\d,]*(?:\.\d{1,2})?\)?(?:\s*₪)?/g;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const dateMatch = line.match(/(?:^|\s)(\d{1,2}[./-]\d{1,2}[./-]\d{2,4})(?:\s|$)/);
+    const dateMatch = line.match(datePattern);
     if (!dateMatch) continue;
     const date = parseDate(dateMatch[1]);
     if (!date) continue;
     const rest = line.replace(dateMatch[1], ' ');
-    const amounts = [...rest.matchAll(/(?:₪\s*)?(-?\d[\d,]*\.\d{2}|-?\d[\d,]+)(?:\s*₪)?/g)];
-    if (!amounts.length) continue;
-    const last = amounts[amounts.length - 1];
-    const rawAmount = parseAmount(last[0]);
-    if (!rawAmount || rawAmount === 0) continue;
-    const payee = clean(rest.slice(0, last.index).replace(/[|:·-]+$/g, ''));
-    if (payee.length < 2) continue;
+    const candidates = [...rest.matchAll(amountPattern)]
+      .map(match => ({ raw: match[0], index: match.index ?? 0, value: parseAmount(match[0]) }))
+      .filter(item => item.value !== null && item.value !== 0);
+    if (!candidates.length) continue;
+    const marked = candidates.filter(item => /₪|\.\d{1,2}/.test(item.raw));
+    const selected = (marked.length ? marked : candidates).at(-1)!;
+    const rawAmount = selected.value!;
+    const before = rest.slice(0, selected.index);
+    const after = rest.slice(selected.index + selected.raw.length);
+    const payee = clean([before, after].filter(Boolean).join(' ').replace(/(?:אסמכתא|מספר פעולה|יתרה|balance|reference)[:#]?\s*\d+/gi, '').replace(/[|:·-]+/g, ' '));
+    if (payee.length < 2 || /^\d+$/.test(payee)) continue;
     const lower = line.toLowerCase();
-    const type = /חובה|חיוב|משיכה|תשלום|debit|withdrawal/.test(lower) || rawAmount < 0 ? 'EXPENSE' : /זכות|זיכוי|הפקדה|משכורת|credit|deposit/.test(lower) || rawAmount > 0 ? 'INCOME' : 'EXPENSE';
+    const isIncome = /זכות|זיכוי|הפקדה|משכורת|קצבה|העברה נכנסת|credit|deposit|salary|refund|reversal/.test(lower);
+    const isExpense = /חובה|חיוב|משיכה|תשלום|הוראת קבע|כרטיס|עמלה|העברה יוצאת|debit|withdrawal|purchase|payment|fee/.test(lower);
+    const type = rawAmount < 0 || (isExpense && !isIncome) ? 'EXPENSE' : isIncome && !isExpense ? 'INCOME' : rawAmount > 0 && !isExpense ? 'INCOME' : 'EXPENSE';
     const suggestion = categorize(payee, type);
-    rows.push({ id: `pdf_${i}_${date}_${Math.abs(rawAmount)}`, date, payee, amountCents: Math.abs(rawAmount), type, category: suggestion.category, confidence: /חובה|חיוב|משיכה|תשלום|debit|withdrawal|זכות|זיכוי|הפקדה|משכורת|credit|deposit/.test(lower) || rawAmount < 0 ? 'medium' : 'low', duplicate: false, sourceText: line });
+    const confidence = isIncome || isExpense || rawAmount < 0 ? 'medium' : suggestion.confidence === 'high' ? 'medium' : 'low';
+    rows.push({ id: `pdf_${i}_${date}_${Math.abs(rawAmount)}`, date, payee, amountCents: Math.abs(rawAmount), type, category: suggestion.category, confidence, duplicate: false, sourceText: line });
   }
   return rows;
 }
@@ -164,8 +182,12 @@ export async function parseStatementFile(file: File, existing: LedgerTransaction
   let rows: ImportedStatementRow[] = [];
   if (ext === 'xlsx' || ext === 'xls') {
     const workbook = XLSX.read(await file.arrayBuffer(), { cellDates: true, raw: true });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    rows = parseTabularRows(XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: '' }) as unknown[][]);
+    for (const sheetName of workbook.SheetNames) {
+      const sheet = workbook.Sheets[sheetName];
+      const sheetRows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: '' }) as unknown[][];
+      try { rows.push(...parseTabularRows(sheetRows)); } catch { /* Ignore cover and summary sheets. */ }
+    }
+    if (!rows.length) throw new Error('לא נמצאו תנועות באף גיליון בקובץ Excel. ודא שהקובץ כולל טבלת תנועות עם תאריך, תיאור וסכום.');
   } else if (ext === 'csv') {
     const text = await file.text();
     const workbook = XLSX.read(text, { type: 'string', cellDates: true });

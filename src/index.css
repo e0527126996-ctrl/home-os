@@ -1456,3 +1456,83 @@ body {
   .homeos-density-option { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; column-gap: 12px; }
   .homeos-density-preview { grid-row: span 2; }
 }
+
+
+/* Theme compatibility layer: neutral workspace surfaces follow the selected palette. */
+.homeos-topbar {
+  background: color-mix(in srgb, var(--bg-card) 90%, transparent);
+  border-bottom-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+.homeos-household-switch,
+.homeos-toolbar-button,
+.homeos-date-chip {
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+.homeos-dashboard { color: var(--text-primary); }
+.homeos-lux-panel,
+.homeos-navigation-shell,
+.homeos-workspace-panel {
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+.homeos-lux-panel .homeos-card-top,
+.homeos-lux-panel .homeos-card-foot,
+.homeos-lux-panel .homeos-chart-month { color: var(--text-secondary); }
+.homeos-donut > div { background: var(--bg-card); box-shadow: inset 0 0 0 1px var(--border-subtle); }
+.homeos-donut span { color: var(--text-secondary); }
+.homeos-donut strong { color: var(--text-primary); }
+.homeos-text-link,.homeos-wide-link { color: var(--accent); }
+.homeos-wide-link { border-color: var(--border-subtle); }
+.homeos-insight {
+  border-color: var(--border-subtle);
+  background: linear-gradient(105deg, color-mix(in srgb, var(--accent) 9%, var(--bg-card)), var(--bg-card));
+}
+.homeos-accounts-view > :not(:first-child) {
+  color: var(--text-primary);
+}
+.homeos-ledger-view {
+  color: var(--text-primary);
+}
+.homeos-ledger-view :is(.bg-white,.bg-stone-50,.bg-stone-50\/70,.bg-stone-100,.bg-stone-100\/90,.bg-blue-50,.bg-blue-50\/70,.bg-emerald-50,.bg-rose-50) {
+  background-color: var(--bg-card) !important;
+}
+.homeos-ledger-view :is(.text-stone-900,.text-stone-800,.text-stone-700,.text-stone-600,.text-stone-500,.text-stone-400) {
+  color: var(--text-secondary) !important;
+}
+.homeos-ledger-view :is(.border-stone-100,.border-stone-200,.border-stone-200\/80,.border-stone-300) {
+  border-color: var(--border-subtle) !important;
+}
+.homeos-ledger-view :is(input,select,textarea) {
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
+  border-color: var(--border-subtle);
+}
+.homeos-ledger-view input::placeholder { color: var(--text-secondary); }
+.homeos-ledger-view tr:hover { background-color: color-mix(in srgb, var(--accent) 5%, var(--bg-card)); }
+.homeos-ledger-view .text-emerald-700 { color: #168052; }
+.homeos-ledger-view .text-rose-700 { color: #C05A58; }
+.homeos-ledger-view .text-blue-700,.homeos-ledger-view .text-blue-800 { color: #477DA5; }
+:root.dark .homeos-ledger-view :is(.bg-white,.bg-stone-50,.bg-stone-50\/70,.bg-stone-100,.bg-stone-100\/90,.bg-blue-50,.bg-blue-50\/70,.bg-emerald-50,.bg-rose-50) {
+  background-color: var(--bg-surface) !important;
+}
+:root.dark .homeos-ledger-view :is(.text-stone-900,.text-stone-800,.text-stone-700,.text-stone-600) {
+  color: var(--text-primary) !important;
+}
+:root.dark .homeos-ledger-view :is(.text-stone-500,.text-stone-400) {
+  color: var(--text-secondary) !important;
+}
+.homeos-dashboard :is(.homeos-kpi-value,.homeos-card-top,.homeos-card-foot) { color: var(--text-primary); }
+.homeos-dashboard .homeos-kpi-item {
+  background-color: var(--bg-card);
+  border-color: var(--border-subtle);
+}
+.homeos-dashboard .homeos-kpi-item .homeos-card-foot { color: var(--text-secondary); }
+.homeos-app-shell :is(button,a):focus-visible { outline-color: var(--focus-ring); }
+@media (max-width: 720px) {
+  .homeos-topbar > div { gap: 8px; }
+  .homeos-household-switch { max-width: 42vw; margin-right: 0; padding: 8px 10px; }
+}

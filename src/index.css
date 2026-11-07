@@ -662,3 +662,53 @@ body {
   .homeos-advanced-details > summary { flex-wrap: wrap; gap: .45rem .7rem; }
   .homeos-advanced-description { flex-basis: calc(100% - 2rem); order: 3; }
 }
+
+
+/* HOME OS household operations — calm editorial layout, shared live financial data. */
+.homeos-home-hero {
+  position: relative; overflow: hidden; border-radius: 1.65rem; padding: clamp(1.4rem,3vw,2.4rem);
+  color: #fff; background: radial-gradient(circle at 8% 0%,rgba(205,180,135,.22),transparent 34%),linear-gradient(118deg,#142720,#27483A 58%,#3D624D);
+  box-shadow: 0 22px 52px rgba(23,45,35,.16);
+}
+.homeos-home-panel {
+  min-width: 0; padding: clamp(1rem,2vw,1.5rem); border: 1px solid var(--homeos-border);
+  border-radius: 1.1rem; background: var(--homeos-card); box-shadow: 0 5px 20px rgba(24,38,31,.025);
+}
+.homeos-home-tabs {
+  display:flex; gap:.35rem; overflow-x:auto; padding:.35rem; border-bottom:1px solid var(--homeos-border);
+  background:transparent; scrollbar-width:thin;
+}
+.homeos-home-tabs button { min-height:2.8rem; border-radius:.7rem; padding:.75rem 1rem; transition:background .18s,color .18s; }
+.homeos-home-tabs button:hover { background:color-mix(in srgb,var(--homeos-accent) 7%,transparent); }
+.homeos-home-field {
+  width:100%; min-height:2.8rem; border:1px solid var(--homeos-border); border-radius:.7rem;
+  padding:.7rem .85rem; color:var(--homeos-text); background:var(--homeos-surface); font-size:.86rem;
+}
+.homeos-home-field:focus { outline:2px solid color-mix(in srgb,var(--homeos-accent) 48%,transparent); outline-offset:2px; }
+.homeos-finance-overview { display:grid; gap:1.35rem; }
+.homeos-finance-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-block:1px solid var(--homeos-border); }
+.homeos-finance-summary > div { min-width:0; padding:1.2rem 1.35rem; border-inline-start:1px solid var(--homeos-border); }
+.homeos-finance-summary > div:last-child { border-inline-start:0; }
+.homeos-finance-summary span { display:flex; align-items:center; gap:.4rem; color:var(--homeos-muted); font-size:.75rem; }
+.homeos-finance-summary strong { display:block; margin-top:.55rem; color:var(--homeos-text); font-size:clamp(1.25rem,2vw,1.8rem); font-variant-numeric:tabular-nums; }
+.homeos-finance-categories { display:grid; gap:1rem; max-width:58rem; }
+.homeos-finance-category { display:grid; gap:.35rem; }
+.homeos-finance-track { height:.45rem; overflow:hidden; border-radius:99px; background:color-mix(in srgb,var(--homeos-muted) 12%,transparent); }
+.homeos-finance-track span { display:block; height:100%; border-radius:inherit; transition:width .35s ease; }
+.homeos-finance-empty { padding:2.4rem 1rem; border-block:1px solid var(--homeos-border); color:var(--homeos-muted); font-size:.85rem; text-align:center; }
+.homeos-data-notice { padding:.8rem 1rem; border:1px solid color-mix(in srgb,#B98B58 32%,var(--homeos-border)); border-radius:.75rem; background:color-mix(in srgb,#B98B58 8%,var(--homeos-card)); color:var(--homeos-text); font-size:.78rem; line-height:1.7; }
+.homeos-data-notice.muted { border-color:var(--homeos-border); background:var(--homeos-surface); }
+.homeos-home-snapshot { padding:1.25rem 1.4rem; border-block:1px solid var(--homeos-border); }
+.homeos-home-snapshot-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:1rem; }
+.homeos-home-snapshot-metrics > div { display:flex; align-items:center; justify-content:space-between; gap:.8rem; padding:.85rem 1rem; border-inline-start:1px solid var(--homeos-border); }
+.homeos-home-snapshot-metrics > div:last-child { border-inline-start:0; }
+.homeos-home-snapshot-metrics span { color:var(--homeos-muted); font-size:.76rem; }
+.homeos-home-snapshot-metrics strong { color:var(--homeos-text); font-size:1.2rem; font-variant-numeric:tabular-nums; }
+@media(max-width:700px) {
+ .homeos-finance-summary { grid-template-columns:1fr; }
+ .homeos-finance-summary > div { border-inline-start:0; border-bottom:1px solid var(--homeos-border); }
+ .homeos-finance-summary > div:last-child { border-bottom:0; }
+ .homeos-home-snapshot-metrics { grid-template-columns:1fr; }
+ .homeos-home-snapshot-metrics > div { border-inline-start:0; border-bottom:1px solid var(--homeos-border); }
+ .homeos-home-snapshot-metrics > div:last-child { border-bottom:0; }
+}

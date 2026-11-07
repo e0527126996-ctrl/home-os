@@ -381,7 +381,7 @@ body {
   .homeos-sync-state small { display: none; }
   .homeos-toolbar-button, .homeos-user-button, .homeos-export-button { min-height: 36px; }
   .homeos-main-content { gap: 15px; padding: 12px 12px 30px; }
-  .homeos-navigation-shell { top: 61px; padding: 9px 10px 6px !important; }
+  .homeos-navigation-shell { top: 102px; padding: 9px 10px 6px !important; }
   .homeos-navigation-shell > div:first-child { display: none; }
   .homeos-main-nav .homeos-nav-item { min-height: 37px; gap: 7px; padding: 7px 9px; font-size: 11px; }
   .homeos-main-nav .homeos-nav-item > svg { width: 15px; height: 15px; }
@@ -397,4 +397,8 @@ body {
     animation-duration: .01ms !important;
     transition-duration: .01ms !important;
   }
+}
+
+@media (min-width: 681px) and (max-width: 720px) {
+  .homeos-navigation-shell { top: 112px; }
 }

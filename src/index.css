@@ -216,3 +216,307 @@ tbody tr:hover { background-color: rgba(84,125,112,.045); }
 .dark .homeos-secondary-action, .dark .homeos-date-chip { color: var(--text-primary, #F8FAFC); background: var(--bg-card, #1E293B); border-color: var(--border-subtle, #334155); }
 .dark input:not([type="checkbox"]):not([type="radio"]), .dark select, .dark textarea { color: var(--text-primary, #F8FAFC); background: var(--bg-card, #1E293B); border-color: var(--border-subtle, #334155); }
 .dark tbody tr:hover { background-color: rgba(255,255,255,.045); }
+
+
+/* ─────────────────────────────────────────────────────────────
+   HOME OS / Signature Editorial System — premium interface pass
+   Theme tokens are supplied by the active ThemeConfig in App.tsx.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --homeos-accent: #547D70;
+  --homeos-accent-muted: #E6EEE8;
+  --homeos-canvas: #FAF8F5;
+  --homeos-surface: #F3EFEA;
+  --homeos-card: #FFFFFF;
+  --homeos-border: #E6E0D8;
+  --homeos-text: #1E1B18;
+  --homeos-muted: #6B645C;
+  --homeos-ink: #1D2923;
+  --homeos-gold: #B98B58;
+}
+body {
+  color: var(--homeos-text);
+  background-color: var(--homeos-canvas);
+  background-image:
+    radial-gradient(ellipse at 8% 0%, color-mix(in srgb, var(--homeos-accent) 5%, transparent), transparent 34%),
+    radial-gradient(rgba(70,80,70,.035) .65px, transparent .65px);
+  background-size: auto, 18px 18px;
+}
+.homeos-topbar {
+  background: color-mix(in srgb, var(--homeos-canvas) 91%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--homeos-border) 82%, var(--homeos-accent));
+  box-shadow: 0 5px 28px rgba(27,38,31,.035);
+}
+.homeos-brand-mark {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--homeos-accent) 75%, #17251E), var(--homeos-accent));
+  box-shadow: 0 9px 24px color-mix(in srgb, var(--homeos-accent) 20%, transparent), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.homeos-export-button, .homeos-primary-action {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--homeos-accent) 84%, #17251E), var(--homeos-accent));
+  box-shadow: 0 7px 20px color-mix(in srgb, var(--homeos-accent) 18%, transparent);
+}
+.homeos-navigation-shell {
+  position: relative;
+  border: 0;
+  border-bottom: 1px solid var(--homeos-border);
+  border-radius: 0;
+  padding: 5px 0 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.homeos-navigation-shell > div:first-child { padding-inline: 2px; margin-bottom: 9px; }
+.homeos-navigation-shell > div:first-child > div:last-child {
+  color: var(--homeos-muted);
+  font-size: 10px;
+  letter-spacing: .02em;
+}
+.homeos-main-nav {
+  gap: 4px;
+  overflow-x: auto;
+  padding: 0 0 0;
+  scrollbar-width: none;
+}
+.homeos-main-nav::-webkit-scrollbar { display: none; }
+.homeos-nav-item {
+  position: relative;
+  min-height: 46px;
+  border-radius: 0;
+  padding: 12px 14px 14px;
+  color: var(--homeos-muted);
+  font-size: 12px;
+  font-weight: 700;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.homeos-nav-item::after {
+  position: absolute;
+  right: 13px;
+  bottom: 0;
+  left: 13px;
+  height: 2px;
+  border-radius: 3px 3px 0 0;
+  background: transparent;
+  content: "";
+  transition: background .2s ease, transform .2s ease;
+  transform: scaleX(.45);
+}
+.homeos-nav-item[aria-current="page"] {
+  color: var(--homeos-accent) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.homeos-nav-item[aria-current="page"]::after {
+  background: var(--homeos-accent);
+  transform: scaleX(1);
+}
+.homeos-nav-item:hover:not([aria-current="page"]) {
+  color: var(--homeos-text) !important;
+  background: color-mix(in srgb, var(--homeos-accent) 5%, transparent) !important;
+}
+.homeos-nav-item > span:last-child:not(:first-child) {
+  border: 1px solid var(--homeos-border);
+  background: var(--homeos-surface) !important;
+  color: var(--homeos-muted);
+  border-radius: 5px;
+  font-size: 9px;
+}
+.homeos-dashboard { color: var(--homeos-text); }
+.homeos-dashboard > header { padding: 8px 0 5px; }
+.homeos-dashboard > header h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 3.2vw, 2.85rem);
+  font-weight: 600;
+  letter-spacing: -.045em;
+  line-height: 1.16;
+}
+.homeos-kicker, .homeos-section-kicker {
+  color: var(--homeos-accent);
+  letter-spacing: .19em;
+}
+.homeos-live-dot {
+  background: var(--homeos-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--homeos-accent) 13%, transparent);
+}
+.homeos-date-chip {
+  border-color: var(--homeos-border);
+  background: var(--homeos-card);
+  color: var(--homeos-muted);
+}
+.homeos-wealth-hero {
+  min-height: 286px;
+  border: 1px solid color-mix(in srgb, var(--homeos-accent) 55%, #18271F);
+  border-radius: 7px;
+  padding: clamp(25px, 3.2vw, 42px);
+  background:
+    radial-gradient(ellipse at 8% 12%, color-mix(in srgb, var(--homeos-accent) 45%, transparent), transparent 34%),
+    linear-gradient(118deg, #15231D 0%, color-mix(in srgb, var(--homeos-accent) 63%, #1A2A22) 56%, #304A3B 100%);
+  box-shadow: 0 22px 48px rgba(25,43,33,.14);
+}
+.homeos-net-worth {
+  font-family: var(--font-serif);
+  font-size: clamp(2.8rem, 5.5vw, 4.7rem);
+  font-weight: 500;
+  letter-spacing: -.055em;
+}
+.homeos-hero-metric {
+  border: 0;
+  border-top: 1px solid rgba(255,255,255,.22);
+  border-radius: 0;
+  padding: 14px 0 4px;
+  background: transparent;
+  backdrop-filter: none;
+}
+.homeos-metric-icon {
+  border-radius: 50%;
+  color: #D7C4A4;
+  background: rgba(255,255,255,.09);
+}
+.homeos-metric-icon.copper, .homeos-metric-icon.blue {
+  color: #D7C4A4;
+  background: rgba(255,255,255,.09);
+}
+.homeos-hero-footer {
+  margin-top: 25px;
+  color: rgba(255,255,255,.42);
+}
+.homeos-hero-button {
+  border-radius: 4px;
+  color: #23352B;
+  background: linear-gradient(120deg, #E8D8BC, #C8AA81);
+  box-shadow: none;
+}
+.homeos-dashboard > section:nth-of-type(2) {
+  gap: 0;
+  border-top: 1px solid var(--homeos-border);
+  border-bottom: 1px solid var(--homeos-border);
+  background: color-mix(in srgb, var(--homeos-card) 68%, transparent);
+}
+.homeos-dashboard > section:nth-of-type(2) > button {
+  position: relative;
+  min-height: 142px;
+  border: 0;
+  border-radius: 0;
+  padding: 20px 24px;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.homeos-dashboard > section:nth-of-type(2) > button + button {
+  border-right: 1px solid var(--homeos-border);
+}
+.homeos-dashboard > section:nth-of-type(2) > button:hover {
+  background: color-mix(in srgb, var(--homeos-accent) 4%, transparent) !important;
+}
+.homeos-dashboard > section:nth-of-type(2) .homeos-icon-tile {
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+  color: var(--homeos-accent);
+  background: color-mix(in srgb, var(--homeos-accent) 9%, transparent);
+}
+.homeos-dashboard > section:nth-of-type(2) .homeos-icon-tile.copper {
+  color: #A87949;
+  background: rgba(185,139,88,.11);
+}
+.homeos-dashboard > section:nth-of-type(2) .homeos-icon-tile.blue {
+  color: #74899C;
+  background: rgba(116,137,156,.1);
+}
+.homeos-kpi-value {
+  margin-top: 12px;
+  color: var(--homeos-text);
+  font-family: var(--font-serif);
+  font-size: clamp(1.65rem, 2.3vw, 2.15rem);
+  font-weight: 600;
+  letter-spacing: -.04em;
+}
+.homeos-kpi-value.green { color: var(--homeos-accent); }
+.homeos-kpi-value.negative { color: #B45F56; }
+.homeos-card-top { color: var(--homeos-muted); font-size: 11px; }
+.homeos-card-foot { color: var(--homeos-muted); opacity: .78; }
+.homeos-lux-panel {
+  border: 1px solid var(--homeos-border);
+  border-radius: 6px;
+  padding: 22px;
+  background: var(--homeos-card);
+  box-shadow: 0 8px 24px rgba(32,39,33,.028);
+}
+.homeos-lux-panel:hover {
+  border-color: color-mix(in srgb, var(--homeos-accent) 30%, var(--homeos-border));
+  box-shadow: 0 13px 30px rgba(32,39,33,.055);
+  transform: translateY(-1px);
+}
+.homeos-donut { filter: none; }
+.homeos-donut > div {
+  background: var(--homeos-card);
+  box-shadow: inset 0 0 0 1px var(--homeos-border);
+}
+.homeos-donut strong { color: var(--homeos-text); }
+.homeos-text-link, .homeos-wide-link { color: var(--homeos-accent); }
+.homeos-insight {
+  border: 1px solid color-mix(in srgb, var(--homeos-accent) 22%, var(--homeos-border));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--homeos-accent) 5%, var(--homeos-card));
+}
+.homeos-insight-icon {
+  border-radius: 50%;
+  color: var(--homeos-accent);
+  background: color-mix(in srgb, var(--homeos-accent) 10%, transparent);
+}
+.homeos-transaction-icon { border-radius: 50%; }
+.homeos-transaction-icon.income {
+  color: var(--homeos-accent);
+  background: color-mix(in srgb, var(--homeos-accent) 9%, transparent);
+}
+.homeos-primary-action, .homeos-secondary-action, .homeos-export-button {
+  min-height: 42px;
+  border-radius: 5px;
+  font-size: 11px;
+  letter-spacing: .01em;
+}
+.homeos-secondary-action {
+  color: var(--homeos-text);
+  border: 1px solid var(--homeos-border);
+  background: var(--homeos-card);
+}
+.homeos-household-switch, .homeos-toolbar-button, .homeos-user-button {
+  border-radius: 5px;
+  border-color: var(--homeos-border);
+  background: var(--homeos-card);
+}
+.homeos-user-button { border-radius: 50%; }
+.homeos-topbar .text-xl { font-family: var(--font-serif); font-weight: 700; letter-spacing: -.045em; }
+.homeos-topbar .homeos-brand-mark { height: 42px; width: 42px; }
+.homeos-chart-grid {
+  height: 230px;
+  background: repeating-linear-gradient(to bottom, transparent 0, transparent 24.5%, color-mix(in srgb, var(--homeos-muted) 13%, transparent) 25%, transparent 25.5%);
+}
+.homeos-chart-bar.income { background: var(--homeos-accent); box-shadow: none; }
+.homeos-chart-bar.expense { background: #C9A77C; box-shadow: none; }
+.homeos-main-nav button:focus-visible, .homeos-dashboard button:focus-visible {
+  outline-color: color-mix(in srgb, var(--homeos-accent) 58%, white);
+}
+.dark .homeos-navigation-shell { border-bottom-color: var(--homeos-border); background: transparent; }
+.dark .homeos-nav-item { color: var(--homeos-muted); }
+.dark .homeos-nav-item[aria-current="page"] { color: var(--homeos-accent) !important; background: transparent !important; }
+.dark .homeos-dashboard > section:nth-of-type(2) { background: color-mix(in srgb, var(--homeos-card) 72%, transparent); }
+.dark .homeos-dashboard > section:nth-of-type(2) > button:hover { background: color-mix(in srgb, var(--homeos-accent) 8%, transparent) !important; }
+.dark .homeos-lux-panel { background: var(--homeos-card); border-color: var(--homeos-border); }
+.dark .homeos-kpi-value, .dark .homeos-donut strong { color: var(--homeos-text); }
+.dark .homeos-secondary-action, .dark .homeos-date-chip, .dark .homeos-household-switch, .dark .homeos-toolbar-button { color: var(--homeos-text); background: var(--homeos-card); border-color: var(--homeos-border); }
+.dark .homeos-insight { background: color-mix(in srgb, var(--homeos-accent) 10%, var(--homeos-card)); border-color: var(--homeos-border); }
+@media (max-width: 900px) {
+  .homeos-dashboard > section:nth-of-type(2) > button { padding: 17px 16px; }
+}
+@media (max-width: 639px) {
+  .homeos-navigation-shell { border-bottom: 1px solid var(--homeos-border); border-radius: 0; }
+  .homeos-nav-item { min-height: 43px; padding: 10px 11px 12px; }
+  .homeos-wealth-hero { min-height: unset; border-radius: 6px; padding: 23px 19px; }
+  .homeos-dashboard > section:nth-of-type(2) { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .homeos-dashboard > section:nth-of-type(2) > button { min-height: 128px; padding: 15px 13px; }
+  .homeos-dashboard > section:nth-of-type(2) > button + button { border-right: 0; }
+  .homeos-dashboard > section:nth-of-type(2) > button:nth-child(even) { border-right: 1px solid var(--homeos-border); }
+  .homeos-dashboard > section:nth-of-type(2) > button:nth-child(n+3) { border-top: 1px solid var(--homeos-border); }
+  .homeos-lux-panel { border-radius: 5px; padding: 17px; }
+}

@@ -38,11 +38,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const data = useMemo(() => {
     const activeAccounts = accounts.filter(a => a.status === 'ACTIVE');
-    // Match the account ledger's treatment: an overdrawn checking account is a liability, not a negative asset.
-    const assets = activeAccounts.filter(a => !a.isLiability && (a.currentBalanceCents || 0) > 0)
-      .reduce((s, a) => s + (a.currentBalanceCents || 0), 0);
-    const liabilities = activeAccounts.filter(a => a.isLiability || (a.type === 'CHECKING' && (a.currentBalanceCents || 0) < 0))
-      .reduce((s, a) => s + Math.abs(a.currentBalanceCents || 0), 0);
+    // Keep displayed account counts consistent with the exact balance classifications.
+    // An overdrawn checking account is a liability, not a negative asset.
+    const assetAccounts = activeAccounts.filter(a => !a.isLiability && (a.currentBalanceCents || 0) > 0);
+    const liabilityAccounts = activeAccounts.filter(a => a.isLiability || (a.type === 'CHECKING' && (a.currentBalanceCents || 0) < 0));
+    const assets = assetAccounts.reduce((s, a) => s + (a.currentBalanceCents || 0), 0);
+    const liabilities = liabilityAccounts.reduce((s, a) => s + Math.abs(a.currentBalanceCents || 0), 0);
     const now = new Date();
     const months = Array.from({ length: 6 }, (_, index) => {
       const date = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1);
@@ -84,28 +85,33 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const baselineExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
     const baselineIncome = completedMonths.reduce((s, m) => s + m.income, 0) / Math.max(1, completedMonths.length);
     const baselineCashflow = baselineIncome - baselineExpense;
+    const baselineSavingsRate = baselineIncome > 0 ? (baselineCashflow / baselineIncome) * 100 : null;
     const baselineTransactionCount = transactions.filter(tx => completedMonths.some(m => tx.date?.slice(0, 7) === m.key) && (tx.type === 'INCOME' || tx.type === 'EXPENSE')).length;
     const averageExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
     const cashflow = current.income - current.expense;
+    const pendingReviewCount = transactions.filter(tx => tx.verificationStatus === 'PENDING').length;
+    const uncategorizedExpenseCount = transactions.filter(tx => tx.type === 'EXPENSE' && !tx.category?.trim()).length;
 
     // Compare the current month's category run-rate with the average of the prior
     // three complete months. This is a review signal, not a promised saving.
     const savingsInsights = projectionReady && completedMonths.length === 3
       ? Object.entries(categories).map(([category, currentAmount]) => {
           const categoryTransactions = currentMonthTransactions.filter(tx => tx.type === 'EXPENSE' && (tx.category || 'ללא קטגוריה') === category);
-          const historicalTotal = completedMonths.reduce((sum, month) => sum + transactions
+          const categoryHistory = completedMonths.map(month => transactions
             .filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === month.key && (tx.category || 'ללא קטגוריה') === category)
-            .reduce((monthSum, tx) => monthSum + tx.amountCents, 0), 0);
+            .reduce((monthSum, tx) => monthSum + tx.amountCents, 0));
+          const historicalTotal = categoryHistory.reduce((sum, amount) => sum + amount, 0);
+          const historicalMonthsPresent = categoryHistory.filter(amount => amount > 0).length;
           const historicalAverage = historicalTotal / 3;
           const projected = Math.round(currentAmount * paceFactor);
           const increase = projected - historicalAverage;
-          return { category, currentAmount, projected, historicalAverage, increase, transactionCount: categoryTransactions.length };
+          return { category, currentAmount, projected, historicalAverage, historicalMonthsPresent, increase, transactionCount: categoryTransactions.length };
         })
-        .filter(item => item.transactionCount >= 2 && item.historicalAverage > 0 && item.increase >= 5000 && item.projected >= item.historicalAverage * 1.2)
+        .filter(item => item.transactionCount >= 2 && item.historicalMonthsPresent >= 2 && item.historicalAverage > 0 && item.increase >= 5000 && item.projected >= item.historicalAverage * 1.2)
         .sort((a, b) => b.increase - a.increase)
         .slice(0, 3)
       : [];
-    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights };
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, pendingReviewCount, uncategorizedExpenseCount };
   }, [accounts, transactions]);
 
   const currency = (cents: number) => money(cents / 100);
@@ -149,8 +155,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:grid-cols-1">
-            <div className="homeos-hero-metric"><span className="homeos-metric-icon"><TrendingUp className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">נכסים</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.assets)}</div></div><span className="text-[10px] text-white/35">{data.activeAccounts.filter(a => !a.isLiability).length} חשבונות</span></div>
-            <div className="homeos-hero-metric"><span className="homeos-metric-icon copper"><TrendingDown className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">התחייבויות</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.liabilities)}</div></div><span className="text-[10px] text-white/35">{data.activeAccounts.filter(a => a.isLiability).length} התחייבויות</span></div>
+            <div className="homeos-hero-metric"><span className="homeos-metric-icon"><TrendingUp className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">נכסים</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.assets)}</div></div><span className="text-[10px] text-white/35">{data.assetAccountCount} חשבונות</span></div>
+            <div className="homeos-hero-metric"><span className="homeos-metric-icon copper"><TrendingDown className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">התחייבויות</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.liabilities)}</div></div><span className="text-[10px] text-white/35">{data.liabilityAccountCount} התחייבויות</span></div>
             <div className="homeos-hero-metric"><span className="homeos-metric-icon blue"><Activity className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="text-xs text-white/50">תזרים החודש</div><div className="mt-1 text-xl font-semibold tabular-nums text-white">{currency(data.cashflow)}</div></div><span className="text-[10px] text-white/35">הכנסות פחות הוצאות</span></div>
           </div>
         </div>
@@ -172,7 +178,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="homeos-chart-grid">
             {data.months.map((month, index) => (
-              <button type="button" key={month.key} className="homeos-chart-month cursor-pointer rounded-xl px-1 transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#547D70] dark:hover:bg-white/10" aria-label={"פתיחת פירוט " + month.label} onClick={() => setChartDetail({ title: "פירוט " + month.label, subtitle: "הכנסות " + currency(month.income) + " · הוצאות " + currency(month.expense), items: transactions.filter(tx => tx.date && tx.date.slice(0, 7) === month.key) })}>
+              <button type="button" key={month.key} className="homeos-chart-month cursor-pointer rounded-xl px-1 transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#547D70] dark:hover:bg-white/10" aria-label={"פתיחת פירוט " + month.label} onClick={() => setChartDetail({ title: "פירוט " + month.label, subtitle: "הכנסות " + currency(month.income) + " · הוצאות " + currency(month.expense), items: transactions.filter(tx => tx.date && tx.date.slice(0, 7) === month.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })}>
                 <div className="homeos-chart-bars">
                   <div className="homeos-chart-bar income" title={'הכנסות: ' + currency(month.income)} style={{ height: Math.max(month.income ? 3 : 1, month.income / data.max * 100) + '%', opacity: index === 5 ? 1 : .72 }} />
                   <div className="homeos-chart-bar expense" title={'הוצאות: ' + currency(month.expense)} style={{ height: Math.max(month.expense ? 3 : 1, month.expense / data.max * 100) + '%', opacity: index === 5 ? 1 : .72 }} />
@@ -204,7 +210,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
         {data.baselineTransactionCount > 0 ? (
           <>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
               <div className="rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
                 <div className="text-xs" style={muted}>הכנסה חודשית ממוצעת</div>
                 <div className="mt-2 text-xl font-bold tabular-nums text-[#477866]">{currency(data.baselineIncome)}</div>
@@ -229,6 +235,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <div className="text-xs" style={muted}>תחזית תזרים לסוף החודש</div>
                 <div className={'mt-2 text-xl font-bold tabular-nums ' + (data.projectedCashflow >= 0 ? 'text-[#477866]' : 'text-[#B45F56]')}>{data.projectionReady ? currency(data.projectedCashflow) : '—'}</div>
                 <div className="mt-1 text-[10px]" style={muted}>אומדן לפי הקצב הנוכחי</div>
+              </div>
+              <div className="rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+                <div className="text-xs" style={muted}>שיעור עודף ממוצע</div>
+                <div className={'mt-2 text-xl font-bold tabular-nums ' + (data.baselineSavingsRate !== null && data.baselineSavingsRate >= 0 ? 'text-[#477866]' : 'text-[#B45F56]')}>{data.baselineSavingsRate === null ? '—' : data.baselineSavingsRate.toFixed(1) + '%'}</div>
+                <div className="mt-1 text-[10px]" style={muted}>תזרים נטו מתוך ההכנסה · היסטורי</div>
               </div>
             </div>
             {data.projectionReady && <div className="mt-4 rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
@@ -278,6 +289,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         )}
         <p className="mt-3 text-[10px] leading-5" style={muted}>ההתראות הן סימני בדיקה בלבד. הן אינן מעידות בהכרח על בזבוז ואינן מבטיחות חיסכון; יש להתחשב בעונתיות, חיובים חד-פעמיים והוצאות שטרם נרשמו.</p>
+      </section>
+
+      <section className={panel + ' p-5 sm:p-7'}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="homeos-section-kicker">DATA QUALITY CHECK</div>
+            <h2 className="mt-1 text-lg font-bold">בקרת איכות נתוני העסקאות</h2>
+            <p className="mt-1 text-xs" style={muted}>כדאי להשלים בדיקות לפני שמסתמכים על הניתוחים והתחזיות</p>
+          </div>
+          <span className="rounded-full bg-[#547D70]/10 px-3 py-1.5 text-[10px] font-semibold text-[#547D70]">בדיקה אוטומטית</span>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <button type="button" onClick={onOpenLedger} className="flex items-center justify-between gap-3 rounded-2xl border p-4 text-right transition hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+            <span><span className="block text-xs" style={muted}>עסקאות שממתינות לאימות</span><strong className="mt-1 block text-2xl tabular-nums">{data.pendingReviewCount}</strong><span className="mt-1 block text-[10px]" style={muted}>בדוק ואמת נתונים שיובאו</span></span>
+            <span className="rounded-xl bg-[#B98B58]/10 p-3 text-[#B98B58]"><ShieldCheck className="h-5 w-5" /></span>
+          </button>
+          <button type="button" onClick={onOpenLedger} className="flex items-center justify-between gap-3 rounded-2xl border p-4 text-right transition hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
+            <span><span className="block text-xs" style={muted}>הוצאות ללא קטגוריה</span><strong className="mt-1 block text-2xl tabular-nums">{data.uncategorizedExpenseCount}</strong><span className="mt-1 block text-[10px]" style={muted}>סיווג משפר את ניתוח ההוצאות</span></span>
+            <span className="rounded-xl bg-[#547D70]/10 p-3 text-[#547D70]"><ReceiptText className="h-5 w-5" /></span>
+          </button>
+        </div>
+        <p className="mt-3 text-[10px] leading-5" style={muted}>הספירה מבוססת על סטטוס האימות ושדה הקטגוריה ברשומות הקיימות. פתיחת הפנקס מאפשרת לבדוק את העסקאות; הנתונים אינם משתנים אוטומטית.</p>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]">

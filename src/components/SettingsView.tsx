@@ -6,9 +6,11 @@ interface SettingsViewProps {
   themes: ThemeConfig[];
   activeTheme: ThemeConfig;
   onThemeSelect: (themeId: string) => void | Promise<void>;
+  density: 'compact' | 'balanced' | 'spacious';
+  onDensityChange: (density: 'compact' | 'balanced' | 'spacious') => void | Promise<void>;
 }
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ themes, activeTheme, onThemeSelect }) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({ themes, activeTheme, onThemeSelect, density, onDensityChange }) => {
   return (
     <section className="homeos-settings space-y-7" dir="rtl">
       <header className="homeos-settings-hero">
@@ -77,6 +79,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ themes, activeTheme,
           );
         })}
       </div>
+      <section className="homeos-density-section" aria-labelledby="homeos-density-heading">
+        <div>
+          <div className="homeos-section-kicker">WORKSPACE COMFORT</div>
+          <h2 id="homeos-density-heading" className="mt-1 text-lg font-semibold">צפיפות סביבת העבודה</h2>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>קבע כמה מרווח יהיה בין אזורי המידע והפעולות במסכים.</p>
+        </div>
+        <div className="homeos-density-options" role="group" aria-label="צפיפות סביבת העבודה">
+          {([
+            { id: 'compact', label: 'קומפקטי', detail: 'יותר מידע במסך' },
+            { id: 'balanced', label: 'מאוזן', detail: 'שילוב של מידע ומרווח' },
+            { id: 'spacious', label: 'מרווח', detail: 'יותר אוויר ונוחות' },
+          ] as const).map((option) => (
+            <button key={option.id} type="button" aria-pressed={density === option.id}
+              className={`homeos-density-option ${density === option.id ? 'is-selected' : ''}`}
+              onClick={() => void onDensityChange(option.id)}>
+              <span className="homeos-density-preview" aria-hidden="true"><i /><i /><i /></span>
+              <strong>{option.label}</strong><small>{option.detail}</small>
+            </button>
+          ))}
+        </div>
+      </section>
       <p className="text-xs leading-6" style={{ color: 'var(--text-secondary)' }}>
         החלפת ערכת העיצוב משנה את שכבת התצוגה בלבד. הנתונים, החשבונות, העסקאות וההרשאות אינם משתנים.
       </p>

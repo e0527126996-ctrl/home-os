@@ -1273,6 +1273,39 @@ class HomeOSIndexedDB {
       timestamp: updated.updatedAt,
     };
     await this.transaction(['financial_accounts', 'ledger_transactions', 'audit_logs'], 'readwrite', async (tx) => {
+      if (patch.status !== undefined && patch.status !== existing.status &&
+          (patch.status === 'ARCHIVED' || patch.status === 'CLOSED')) {
+        const linked = await this.reqToPromise<LedgerTransaction[]>(
+          tx.objectStore('ledger_transactions').index('accountId').getAll(accountId)
+        );
+        let projectedBalance = openingBalanceCents;
+        let pendingCount = 0;
+        for (const transaction of linked.filter(item => item.householdId === householdId)) {
+          if (transaction.verificationStatus === 'PENDING') {
+            pendingCount++;
+            continue;
+          }
+          if (!Number.isSafeInteger(transaction.amountCents) || transaction.amountCents <= 0) {
+            throw new Error('לא ניתן לארכב חשבון עם עסקאות בעלות סכומים לא תקינים');
+          }
+          if (transaction.type === 'INCOME' || (transaction.type === 'TRANSFER' && transaction.transferDirection === 'IN')) {
+            projectedBalance += transaction.amountCents;
+          } else if (transaction.type === 'EXPENSE' || (transaction.type === 'TRANSFER' && transaction.transferDirection === 'OUT')) {
+            projectedBalance -= transaction.amountCents;
+          } else {
+            throw new Error('לא ניתן לארכב חשבון עם סוג עסקה לא תקין');
+          }
+          if (!Number.isSafeInteger(projectedBalance)) {
+            throw new Error('יתרת החשבון חורגת מטווח החישוב הבטוח');
+          }
+        }
+        if (pendingCount > 0) {
+          throw new Error('יש עסקאות שממתינות לאימות בחשבון. יש לאמת או להסיר אותן לפני העברת החשבון לארכיון');
+        }
+        if (projectedBalance !== 0) {
+          throw new Error('לא ניתן לארכב או לסגור חשבון עם יתרה שאינה אפס. יש להעביר או להסדיר את היתרה תחילה');
+        }
+      }
       if (patch.currency !== undefined && patch.currency !== existing.currency) {
         const linked = await this.reqToPromise<LedgerTransaction[]>(
           tx.objectStore('ledger_transactions').index('accountId').getAll(accountId)

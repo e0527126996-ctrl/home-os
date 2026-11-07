@@ -2835,3 +2835,52 @@ html[data-theme="carbon_gold_luxury"] .homeos-app-shell .homeos-view-mode-chip {
 @media (max-width: 420px) {
   .homeos-background-preset-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Clear interaction affordances for dashboard drill-down surfaces. */
+.homeos-hero-metric {
+  width: 100%;
+  color: inherit;
+  text-align: right;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.homeos-hero-metric:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,.35);
+  background: rgba(255,255,255,.11);
+  box-shadow: 0 12px 26px rgba(0,0,0,.15);
+}
+.homeos-hero-metric:focus-visible,
+.homeos-forecast-month:focus-visible,
+.homeos-home-snapshot-metrics > button:focus-visible,
+.homeos-category-donut-segment:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+.homeos-category-donut { width: min(100%, 220px); height: auto; overflow: visible; filter: drop-shadow(0 8px 16px rgba(35,48,40,.10)); }
+.homeos-category-donut-segment { cursor: pointer; transition: opacity .16s ease, stroke-width .16s ease; }
+.homeos-category-donut-segment:hover,
+.homeos-category-donut-segment:focus-visible { opacity: .78; stroke-width: 34; }
+.homeos-category-donut-caption { fill: var(--text-secondary); font-size: 10px; }
+.homeos-category-donut-total { fill: var(--text-primary); font-size: 14px; font-weight: 800; }
+.homeos-forecast-month { width: 100%; border: 1px solid transparent; background: transparent; cursor: pointer; transition: transform .18s ease, border-color .18s ease, background .18s ease; }
+.homeos-forecast-month:hover { transform: translateY(-3px); border-color: var(--border-subtle); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.homeos-home-snapshot-metrics > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .8rem;
+  width: 100%;
+  padding: .85rem 1rem;
+  border-inline-start: 1px solid var(--homeos-border);
+  text-align: right;
+  cursor: pointer;
+  transition: background .18s ease;
+}
+.homeos-home-snapshot-metrics > button:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.homeos-home-snapshot-metrics > button small { color: var(--accent); font-size: 9px; font-weight: 800; white-space: nowrap; }
+@media(max-width:700px) {
+  .homeos-home-snapshot-metrics > button { border-inline-start: 0; border-bottom: 1px solid var(--homeos-border); }
+  .homeos-home-snapshot-metrics > button:last-child { border-bottom: 0; }
+}

@@ -15,6 +15,7 @@ export interface ImportedStatementRow {
   confidence: 'high' | 'medium' | 'low';
   duplicate: boolean;
   sourceText: string;
+  sourceFileName?: string;
 }
 
 const EXPENSE_RULES: Array<[RegExp, string]> = [
@@ -39,6 +40,7 @@ const INCOME_RULES: Array<[RegExp, string]> = [
 ];
 
 const clean = (v: unknown) => String(v ?? '').replace(/\s+/g, ' ').trim();
+export const normalizeStatementPayee = (value: string) => value.normalize('NFKC').toLocaleLowerCase('he-IL').replace(/[\u0591-\u05C7]/g, '').replace(/[^\p{L}\p{N}]/gu, '');
 const normalizeHeader = (v: unknown) => clean(v).toLowerCase().replace(/[\s_״"'׳-]/g, '');
 
 function parseDate(value: unknown): string | null {
@@ -218,12 +220,12 @@ export async function parseStatementFile(file: File, existing: LedgerTransaction
   } else {
     throw new Error('בשלב זה קליטת תנועות נתמכת ב-PDF, Excel ו-CSV.');
   }
-  const seen = new Set(existing.map(tx => [tx.date, tx.type, tx.amountCents, tx.payee.trim().toLowerCase()].join('|')));
+  const seen = new Set(existing.map(tx => [tx.date, tx.type, tx.amountCents, normalizeStatementPayee(tx.payee)].join('|')));
   const batch = new Set<string>();
   return rows.map(row => {
-    const key = [row.date, row.type, row.amountCents, row.payee.trim().toLowerCase()].join('|');
+    const key = [row.date, row.type, row.amountCents, normalizeStatementPayee(row.payee)].join('|');
     const duplicate = seen.has(key) || batch.has(key);
     batch.add(key);
-    return { ...row, duplicate };
+    return { ...row, sourceFileName: file.name, duplicate };
   });
 }

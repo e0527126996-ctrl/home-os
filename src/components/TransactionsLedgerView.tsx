@@ -55,7 +55,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
   const [dateFilter, setDateFilter] = useState<
     'ALL' | 'THIS_MONTH' | 'LAST_MONTH'
   >('ALL');
-  const [reviewFilter, setReviewFilter] = useState<'ALL' | 'PENDING' | 'UNCATEGORIZED'>('ALL');
+  const [reviewFilter, setReviewFilter] = useState<'ALL' | 'PENDING' | 'UNCATEGORIZED' | 'RECONCILED'>('ALL');
   const [deletingTx, setDeletingTx] = useState<LedgerTransaction | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
@@ -151,6 +151,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
       }
 
       if (reviewFilter === 'PENDING' && tx.verificationStatus !== 'PENDING') return false;
+      if (reviewFilter === 'RECONCILED' && tx.verificationStatus !== 'RECONCILED') return false;
       if (reviewFilter === 'UNCATEGORIZED' && (tx.type !== 'EXPENSE' || (Boolean(tx.category?.trim()) && tx.category.trim() !== 'ללא קטגוריה'))) return false;
 
       if (searchTerm.trim()) {
@@ -468,11 +469,12 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
             <div>
               <select
                 value={reviewFilter}
-                onChange={(e) => setReviewFilter(e.target.value as 'ALL' | 'PENDING' | 'UNCATEGORIZED')}
+                onChange={(e) => setReviewFilter(e.target.value as 'ALL' | 'PENDING' | 'UNCATEGORIZED' | 'RECONCILED')}
                 className="w-full px-2.5 py-2 rounded-xl border border-stone-200 text-xs font-sans bg-stone-50/50 focus:bg-white focus:outline-none focus:border-amber-700"
               >
                 <option value="ALL">כל סטטוסי הבדיקה</option>
                 <option value="PENDING">ממתינות לאימות</option>
+                <option value="RECONCILED">מותאמות לדף חשבון</option>
                 <option value="UNCATEGORIZED">הוצאות ללא קטגוריה</option>
               </select>
             </div>

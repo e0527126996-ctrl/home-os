@@ -503,6 +503,8 @@ export default function App() {
       className="min-h-screen flex flex-col transition-colors duration-200"
       style={{
         backgroundColor: activeTheme.bgCanvas,
+        backgroundImage: 'radial-gradient(color-mix(in srgb, var(--homeos-accent) 4%, transparent) .7px, transparent .7px)',
+        backgroundSize: '18px 18px',
         color: activeTheme.textPrimary,
         ['--homeos-accent' as any]: activeTheme.accent,
         ['--homeos-accent-muted' as any]: activeTheme.accentMuted,

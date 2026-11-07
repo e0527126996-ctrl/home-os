@@ -87,7 +87,7 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
           </table>}
         </div>}
         {!error && <footer className="flex flex-col-reverse gap-3 border-t p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}>
-          <p className="text-[10px] leading-5" style={muted}>הייבוא יוצר עסקאות במצב ממתין לבדיקה. שורות כפולות מדולגות; יש לתקן את כל {invalidCount} השורות המסומנות לפני הייבוא.</p>
+          <p className="text-[10px] leading-5" style={muted}>הייבוא יוצר עסקאות במצב ממתין לבדיקה. שורות כפולות מדולגות. {invalidCount > 0 ? 'יש לתקן את ' + invalidCount + ' השורות המסומנות לפני הייבוא.' : 'כל השורות התקינות מוכנות לייבוא.'}</p>
           <div className="flex gap-2"><button onClick={onClose} className="rounded-xl border px-4 py-2.5 text-xs font-bold" style={{borderColor:activeTheme.borderSubtle}}>ביטול</button><button disabled={saving||!accountId||eligible.length===0||invalidCount>0} onClick={submit} className="homeos-primary-action disabled:opacity-40">{saving?<LoaderCircle className="h-4 w-4 animate-spin"/>:<FileSpreadsheet className="h-4 w-4"/>}ייבא {eligible.length} עסקאות</button></div>
         </footer>}
       </div>}

@@ -146,8 +146,8 @@ function rowFromValues(values: unknown[], headers: string[], index: number, xlsx
   const payee = clean(find(['תיאורעסקה','תיאור','פרטי','פרטים','שםביתעסק','ביתעסק','שםמוטב','מוטב','שםפעולה','פעולה','description','details','payee','merchant','transactiondetails']));
   const direction = clean(find(['סוגתנועה','סוגפעולה','חובהזכות','סוג','type','transactiontype','debitcredit'])).toLowerCase();
   const debit = parseStatementAmount(find(['חובה','סכוםלחיוב','סכוםחובה','בחובה','חיוב','debit','withdrawal']));
-  const credit = parseAmount(find(['זכות','סכוםלזכות','סכוםזכות','בזכות','זיכוי','credit','deposit']));
-  const amountCell = parseAmount(find(['סכום','amount','סכוםהתנועה','תנועה']));
+  const credit = parseStatementAmount(find(['זכות','סכוםלזכות','סכוםזכות','בזכות','זיכוי','credit','deposit']));
+  const amountCell = parseStatementAmount(find(['סכום','amount','סכוםהתנועה','תנועה']));
   let amount: number | null = amountCell;
   if (debit !== null || credit !== null) {
     amount = credit !== null && Math.abs(credit) > 0 ? Math.abs(credit) :

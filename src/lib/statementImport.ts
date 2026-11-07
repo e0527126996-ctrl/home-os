@@ -157,20 +157,29 @@ function rowFromValues(values: unknown[], headers: string[], index: number, xlsx
   const credit = parseStatementAmount(find(['זכות','סכוםלזכות','סכוםזכות','בזכות','זיכוי','credit','deposit']));
   const amountCell = parseStatementAmount(find(['סכום','amount','סכוםהתנועה','תנועה']));
   let amount: number | null = amountCell;
+  let amountColumnType: 'INCOME' | 'EXPENSE' | null = null;
   if (debit !== null || credit !== null) {
-    amount = credit !== null && Math.abs(credit) > 0 ? Math.abs(credit) :
-      debit !== null && Math.abs(debit) > 0 ? -Math.abs(debit) : 0;
+    if (credit !== null && Math.abs(credit) > 0) {
+      amount = Math.abs(credit);
+      amountColumnType = 'INCOME';
+    } else if (debit !== null && Math.abs(debit) > 0) {
+      amount = -Math.abs(debit);
+      amountColumnType = 'EXPENSE';
+    } else {
+      amount = 0;
+    }
   }
   if (!date || !payee || amount === null || amount === 0) return null;
   const directionIsIncome = /זכות|זיכוי|הפקדה|קבלה|credit|deposit|income|כניסה/.test(direction);
   const directionIsExpense = /חובה|חיוב|משיכה|תשלום|debit|withdrawal|expense|יציאה/.test(direction);
   const payeeSuggestsIncome = INCOME_RULES.some(([pattern]) => pattern.test(payee));
   const payeeSuggestsExpense = EXPENSE_RULES.some(([pattern]) => pattern.test(payee));
-  const type = amount < 0 || (directionIsExpense && !directionIsIncome)
+  // Explicit debit/credit columns are stronger evidence than merchant-name heuristics.
+  const type = amountColumnType || (amount < 0 || (directionIsExpense && !directionIsIncome)
     ? 'EXPENSE'
-    : directionIsIncome || (payeeSuggestsIncome && !payeeSuggestsExpense) ? 'INCOME' : 'EXPENSE';
+    : directionIsIncome || (payeeSuggestsIncome && !payeeSuggestsExpense) ? 'INCOME' : 'EXPENSE');
   const suggestion = categorize(payee, type);
-  const confidence = directionIsIncome || directionIsExpense || payeeSuggestsIncome || payeeSuggestsExpense
+  const confidence = amountColumnType || directionIsIncome || directionIsExpense || payeeSuggestsIncome || payeeSuggestsExpense
     ? 'high' as const
     : 'low' as const;
   return { id: `row_${index}_${date}_${Math.abs(amount)}`, date, payee, amountCents: Math.abs(amount), type, category: suggestion.category, confidence, duplicate: false, sourceText: values.map(clean).join(' | ') };

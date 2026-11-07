@@ -1556,7 +1556,7 @@ class HomeOSIndexedDB {
       actorEmail,
       'CREATE_TRANSACTION',
       'FINANCE',
-      `רישום עסקה: ${newTx.type === 'INCOME' ? 'הכנסה' : 'הוצאה'} ע"ס ${formatCents(newTx.amountCents)} בחשבון ${account.name} (${newTx.payee})`
+      `רישום עסקה: ${newTx.type === 'INCOME' ? 'הכנסה' : 'הוצאה'} ע"ס ${formatCents(newTx.amountCents, account.currency)} בחשבון ${account.name} (${newTx.payee})`
     );
 
     return newTx;
@@ -1677,7 +1677,7 @@ class HomeOSIndexedDB {
       actorEmail,
       'CREATE_TRANSFER',
       'FINANCE',
-      `ביצוע העברה פנימית ע"ס ${formatCents(data.amountCents)} מחשבון ${fromAccount.name} אל ${toAccount.name}`
+      `ביצוע העברה פנימית ע"ס ${formatCents(data.amountCents, fromAccount.currency)} מחשבון ${fromAccount.name} אל ${toAccount.name}`
     );
 
     return { outgoingLeg, incomingLeg };
@@ -1761,13 +1761,14 @@ class HomeOSIndexedDB {
       });
     }
 
+    const transactionAccount = await this.getAccountById(existing.accountId, householdId);
     await this.recordAuditLog(
       householdId,
       actorUserId,
       actorEmail,
       'UPDATE_TRANSACTION',
       'FINANCE',
-      `עדכון עסקה: ${updated.payee} (${formatCents(updated.amountCents)})`
+      `עדכון עסקה: ${updated.payee} (${formatCents(updated.amountCents, transactionAccount?.currency || 'ILS')})`
     );
 
     return updated;
@@ -1804,13 +1805,14 @@ class HomeOSIndexedDB {
       if (counterLeg) await this.reqToPromise(store.delete(counterLeg.id));
     });
 
+    const transactionAccount = await this.getAccountById(existing.accountId, householdId);
     await this.recordAuditLog(
       householdId,
       actorUserId,
       actorEmail,
       'DELETE_TRANSACTION',
       'FINANCE',
-      `מחיקת עסקה ${existing.id} (${existing.payee}, ${formatCents(existing.amountCents)})${existing.linkedTransactionId ? ' יחד עם רגל ההעברה המקושרת' : ''}`
+      `מחיקת עסקה ${existing.id} (${existing.payee}, ${formatCents(existing.amountCents, transactionAccount?.currency || 'ILS')})${existing.linkedTransactionId ? ' יחד עם רגל ההעברה המקושרת' : ''}`
     );
   }
 

@@ -680,6 +680,11 @@ class HomeOSIndexedDB {
     actorEmail: string
   ): Promise<HouseholdMembership> {
     await this.assertPermission(householdId, actorUserId, 'admin', 'write');
+    if (!['admin', 'member', 'read_only'].includes(role)) {
+      throw new Error('ניתן לצרף משתמש כמנהל, חבר או צפייה בלבד; תפקיד בעלים ניתן רק ליוצר משק הבית');
+    }
+    const targetUser = await this.getUserById(userId);
+    if (!targetUser) throw new Error('המשתמש שבחרת אינו קיים במערכת');
 
     // Check if already member
     const existing = await this.transaction(['household_memberships'], 'readonly', async (tx) => {
@@ -749,6 +754,10 @@ class HomeOSIndexedDB {
     });
 
     if (!m) throw new Error('חברות במשק בית לא נמצאה');
+    if (m.role === 'owner') throw new Error('לא ניתן לשנות את תפקיד הבעלים הראשי של משק הבית');
+    if (!['admin', 'member', 'read_only'].includes(newRole)) {
+      throw new Error('לא ניתן להקצות תפקיד בעלים דרך עדכון תפקיד. יש להשתמש בתהליך העברת בעלות ייעודי');
+    }
 
     await this.assertPermission(m.householdId, actorUserId, 'admin', 'write');
 

@@ -116,7 +116,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const monthKeys = new Set(months.map(month => month.key));
     const recurringGroups = new Map<string, { payee: string; category: string; monthlyAmounts: Map<string, number>; items: LedgerTransaction[] }>();
     for (const tx of transactions) {
-      if (tx.type !== 'EXPENSE' || !tx.date || !monthKeys.has(tx.date.slice(0, 7)) || !tx.payee?.trim()) continue;
+      if (tx.type !== 'EXPENSE' || tx.verificationStatus === 'PENDING' || !tx.date || !monthKeys.has(tx.date.slice(0, 7)) || !tx.payee?.trim() || !Number.isSafeInteger(tx.amountCents) || tx.amountCents <= 0) continue;
       const payee = tx.payee.trim().replace(/\s+/g, ' ');
       const normalizedPayee = payee.toLocaleLowerCase('he-IL');
       const category = tx.category?.trim() || 'ללא קטגוריה';
@@ -354,7 +354,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         ) : (
           <div className="mt-4 rounded-2xl border p-4 text-sm leading-6" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface, color: activeTheme.textSecondary }}>עדיין לא זוהו דפוסים חוזרים שעומדים בסף. נדרש ספק או תיאור שחוזר בלפחות 3 חודשים, עם סכומים בטווח דומה.</div>
         )}
-        <p className="mt-3 text-[10px] leading-5" style={muted}>הזיהוי מבוסס על התאמה בין שם הספק והקטגוריה ועל סכומים דומים. ייתכן שמדובר בקניות חוזרות ולא במנוי או בהוראת קבע; לחיצה פותחת את העסקאות שעליהן מבוסס הזיהוי.</p>
+        <p className="mt-3 text-[10px] leading-5" style={muted}>הזיהוי מבוסס על עסקאות מאומתות בלבד, התאמה בין שם הספק והקטגוריה ועל סכומים דומים. ייתכן שמדובר בקניות חוזרות ולא במנוי או בהוראת קבע; לחיצה פותחת את העסקאות שעליהן מבוסס הזיהוי.</p>
       </section>
 
       <section className={panel + ' p-5 sm:p-7'}>

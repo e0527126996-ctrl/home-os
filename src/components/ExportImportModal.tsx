@@ -100,7 +100,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div className="homeos-themed-modal homeos-export-modal fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
       <div
         className="w-full max-w-lg rounded-xl border shadow-xl flex flex-col overflow-hidden"
         style={{

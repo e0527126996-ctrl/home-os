@@ -178,22 +178,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const hasActivity = data.current.income > 0 || data.current.expense > 0;
 
   return (
-    <div className="homeos-dashboard space-y-6 pb-10" dir="rtl" data-view-mode={viewMode}>
-      <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <div className="homeos-kicker"><span className="homeos-live-dot" /> HOME OS <span className="opacity-30">/</span> מרכז פיננסי למשק הבית</div>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl" style={{ color: activeTheme.textPrimary }}>המרכז הפיננסי של {householdName || 'הבית'}</h1>
-          <p className="mt-2 text-sm" style={muted}>כל הנכסים, ההתחייבויות והתזרים — במבט אחד מדויק.</p>
+    <div className="homeos-dashboard homeos-command-center space-y-6 pb-10" dir="rtl" data-view-mode={viewMode}>
+      <header className="homeos-dashboard-heading">
+        <div className="homeos-dashboard-heading-copy">
+          <div className="homeos-page-eyebrow"><span className="homeos-page-eyebrow-mark" /> HOME OS <span className="homeos-page-breadcrumb">/ מרכז השליטה</span></div>
+          <h1>תמונת הבית, <em>במבט אחד.</em></h1>
+          <p>כל מה שחשוב לדעת על המצב הפיננסי של {householdName || 'הבית'} — נתונים מאומתים, תזרים ופעילות שוטפת.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="homeos-dashboard-heading-actions">
           <span className="homeos-view-mode-chip">{viewModeTitle}</span>
           <span className="homeos-date-chip"><CalendarDays className="h-4 w-4" /> {monthName}</span>
           <button onClick={onOpenLedger} className="homeos-primary-action"><ReceiptText className="h-4 w-4" /> פנקס העסקאות</button>
-          <button onClick={onOpenAccounts} className="homeos-secondary-action"><Landmark className="h-4 w-4" /> ניהול חשבונות</button>
+          <button onClick={onOpenAccounts} className="homeos-secondary-action"><Landmark className="h-4 w-4" /> חשבונות</button>
         </div>
       </header>
 
-      <section className="homeos-wealth-hero" {...widgetAttributes('net-worth')}>
+      <section className="homeos-wealth-hero homeos-portfolio-hero" {...widgetAttributes('net-worth')}>
         <div className="homeos-hero-orbit homeos-orbit-one" />
         <div className="homeos-hero-orbit homeos-orbit-two" />
         <div className="homeos-hero-glow" />

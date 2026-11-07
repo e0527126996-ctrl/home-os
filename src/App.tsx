@@ -744,33 +744,21 @@ export default function App() {
     showToast('תמונת הרקע הוסרה');
   };
 
-  const currentMembership = memberships.find((m) => m.userId === currentUser?.id);
+  const currentMembership = memberships.find(membership => membership.userId === currentUser?.id);
   const isOwnerOrAdmin = currentMembership?.role === 'owner' || currentMembership?.role === 'admin';
+  const canReadDomain = (domain: HouseholdPermissionRule['domain']) =>
+    isOwnerOrAdmin || currentPermissionRules.some(rule => rule.domain === domain && (rule.canRead || rule.canWrite));
+  const canWriteDomain = (domain: HouseholdPermissionRule['domain']) =>
+    isOwnerOrAdmin || currentPermissionRules.some(rule => rule.domain === domain && rule.canWrite);
 
-  useEffect(() => {
-    let active = true;
-    if (!currentMembership) {
-      setCurrentPermissionRules([]);
-      return () => { active = false; };
-    }
-    setCurrentPermissionRules([]);
-    db.getPermissionsByMembership(currentMembership.id)
-      .then((rules) => { if (active) setCurrentPermissionRules(rules); })
-      .catch((error) => {
-        console.error('Failed to load current household permissions:', error);
-        if (active) setCurrentPermissionRules([]);
-      });
-    return () => { active = false; };
-  }, [currentMembership?.id]);
-
-  const canPerformFinance = isOwnerOrAdmin || (
-    currentMembership?.role === 'member' &&
-    currentPermissionRules.find((rule) => rule.domain === 'finance')?.canWrite === true
-  );
-  const canPerformFood = isOwnerOrAdmin || (
-    currentMembership?.role === 'member' &&
-    currentPermissionRules.find((rule) => rule.domain === 'food')?.canWrite === true
-  );
+  const canReadFinance = canReadDomain('finance');
+  const canPerformFinance = canWriteDomain('finance');
+  const canReadFood = canReadDomain('food');
+  const canPerformFood = canWriteDomain('food');
+  const canReadDocuments = canReadDomain('documents');
+  const canWriteDocuments = canWriteDomain('documents');
+  const canReadAdmin = canReadDomain('admin');
+  const canManageSystem = isOwnerOrAdmin;
 
   if (isInitializing) {
     return (
@@ -858,9 +846,11 @@ export default function App() {
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-2">
             <div><div className="homeos-section-kicker">מרחב ניהול משק הבית</div><div className="mt-1 text-sm font-bold" style={{ color: activeTheme.textPrimary }}>מרחבי העבודה</div></div>
             <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold tabular-nums" style={{ color: activeTheme.textSecondary }}>
-              <span className="homeos-workspace-stat"><span className="homeos-status-dot verified"/> {transactions.filter(tx => tx.verificationStatus !== 'PENDING').length} מאומתות</span>
-              <span className="homeos-workspace-stat"><span className="homeos-status-dot pending"/> {transactions.filter(tx => tx.verificationStatus === 'PENDING').length} לאימות</span>
-              <span className="homeos-workspace-stat">{accounts.length} חשבונות</span>
+              {canReadFinance && <>
+                <span className="homeos-workspace-stat"><span className="homeos-status-dot verified"/> {transactions.filter(tx => tx.verificationStatus !== 'PENDING').length} מאומתות</span>
+                <span className="homeos-workspace-stat"><span className="homeos-status-dot pending"/> {transactions.filter(tx => tx.verificationStatus === 'PENDING').length} לאימות</span>
+                <span className="homeos-workspace-stat">{accounts.length} חשבונות</span>
+              </>}
             </div>
           </div>
           <nav aria-label="ניווט ראשי" className="homeos-main-nav">
@@ -874,14 +864,22 @@ export default function App() {
               { id: 'households', label: 'משקי בית', icon: House, count: households.length },
               { id: 'audit', label: 'יומן ביקורת', icon: ClipboardList, count: auditLogs.length },
               { id: 'settings', label: 'הגדרות אישיות', icon: Settings },
-            ] as const).map((item, index) => {
+            ] as const)
+              .filter(item => {
+                if (item.id === 'accounts' || item.id === 'ledger') return canReadFinance;
+                if (item.id === 'documents') return canReadDocuments;
+                if (item.id === 'home') return canReadFood;
+                if (item.id === 'members' || item.id === 'audit') return canReadAdmin;
+                return true;
+              })
+              .map(item => {
               const selected = activeTab === item.id;
               const Icon = item.icon;
-              const sectionLabel = index === 0
+              const sectionLabel = item.id === 'dashboard'
                 ? { title: 'כספים', subtitle: 'FINANCIAL CONTROL' }
-                : index === 3
+                : item.id === 'documents'
                   ? { title: 'ניהול הבית', subtitle: 'HOME OPERATIONS' }
-                  : index === 5
+                  : item.id === 'members'
                     ? { title: 'מערכת ומשפחה', subtitle: 'PEOPLE & SYSTEM' }
                     : null;
               return (
@@ -959,9 +957,10 @@ export default function App() {
             household={activeHousehold}
             currentUser={currentUser}
             activeTheme={activeTheme}
-            canRead={Boolean(currentMembership)}
-            canWrite={canPerformFinance}
-            accounts={accounts}
+            canRead={canReadDocuments}
+            canWrite={canWriteDocuments}
+            canImportStatements={canPerformFinance}
+            accounts={canReadFinance ? accounts : []}
             transactions={transactions}
             onImportTransactions={handleImportTransactions}
           />
@@ -972,10 +971,10 @@ export default function App() {
             household={activeHousehold}
             currentUser={currentUser}
             activeTheme={activeTheme}
-            canRead={Boolean(currentMembership)}
+            canRead={canReadFood}
             canWrite={canPerformFood}
-            accounts={accounts}
-            transactions={transactions}
+            accounts={canReadFinance ? accounts : []}
+            transactions={canReadFinance ? transactions : []}
             persons={persons}
             onOpenLedger={() => setActiveTab('ledger')}
             initialTab={homeManagementInitialTab}
@@ -1119,7 +1118,7 @@ export default function App() {
         )}
 
         {/* Tab: Accounts View (Phase 2 - Sub-phase A) */}
-        {activeTab === 'accounts' && activeHousehold && (
+        {activeTab === 'accounts' && activeHousehold && canReadFinance && (
           <AccountsView
             accounts={accounts}
             activeTheme={activeTheme}
@@ -1134,7 +1133,7 @@ export default function App() {
         )}
 
         {/* Tab: Central Transactions Ledger (Phase 2 - Sub-phase B) */}
-        {activeTab === 'ledger' && activeHousehold && (
+        {activeTab === 'ledger' && activeHousehold && canReadFinance && (
           <TransactionsLedgerView
             transactions={transactions}
             accounts={accounts}
@@ -1160,7 +1159,7 @@ export default function App() {
         )}
 
         {/* Tab 2: Members & Persons View */}
-        {activeTab === 'members' && activeHousehold && (
+        {activeTab === 'members' && activeHousehold && canReadAdmin && (
           <MembersAndPersonsView
             household={activeHousehold}
             allUsers={allUsers}
@@ -1192,7 +1191,7 @@ export default function App() {
         )}
 
         {/* Tab 4: Audit Log View */}
-        {activeTab === 'audit' && activeHousehold && (
+        {activeTab === 'audit' && activeHousehold && canReadAdmin && (
           <AuditLogView
             logs={auditLogs}
             activeTheme={activeTheme}

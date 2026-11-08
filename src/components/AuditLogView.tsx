@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { History, Search, Filter, ShieldAlert, Clock, User as UserIcon } from 'lucide-react';
+import { History, Search, Filter, ShieldAlert, Clock, User as UserIcon, RefreshCw } from 'lucide-react';
 import { AuditLog } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
 import { WorkspacePageHeader } from './WorkspacePageHeader.tsx';
@@ -26,6 +26,11 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ logs, activeTheme, o
   });
 
   const uniqueDomains = Array.from(new Set(logs.map((l) => l.domain)));
+  const todayKey = new Date().toLocaleDateString('en-CA');
+  const todayEvents = logs.filter(log => {
+    const timestamp = new Date(log.timestamp);
+    return Number.isFinite(timestamp.getTime()) && timestamp.toLocaleDateString('en-CA') === todayKey;
+  }).length;
 
   return (
     <div className="homeos-audit-view homeos-workspace-page space-y-4">
@@ -33,10 +38,16 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ logs, activeTheme, o
         eyebrow="SYSTEM / ACTIVITY & SECURITY"
         title="יומן פעילות ובקרה"
         description="עקבות הפעולות שבוצעו במערכת — מי שינה, מתי ובאיזה תחום."
-        meta={<><span>{logs.length} אירועים אחרונים</span><span>{uniqueDomains.length} תחומים</span></>}
+        meta={<><span>{logs.length} אירועים במאגר</span><span>{filteredLogs.length} תוצאות בסינון</span><span>{uniqueDomains.length} תחומים</span></>}
+        actions={<button type="button" onClick={onRefresh} className="homeos-secondary-action inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold"><RefreshCw className="h-4 w-4"/>רענון יומן</button>}
       />
+      <section className="homeos-audit-overview" aria-label="סקירת יומן פעילות">
+        <div className="homeos-audit-stat"><span className="homeos-audit-stat-icon"><History size={17}/></span><span><small>אירועים שנרשמו</small><strong>{logs.length}</strong><em>כל רשומות הביקורת במשק הבית</em></span></div>
+        <div className="homeos-audit-stat"><span className="homeos-audit-stat-icon"><Clock size={17}/></span><span><small>אירועים היום</small><strong>{todayEvents}</strong><em>לפי התאריך המקומי</em></span></div>
+        <div className="homeos-audit-stat"><span className="homeos-audit-stat-icon"><ShieldAlert size={17}/></span><span><small>תחומים מתועדים</small><strong>{uniqueDomains.length}</strong><em>מעקב לפי אזור פעילות</em></span></div>
+      </section>
       {/* Filters */}
-      <div className="homeos-audit-toolbar">
+      <div className="homeos-audit-toolbar homeos-audit-toolbar-premium">
         <div className="flex items-center gap-2">
           {/* Search */}
           <div className="relative">
@@ -77,7 +88,7 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ logs, activeTheme, o
       </div>
 
       {/* Logs Table */}
-      <div className="border rounded-lg overflow-hidden" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgCard }}>
+      <div className="homeos-audit-table border rounded-lg overflow-hidden" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgCard }}>
         <table className="w-full text-right text-xs">
           <thead>
             <tr className="border-b font-serif" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>

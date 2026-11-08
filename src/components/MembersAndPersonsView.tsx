@@ -141,7 +141,7 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
         </button>
         <button type="button" className={"homeos-people-stat " + (activeTab === 'members' ? "is-active" : "")} onClick={() => setActiveTab('members')}>
           <span className="homeos-people-stat-icon"><KeyRound size={17}/></span>
-          <span><small>צפייה מוגבלת</small><strong>{readOnlyCount}</strong><em>משתמשים ללא הרשאת עריכה מלאה</em></span>
+          <span><small>תפקיד צפייה בלבד</small><strong>{readOnlyCount}</strong><em>משתמשים שהוגדרו ללא עריכה</em></span>
         </button>
         <button type="button" className={"homeos-people-stat " + (activeTab === 'persons' ? "is-active" : "")} onClick={() => setActiveTab('persons')}>
           <span className="homeos-people-stat-icon"><Baby size={17}/></span>

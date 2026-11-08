@@ -242,7 +242,7 @@ export const MODERN_EDITORIAL_THEMES: ThemeConfig[] = [
     accent: '#D4AF37',
     accentMuted: '#3A321D',
     description: 'שחור פחם עמוק, משטחי מתכת כהים, זהב מוברש והדגשות אמרלד',
-  },,
+  },
   {
     id:'ocean_graphite',nameHe:'גרפיט אוקייני',nameEn:'Ocean Graphite',isDark:true,
     bgCanvas:'#081820',bgSurface:'#102832',bgCard:'#15313B',borderSubtle:'#294751',

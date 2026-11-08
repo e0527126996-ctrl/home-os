@@ -134,11 +134,13 @@ export function buildFinanceAnalytics(
     return { key: monthKey(date), label: monthLabel(date), incomeCents, expenseCents, netCents, cumulativeNetCents: netCents * (index + 1) };
   });
 
+  // Keep every forecast surface fail-closed: unavailable history must never
+  // produce plausible-looking horizon totals from a partial sample.
   const horizons = ([3, 6, 12] as const).map(monthsCount => ({
     months: monthsCount,
-    incomeCents: averageIncomeCents * monthsCount,
-    expenseCents: averageExpenseCents * monthsCount,
-    netCents: averageNetCents * monthsCount,
+    incomeCents: available ? averageIncomeCents * monthsCount : 0,
+    expenseCents: available ? averageExpenseCents * monthsCount : 0,
+    netCents: available ? averageNetCents * monthsCount : 0,
   }));
 
   // Shared category run-rate alerts. These are review prompts, not guarantees.

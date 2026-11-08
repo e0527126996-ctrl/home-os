@@ -110,7 +110,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       acc.name,
       acc.institution,
       acc.accountNumberLast4,
-      getAccountTypeLabel(acc.type),
+      acc.type,
     ].some(value => String(value || '').toLocaleLowerCase('he-IL').includes(normalizedQuery));
   });
 

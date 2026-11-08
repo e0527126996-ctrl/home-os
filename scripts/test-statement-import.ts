@@ -71,6 +71,20 @@ const cases: Array<{ name: string; run: () => void | Promise<void> }> = [
     },
   },
   {
+    name: 'rejects oversized spreadsheet and CSV files before parsing',
+    run: async () => {
+      const oversizedFile = {
+        name: 'oversized.csv',
+        size: 15 * 1024 * 1024 + 1,
+        arrayBuffer: async () => { throw new Error('The parser must reject before reading bytes'); },
+      } as File;
+      await assert.rejects(
+        () => parseStatementFileWithDiagnostics(oversizedFile, []),
+        /גדול מדי/,
+      );
+    },
+  },
+  {
     name: 'parses ISO PDF dates and European decimal-comma transaction values',
     run: () => {
       const rows = parsePdfLines([

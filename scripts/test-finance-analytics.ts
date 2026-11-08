@@ -108,6 +108,24 @@ const cases: Array<{ name: string; run: () => void }> = [
       assert.equal(result.projectionReady, true);
     },
   },
+  {
+    name: 'keeps every forecast horizon at zero when verified history is incomplete',
+    run: () => {
+      const ils = makeAccount('ils');
+      const transactions = [
+        makeTransaction('oct-income', 'ils', '2026-10-05', 180000, 'INCOME'),
+        makeTransaction('oct-expense-a', 'ils', '2026-10-12', 60000, 'EXPENSE'),
+        makeTransaction('oct-expense-b', 'ils', '2026-10-22', 40000, 'EXPENSE'),
+      ];
+      const result = buildFinanceAnalytics([ils], transactions, new Date(timestamp));
+      assert.equal(result.forecast.available, false);
+      assert.deepEqual(
+        result.forecast.horizons.map(item => [item.incomeCents, item.expenseCents, item.netCents]),
+        [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+      );
+      assert.ok(result.forecast.monthly.every(item => item.incomeCents === 0 && item.expenseCents === 0 && item.netCents === 0));
+    },
+  },
 ];
 
 let failed = 0;

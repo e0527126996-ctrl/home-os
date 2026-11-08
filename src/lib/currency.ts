@@ -18,7 +18,7 @@ export function toCents(val: number | string | undefined | null): number {
   const str = isNumericInput
     ? (Number.isFinite(val) ? val.toString() : '')
     : String(val).trim();
-  const match = str.match(/^(-?)(\\d+)(?:\\.(\\d+))?$/);
+  const match = str.match(/^(-?)(\d+)(?:\.(\d+))?$/);
   if (!match) return 0;
 
   const fraction = match[3] || '';

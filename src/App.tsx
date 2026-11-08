@@ -87,7 +87,7 @@ export default function App() {
   const [visibleDashboardWidgetIds, setVisibleDashboardWidgetIds] = useState<string[]>(DEFAULT_DASHBOARD_WIDGET_ORDER);
   const [dashboardWidgetSizes, setDashboardWidgetSizes] = useState<Record<string, DashboardWidgetSize>>({});
   const [personalBackgroundImage, setPersonalBackgroundImage] = useState<string | null>(null);
-  const [backgroundPresetId, setBackgroundPresetId] = useState<WorkspaceBackgroundPresetId>('warm_linen');
+  const [backgroundPresetId, setBackgroundPresetId] = useState<WorkspaceBackgroundPresetId>('midnight_ink');
   const [ledgerSelectedAccountId, setLedgerSelectedAccountId] = useState<string | null>(null);
 
   // Modal Dialogs
@@ -155,7 +155,7 @@ export default function App() {
         db.getSetting<string[]>('dashboard_widget_visibility', DEFAULT_DASHBOARD_WIDGET_ORDER),
         db.getSetting<Record<string, DashboardWidgetSize>>('dashboard_widget_sizes', {}),
         db.getSetting<string>('personal_background_image', ''),
-        db.getSetting<WorkspaceBackgroundPresetId>('personal_background_preset', 'warm_linen'),
+        db.getSetting<WorkspaceBackgroundPresetId>('personal_background_preset', 'midnight_ink'),
       ]);
 
       const accessibleHouseholds = initialUser ? await getAccessibleHouseholds(initialUser.id) : [];
@@ -184,7 +184,7 @@ export default function App() {
       }
       setDashboardWidgetSizes(normalizedWidgetSizes);
       setPersonalBackgroundImage(typeof savedBackgroundImage === 'string' && savedBackgroundImage.startsWith('data:image/') ? savedBackgroundImage : null);
-      setBackgroundPresetId(BACKGROUND_PRESETS.some(preset => preset.id === savedBackgroundPreset) ? savedBackgroundPreset : BACKGROUND_PRESETS[0].id);
+      setBackgroundPresetId(BACKGROUND_PRESETS.some(preset => preset.id === savedBackgroundPreset) ? savedBackgroundPreset : 'midnight_ink');
 
       if (initialUser) await db.setSetting('current_user_id', initialUser.id);
       else await db.setSetting('current_user_id', null);

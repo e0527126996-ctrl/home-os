@@ -2589,3 +2589,10 @@ body {
   .homeos-ledger-view > div:nth-of-type(1) > div { padding: 13px; }
   .homeos-home-management .homeos-home-tabs { top: 108px; }
 }
+
+.homeos-sidebar-primary-action:focus-visible,
+.homeos-sidebar-secondary-action:focus-visible,
+.homeos-side-nav-item:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 48%, transparent);
+  outline-offset: 2px;
+}

@@ -39,9 +39,18 @@ export const WorkspaceNavigation: React.FC<WorkspaceNavigationProps> = ({
   accountCount, transactionCount, verifiedTransactionCount, pendingTransactionCount,
   householdCount, memberAndPersonCount, auditCount,
 }) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try { return window.localStorage.getItem('homeos:sidebar-collapsed') === 'true'; }
+    catch { return false; }
+  });
   const [query, setQuery] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    try { window.localStorage.setItem('homeos:sidebar-collapsed', String(collapsed)); }
+    catch { /* Storage can be disabled; the navigation still works for this session. */ }
+  }, [collapsed]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {

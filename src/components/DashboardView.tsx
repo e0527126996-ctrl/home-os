@@ -96,12 +96,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const topCategories = Object.entries(categories).sort((a, b) => b[1] - a[1]);
     const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt)).slice(0, 5);
     const completedMonths = months.slice(0, -1).slice(-3);
-    const baselineExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
-    const baselineIncome = completedMonths.reduce((s, m) => s + m.income, 0) / Math.max(1, completedMonths.length);
+    // Do not present a three-month baseline when one or more months have no verified activity.
+    // The forecast engine owns the minimum-history rule so all dashboard analyses agree.
+    const baselineReady = financeAnalytics.forecast.available;
+    const baselineMonthCount = baselineReady ? financeAnalytics.forecast.historyMonths : 0;
+    const baselineExpense = baselineReady ? financeAnalytics.forecast.averageExpenseCents : 0;
+    const baselineIncome = baselineReady ? financeAnalytics.forecast.averageIncomeCents : 0;
     const baselineCashflow = baselineIncome - baselineExpense;
-    const baselineSavingsRate = baselineIncome > 0 ? (baselineCashflow / baselineIncome) * 100 : null;
+    const baselineSavingsRate = baselineReady && baselineIncome > 0 ? (baselineCashflow / baselineIncome) * 100 : null;
     const baselineTransactionCount = confirmedTransactions.filter(tx => completedMonths.some(m => tx.date?.slice(0, 7) === m.key) && (tx.type === 'INCOME' || tx.type === 'EXPENSE')).length;
-    const averageExpense = completedMonths.reduce((s, m) => s + m.expense, 0) / Math.max(1, completedMonths.length);
+    const averageExpense = baselineExpense;
     const cashflow = current.income - current.expense;
     const pendingReviewCount = financeAnalytics.pendingTransactions.length;
     const pendingReviewAmount = financeAnalytics.pendingAmountIlsCents;
@@ -150,7 +154,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .sort((a, b) => b.averageAmount - a.averageAmount)
       .slice(0, 4);
 
-    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, foreignCurrencySummaries, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount: completedMonths.length, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, pendingReviewAmount, reconciledTransactionCount, uncategorizedExpenseCount };
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, foreignCurrencySummaries, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, pendingReviewAmount, reconciledTransactionCount, uncategorizedExpenseCount };
   }, [accounts, transactions, confirmedTransactions, accountCurrencies, financeAnalytics]);
 
   const today = new Date();
@@ -321,7 +325,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <span className="rounded-full bg-[#547D70]/10 px-3 py-1.5 text-[10px] font-semibold text-[#547D70]">מבוסס היסטוריה בפועל</span>
         </div>
-        {data.baselineTransactionCount > 0 ? (
+        {financeAnalytics.forecast.available ? (
           <>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
               <div className="rounded-2xl border p-4" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>

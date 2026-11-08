@@ -120,6 +120,11 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
   // Filter existing users not yet members of this household
   const existingMemberUserIds = new Set(memberships.map((m) => m.userId));
   const availableUsers = allUsers.filter((u) => !existingMemberUserIds.has(u.id));
+  const managerCount = memberships.filter(member => member.role === 'owner' || member.role === 'admin').length;
+  const readOnlyCount = memberships.filter(member => member.role === 'read_only').length;
+  const childCount = persons.filter(person => person.personType === 'child').length;
+  const adultCount = persons.filter(person => person.personType === 'adult').length;
+  const linkedPersonCount = persons.filter(person => Boolean(person.linkedUserId)).length;
 
   return (
     <div className="homeos-members-view homeos-workspace-page space-y-6">
@@ -129,6 +134,24 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
         description="ניהול המשתמשים המורשים, בני המשפחה, התפקידים והרשאות הגישה."
         meta={<><span>{memberships.length} משתמשים מורשים</span><span>{persons.length} בני בית</span></>}
       />
+      <section className="homeos-people-overview" aria-label="סקירת הרכב הבית והרשאות">
+        <button type="button" className={"homeos-people-stat " + (activeTab === 'members' ? "is-active" : "")} onClick={() => setActiveTab('members')}>
+          <span className="homeos-people-stat-icon"><Shield size={17}/></span>
+          <span><small>משתמשים מורשים</small><strong>{memberships.length}</strong><em>{managerCount} בעלי תפקיד ניהולי</em></span>
+        </button>
+        <button type="button" className={"homeos-people-stat " + (activeTab === 'members' ? "is-active" : "")} onClick={() => setActiveTab('members')}>
+          <span className="homeos-people-stat-icon"><KeyRound size={17}/></span>
+          <span><small>תפקיד צפייה בלבד</small><strong>{readOnlyCount}</strong><em>משתמשים שהוגדרו ללא עריכה</em></span>
+        </button>
+        <button type="button" className={"homeos-people-stat " + (activeTab === 'persons' ? "is-active" : "")} onClick={() => setActiveTab('persons')}>
+          <span className="homeos-people-stat-icon"><Baby size={17}/></span>
+          <span><small>ילדים ובני משפחה</small><strong>{persons.length}</strong><em>{childCount} ילדים · {adultCount} מבוגרים</em></span>
+        </button>
+        <button type="button" className={"homeos-people-stat " + (activeTab === 'persons' ? "is-active" : "")} onClick={() => setActiveTab('persons')}>
+          <span className="homeos-people-stat-icon"><UserIcon size={17}/></span>
+          <span><small>קישור לחשבון משתמש</small><strong>{linkedPersonCount}</strong><em>{Math.max(0, persons.length - linkedPersonCount)} ללא חשבון עצמאי</em></span>
+        </button>
+      </section>
       <div className="homeos-members-tabs-row">
         {/* Tab switch */}
         <div className="flex items-center gap-1 p-1 rounded border self-start" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
@@ -317,7 +340,7 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
           )}
 
           {/* Members Table */}
-          <div className="border rounded-lg overflow-hidden" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgCard }}>
+          <div className="homeos-member-directory border rounded-lg overflow-hidden" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgCard }}>
             <table className="w-full text-right text-xs">
               <thead>
                 <tr className="border-b font-serif" style={{ borderColor: activeTheme.borderSubtle, backgroundColor: activeTheme.bgSurface }}>
@@ -550,7 +573,7 @@ export const MembersAndPersonsView: React.FC<MembersAndPersonsViewProps> = ({
               return (
                 <div
                   key={p.id}
-                  className="p-4 rounded-lg border flex flex-col justify-between"
+                  className="homeos-person-profile p-4 rounded-lg border flex flex-col justify-between"
                   style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}
                 >
                   <div className="space-y-2">

@@ -166,7 +166,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const meals = homeItems.filter(item => item.kind === 'meal' && String(item.data.date || '') >= todayKey && String(item.data.date || '') <= nextWeekKey);
     const openTasks = homeItems.filter(item => item.kind === 'task' && !Boolean(item.data.done));
     const openShopping = homeItems.filter(item => item.kind === 'shopping' && !Boolean(item.data.checked));
-    return { meals: meals.length, openTasks: openTasks.length, openShopping: openShopping.length };
+    const overdueTasks = openTasks
+      .filter(item => Boolean(item.data.dueDate) && String(item.data.dueDate) < todayKey)
+      .sort((a, b) => String(a.data.dueDate).localeCompare(String(b.data.dueDate)));
+    const upcomingTask = openTasks
+      .filter(item => Boolean(item.data.dueDate) && String(item.data.dueDate) >= todayKey)
+      .sort((a, b) => String(a.data.dueDate).localeCompare(String(b.data.dueDate)))[0] || null;
+    return {
+      meals: meals.length,
+      openTasks: openTasks.length,
+      openShopping: openShopping.length,
+      overdueTasks: overdueTasks.length,
+      firstOverdueTask: overdueTasks[0] || null,
+      upcomingTask,
+    };
   }, [homeItems, todayKey, nextWeekKey]);
   const currency = (cents: number, currencyCode: string = 'ILS') => money(cents / 100, currencyCode);
   const muted = { color: activeTheme.textSecondary };
@@ -181,6 +194,58 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const viewModeTitle = viewMode === 'executive' ? 'Executive · מנהלים' : viewMode === 'productivity' ? 'Productivity · עבודה שוטפת' : 'Analytics · אנליטיקה';
   const hasActivity = data.current.income > 0 || data.current.expense > 0;
   const hasVerifiedHistory = data.months.some(month => month.income > 0 || month.expense > 0);
+  const prioritySignals = [
+    ...(data.pendingReviewCount > 0 ? [{
+      id: 'pending',
+      tone: 'warning',
+      eyebrow: 'בקרת נתונים',
+      title: 'עסקאות ממתינות לאימות',
+      value: data.pendingReviewCount.toLocaleString('he-IL'),
+      description: currency(data.pendingReviewAmount) + ' עדיין לא נכללו ביתרות ובניתוחים',
+      action: 'בדיקה ואימות',
+      onClick: onOpenLedger,
+    }] : []),
+    ...(householdSnapshot.overdueTasks > 0 ? [{
+      id: 'overdue',
+      tone: 'warning',
+      eyebrow: 'ניהול הבית',
+      title: 'משימות שעבר מועד הביצוע שלהן',
+      value: householdSnapshot.overdueTasks.toLocaleString('he-IL'),
+      description: String(householdSnapshot.firstOverdueTask?.data.title || 'יש משימות שמחכות לטיפול'),
+      action: 'פתיחת המשימות',
+      onClick: () => onOpenHomeTab('tasks'),
+    }] : []),
+    ...(data.uncategorizedExpenseCount > 0 ? [{
+      id: 'uncategorized',
+      tone: 'review',
+      eyebrow: 'סדר פיננסי',
+      title: 'הוצאות ללא קטגוריה',
+      value: data.uncategorizedExpenseCount.toLocaleString('he-IL'),
+      description: 'סיווג העסקאות ישפר את איכות הפילוח והניתוח',
+      action: 'סיווג בפנקס',
+      onClick: onOpenLedger,
+    }] : []),
+    ...(!hasVerifiedHistory ? [{
+      id: 'history',
+      tone: 'neutral',
+      eyebrow: 'השלב הבא',
+      title: 'בוא נבנה תמונת מצב אמינה',
+      value: '01',
+      description: 'אמת עסקאות או הוסף תנועות כדי להתחיל לראות מגמות ותזרים',
+      action: 'פתיחת פנקס העסקאות',
+      onClick: onOpenLedger,
+    }] : []),
+    ...(householdSnapshot.openShopping > 0 ? [{
+      id: 'shopping',
+      tone: 'neutral',
+      eyebrow: 'תפעול הבית',
+      title: 'רשימת הקניות עדיין פתוחה',
+      value: householdSnapshot.openShopping.toLocaleString('he-IL'),
+      description: 'פריטים שממתינים לאיסוף',
+      action: 'פתיחת הרשימה',
+      onClick: () => onOpenHomeTab('shopping'),
+    }] : []),
+  ].slice(0, 4);
 
   return (
     <div className="homeos-dashboard homeos-command-center space-y-6 pb-10" dir="rtl" data-view-mode={viewMode}>
@@ -237,6 +302,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {' '}סכום ממתין בשקלים: <strong>{currency(data.pendingReviewAmount)}</strong>. העסקאות נשמרו בפנקס, אך לא ייכנסו לגרפים, לתחזיות וליתרות עד לאימות. לאחר האימות הנתונים יתעדכנו אוטומטית בכל התצוגות.
         </aside>
       )}
+
+      <section className="homeos-action-center" aria-label="מוקדי תשומת לב ופעולות מומלצות">
+        <div className="homeos-action-center-heading">
+          <div>
+            <div className="homeos-section-kicker">NEXT BEST ACTIONS</div>
+            <h2>מה דורש תשומת לב עכשיו?</h2>
+            <p>רשימת פעולות שנבנתה מהנתונים הקיימים, בלי לנחש ובלי להציג מספרים חסרים.</p>
+          </div>
+          <span className="homeos-action-center-count">{prioritySignals.length ? prioritySignals.length + ' נושאים למעקב' : 'הכול מסודר כרגע'}</span>
+        </div>
+        {prioritySignals.length ? (
+          <div className="homeos-action-center-grid">
+            {prioritySignals.map(signal => (
+              <button type="button" key={signal.id} onClick={signal.onClick} className={"homeos-action-signal is-" + signal.tone}>
+                <span className="homeos-action-signal-top"><small>{signal.eyebrow}</small><strong>{signal.value}</strong></span>
+                <span className="homeos-action-signal-title">{signal.title}</span>
+                <span className="homeos-action-signal-description">{signal.description}</span>
+                <span className="homeos-action-signal-link">{signal.action}<ArrowLeft className="h-3.5 w-3.5"/></span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="homeos-action-center-clear">
+            <span className="homeos-action-center-clear-icon"><CheckCircle2 className="h-5 w-5"/></span>
+            <div><strong>אין כרגע פעולות דחופות שזוהו</strong><p>המשך לעקוב אחר התזרים והפעילות. אזור זה יתעדכן עם כניסת נתונים חדשים.</p></div>
+          </div>
+        )}
+      </section>
 
       <section className="grid gap-5 xl:grid-cols-[1.55fr_.85fr]" {...widgetAttributes('cashflow-analysis')}>
         <div className={panel + ' p-5 sm:p-7'}>

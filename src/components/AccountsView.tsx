@@ -90,6 +90,10 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   const assetAccountCount = accounts.filter(a => a.status === 'ACTIVE' && a.currency === 'ILS' && (a.currentBalanceCents || 0) > 0).length;
   const liabilityAccountCount = accounts.filter(a => a.status === 'ACTIVE' && a.currency === 'ILS' && (a.currentBalanceCents || 0) < 0).length;
 
+  const recognizedBalanceTotal = totalAssets + totalLiabilities;
+  const assetShare = recognizedBalanceTotal > 0 ? (totalAssets / recognizedBalanceTotal) * 100 : 0;
+  const liabilityShare = recognizedBalanceTotal > 0 ? (totalLiabilities / recognizedBalanceTotal) * 100 : 0;
+
   // Filter accounts
   const displayedAccounts = accounts.filter((acc) => {
     const isInactive = acc.status === 'ARCHIVED' || acc.status === 'CLOSED';
@@ -166,6 +170,29 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             <div><div className="text-xl font-bold tabular-nums" style={{ color: activeTheme.textPrimary }}>{item.value}</div><div className="text-xs" style={{ color: activeTheme.textSecondary }}>{item.label}</div></div>
           </div>;
         })}
+      </section>
+
+      <section className="homeos-accounts-composition" aria-label="הרכב הנכסים וההתחייבויות">
+        <div className="homeos-accounts-composition-heading">
+          <div>
+            <span className="homeos-section-kicker">BALANCE STRUCTURE</span>
+            <h2>מפת הנכסים וההתחייבויות</h2>
+            <p>תמונת מצב של החשבונות הפעילים בשקלים, ללא המרות מטבע משוערות.</p>
+          </div>
+          <div className="homeos-accounts-composition-total">
+            <span>היקף מאזן מזוהה</span>
+            <strong>{formatCurrency(recognizedBalanceTotal)}</strong>
+          </div>
+        </div>
+        <div className="homeos-accounts-composition-bar" role="img" aria-label={`נכסים ${assetShare.toFixed(0)} אחוז, התחייבויות ${liabilityShare.toFixed(0)} אחוז`}>
+          <span className="homeos-accounts-assets-segment" style={{ width: assetShare + '%' }} />
+          <span className="homeos-accounts-liabilities-segment" style={{ width: liabilityShare + '%' }} />
+        </div>
+        <div className="homeos-accounts-composition-legend">
+          <div><i className="is-assets" /><span>נכסים</span><strong>{formatCurrency(totalAssets)}</strong><small>{assetShare.toFixed(0)}%</small></div>
+          <div><i className="is-liabilities" /><span>התחייבויות</span><strong>{formatCurrency(totalLiabilities)}</strong><small>{liabilityShare.toFixed(0)}%</small></div>
+          <div className="homeos-accounts-composition-note"><span>{assetAccountCount} חשבונות נכס</span><span>{liabilityAccountCount} חשבונות עם יתרת חובה</span></div>
+        </div>
       </section>
 
       {/* Filter Tabs */}
@@ -278,7 +305,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             return (
               <div
                 key={acc.id}
-                className="homeos-lux-panel flex flex-col justify-between space-y-4"
+                className="homeos-lux-panel homeos-account-card flex flex-col justify-between space-y-4"
                 style={{
                   backgroundColor: activeTheme.bgCard,
                   borderColor: activeTheme.borderSubtle,

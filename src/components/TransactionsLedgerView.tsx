@@ -251,6 +251,17 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
     return { ...totals, currency: selectedSummaryCurrency };
   }, [filteredTransactions, accountsMap, selectedSummaryCurrency]);
 
+  const filteredFlowCents = filteredSummary.incomeCents + filteredSummary.expenseCents;
+  const filteredIncomeShare = filteredFlowCents > 0 ? filteredSummary.incomeCents / filteredFlowCents * 100 : 0;
+  const filteredExpenseShare = filteredFlowCents > 0 ? filteredSummary.expenseCents / filteredFlowCents * 100 : 0;
+  const filteredPendingCount = filteredTransactions.filter(tx => tx.verificationStatus === 'PENDING').length;
+  const filteredUncategorizedCount = filteredTransactions.filter(tx => tx.type === 'EXPENSE' && (!tx.category?.trim() || tx.category.trim() === 'ללא קטגוריה')).length;
+  const formatFilteredCurrency = (cents: number) => new Intl.NumberFormat('he-IL', {
+    style: 'currency',
+    currency: filteredSummary.currency,
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
+
   const hasActiveFilters = Boolean(searchTerm.trim()) || typeFilter !== 'ALL' || accountFilter !== 'ALL' || categoryFilter !== 'ALL' || dateFilter !== 'ALL' || reviewFilter !== 'ALL';
   const clearFilters = () => {
     setSearchTerm('');
@@ -412,9 +423,34 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
         </div>
       </div>
 
+      <section className="homeos-ledger-snapshot" aria-label="סיכום התנועות המסוננות">
+        <div className="homeos-ledger-snapshot-heading">
+          <div>
+            <span className="homeos-section-kicker">LIVE LEDGER VIEW</span>
+            <h2>תמונת מצב לפי הסינון הנוכחי</h2>
+            <p>{filteredTransactions.length.toLocaleString('he-IL')} תנועות · הסיכום מתעדכן בכל שינוי בחיפוש ובמסננים</p>
+          </div>
+          <span className="homeos-ledger-currency-tag">{filteredSummary.currency}</span>
+        </div>
+        <div className="homeos-ledger-snapshot-metrics">
+          <div><span>הכנסות בתצוגה</span><strong className="is-income">{formatFilteredCurrency(filteredSummary.incomeCents)}</strong></div>
+          <div><span>הוצאות בתצוגה</span><strong className="is-expense">{formatFilteredCurrency(filteredSummary.expenseCents)}</strong></div>
+          <div><span>תזרים מסונן</span><strong className={filteredSummary.incomeCents - filteredSummary.expenseCents >= 0 ? 'is-income' : 'is-expense'}>{formatFilteredCurrency(filteredSummary.incomeCents - filteredSummary.expenseCents)}</strong></div>
+        </div>
+        <div className="homeos-ledger-composition" role="img" aria-label={`הכנסות ${filteredIncomeShare.toFixed(0)} אחוז, הוצאות ${filteredExpenseShare.toFixed(0)} אחוז`}>
+          <span className="is-income" style={{ width: filteredIncomeShare + '%' }} />
+          <span className="is-expense" style={{ width: filteredExpenseShare + '%' }} />
+        </div>
+        <div className="homeos-ledger-snapshot-footer">
+          <span>{filteredPendingCount} ממתינות לאימות</span>
+          <span>{filteredUncategorizedCount} הוצאות ללא קטגוריה</span>
+          <span>{hasActiveFilters ? 'הסיכום מציג תוצאות מסוננות' : 'הסיכום מציג את כלל התנועות'}</span>
+        </div>
+      </section>
+
       {/* טבלת העסקאות */}
       <div
-        className="rounded-[1.5rem] border bg-white shadow-sm overflow-hidden"
+        className="homeos-ledger-table-shell rounded-[1.5rem] border bg-white shadow-sm overflow-hidden"
         style={{ borderColor: activeTheme.borderSubtle }}
       >
         {/* כותרת וסרגל סינון */}

@@ -141,7 +141,16 @@ export const HouseholdsView: React.FC<HouseholdsViewProps> = ({
             <div
               key={h.id}
               onClick={() => onSelectHousehold(h.id)}
-              className={`p-4 rounded-lg border transition-all cursor-pointer relative ${
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onSelectHousehold(h.id);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isActive}
+              className={`homeos-household-card p-4 rounded-lg border transition-all cursor-pointer relative ${
                 isActive ? 'ring-1' : 'hover:border-stone-400'
               }`}
               style={{
@@ -187,7 +196,7 @@ export const HouseholdsView: React.FC<HouseholdsViewProps> = ({
       {/* Active Household Display Settings */}
       {activeHousehold && (
         <div
-          className="p-5 rounded-lg border space-y-4"
+          className="homeos-household-settings p-5 rounded-lg border space-y-4"
           style={{ backgroundColor: activeTheme.bgSurface, borderColor: activeTheme.borderSubtle }}
         >
           <div className="flex items-center gap-2 border-b pb-2" style={{ borderColor: activeTheme.borderSubtle }}>

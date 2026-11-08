@@ -211,6 +211,14 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
 
   const panel = { backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle, color: activeTheme.textPrimary };
   const muted = { color: activeTheme.textSecondary };
+  const documentCategoryCounts = categories.map(item => ({
+    ...item,
+    count: documents.filter(doc => doc.category === item.value).length,
+  }));
+  const recentDocumentCount = documents.filter(doc => {
+    const uploaded = new Date(doc.uploadedAt).getTime();
+    return Number.isFinite(uploaded) && Date.now() - uploaded <= 30 * 24 * 60 * 60 * 1000;
+  }).length;
 
   return (
     <div className="homeos-dashboard homeos-document-center homeos-workspace-page space-y-6 pb-10" dir="rtl">
@@ -230,6 +238,28 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
             <div className="rounded-2xl border border-white/10 bg-white/[.08] p-4"><div className="text-[11px] text-emerald-100/70">מסמכים שמורים</div><div className="mt-2 text-3xl font-bold tabular-nums text-white">{documents.length}</div></div>
             <div className="rounded-2xl border border-white/10 bg-white/[.08] p-4"><div className="text-[11px] text-emerald-100/70">נפח אחסון</div><div className="mt-2 text-3xl font-bold tabular-nums text-white">{formatSize(documents.reduce((sum, doc) => sum + doc.size, 0))}</div></div>
           </div>
+        </div>
+      </section>
+
+      <section className="homeos-document-insights" aria-label="סקירת ארכיון המסמכים">
+        <div className="homeos-document-insights-intro">
+          <span className="homeos-section-kicker">YOUR HOUSEHOLD ARCHIVE</span>
+          <h2>הארכיון שלך, מסודר לפי סוג</h2>
+          <p>חלוקה חיה לפי הקטגוריות שבהן נשמרו המסמכים.</p>
+        </div>
+        <div className="homeos-document-category-grid">
+          {documentCategoryCounts.filter(item => ['BANK', 'CREDIT_CARD', 'INVOICE', 'RECEIPT'].includes(item.value)).map(item => (
+            <button key={item.value} type="button" onClick={() => setFilter(item.value)}
+              aria-pressed={filter === item.value}
+              className={`homeos-document-category-stat ${filter === item.value ? 'is-active' : ''}`}>
+              <span>{item.label}</span><strong>{item.count.toLocaleString('he-IL')}</strong>
+              <small>{filter === item.value ? 'הקטגוריה מוצגת כרגע' : 'לחץ לסינון הארכיון'}</small>
+            </button>
+          ))}
+        </div>
+        <div className="homeos-document-recent-stat">
+          <span className="homeos-document-recent-dot" />
+          <span><strong>{recentDocumentCount}</strong> מסמכים נוספו ב־30 הימים האחרונים</span>
         </div>
       </section>
 
@@ -264,7 +294,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
           <div className="divide-y" style={{ borderColor: activeTheme.borderSubtle }}>
             {visibleDocuments.map((doc) => {
               const Icon = fileIcon(doc.mimeType);
-              return <div key={doc.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
+              return <div key={doc.id} className="homeos-document-row flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-center gap-3"><span className="rounded-xl p-3" style={{background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted,color:activeTheme.accent}}><Icon className="h-5 w-5" /></span><div className="min-w-0"><div className="truncate text-sm font-bold">{doc.name}</div><div className="mt-1 text-[11px]" style={muted}>{categories.find((item) => item.value === doc.category)?.label} · {formatSize(doc.size)} · {formatDate(doc.uploadedAt)}</div></div></div>
                 <div className="flex items-center gap-2">
                   {canImportStatements && doc.category === 'BANK' && /\.(pdf|xlsx?|csv|png|jpe?g|webp)$/i.test(doc.name) && <button onClick={() => handleAnalyzeStatement(doc)} className="rounded-lg border px-3 py-2 text-xs font-bold" style={{borderColor:activeTheme.borderSubtle,background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted,color:activeTheme.accent}}>נתח דף חשבון</button>}

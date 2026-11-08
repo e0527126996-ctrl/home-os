@@ -14,6 +14,8 @@ import {
   Sparkles,
   ShieldCheck,
   CheckCircle2,
+  Search,
+  X,
 } from 'lucide-react';
 import { AccountType, FinancialAccount, User } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
@@ -43,6 +45,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   onOpenLedgerForAccount,
 }) => {
   const [filterType, setFilterType] = useState<AccountType | 'ALL' | 'ARCHIVED'>('ALL');
+  const [accountQuery, setAccountQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<FinancialAccount | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -97,10 +100,18 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   // Filter accounts
   const displayedAccounts = accounts.filter((acc) => {
     const isInactive = acc.status === 'ARCHIVED' || acc.status === 'CLOSED';
-    if (filterType === 'ARCHIVED') return isInactive;
-    if (isInactive) return false;
-    if (filterType === 'ALL') return true;
-    return acc.type === filterType;
+    const matchesStatusAndType = filterType === 'ARCHIVED'
+      ? isInactive
+      : !isInactive && (filterType === 'ALL' || acc.type === filterType);
+    if (!matchesStatusAndType) return false;
+    const normalizedQuery = accountQuery.trim().toLocaleLowerCase('he-IL');
+    if (!normalizedQuery) return true;
+    return [
+      acc.name,
+      acc.institution,
+      acc.accountNumberLast4,
+      getAccountTypeLabel(acc.type),
+    ].some(value => String(value || '').toLocaleLowerCase('he-IL').includes(normalizedQuery));
   });
 
   const formatCurrency = (val: number, currency = 'ILS') => {
@@ -195,83 +206,46 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
         </div>
       </section>
 
-      {/* Filter Tabs */}
-      <div
-        className="flex items-center gap-1 p-1 rounded-lg border overflow-x-auto"
-        style={{ backgroundColor: activeTheme.bgSurface, borderColor: activeTheme.borderSubtle }}
-      >
-        <button
-          onClick={() => setFilterType('ALL')}
-          className={`px-4 py-2.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap ${
-            filterType === 'ALL' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
-          }`}
-          style={{
-            backgroundColor: filterType === 'ALL' ? activeTheme.accent : 'transparent',
-          }}
-        >
-          כל החשבונות ({accounts.filter((a) => a.status === 'ACTIVE').length})
-        </button>
-
-        <button
-          onClick={() => setFilterType('CHECKING')}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-            filterType === 'CHECKING' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
-          }`}
-          style={{
-            backgroundColor: filterType === 'CHECKING' ? activeTheme.accent : 'transparent',
-          }}
-        >
-          עו״ש ({checkingCount})
-        </button>
-
-        <button
-          onClick={() => setFilterType('CREDIT_CARD')}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-            filterType === 'CREDIT_CARD' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
-          }`}
-          style={{
-            backgroundColor: filterType === 'CREDIT_CARD' ? activeTheme.accent : 'transparent',
-          }}
-        >
-          כרטיסי אשראי ({creditCount})
-        </button>
-
-        <button
-          onClick={() => setFilterType('SAVINGS')}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-            filterType === 'SAVINGS' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
-          }`}
-          style={{
-            backgroundColor: filterType === 'SAVINGS' ? activeTheme.accent : 'transparent',
-          }}
-        >
-          חסכונות והשקעות ({savingsCount})
-        </button>
-
-        <button
-          onClick={() => setFilterType('LOAN_MORTGAGE')}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ${
-            filterType === 'LOAN_MORTGAGE' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
-          }`}
-          style={{
-            backgroundColor: filterType === 'LOAN_MORTGAGE' ? activeTheme.accent : 'transparent',
-          }}
-        >
-          הלוואות ומשכנתאות ({loansCount})
-        </button>
-
-        <button
-          onClick={() => setFilterType('ARCHIVED')}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap ml-auto ${
-            filterType === 'ARCHIVED' ? 'text-white' : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-70'
-          }`}
-          style={{
-            backgroundColor: filterType === 'ARCHIVED' ? activeTheme.accent : 'transparent',
-          }}
-        >
-          ארכיון ({accounts.filter((a) => a.status === 'ARCHIVED' || a.status === 'CLOSED').length})
-        </button>
-      </div>
+      <section className="homeos-account-toolbar" aria-label="חיפוש וסינון חשבונות">
+        <div className="homeos-account-toolbar-top">
+          <div>
+            <span className="homeos-section-kicker">YOUR ACCOUNTS</span>
+            <h2>כל החשבונות הפיננסיים</h2>
+            <p>{displayedAccounts.length} חשבונות מוצגים מתוך {accounts.length}</p>
+          </div>
+          <label className="homeos-account-search">
+            <Search className="h-4 w-4" aria-hidden="true" />
+            <input
+              type="search"
+              value={accountQuery}
+              onChange={(event) => setAccountQuery(event.target.value)}
+              placeholder="חיפוש לפי שם, מוסד או 4 ספרות אחרונות"
+              aria-label="חיפוש חשבונות"
+            />
+            {accountQuery && <button type="button" onClick={() => setAccountQuery('')} aria-label="ניקוי החיפוש"><X className="h-4 w-4" /></button>}
+          </label>
+        </div>
+        <div className="homeos-account-filter-list" role="group" aria-label="סינון סוג חשבון">
+          {([
+            { id: 'ALL', label: 'הכול', count: accounts.filter(a => a.status === 'ACTIVE').length },
+            { id: 'CHECKING', label: 'עו״ש', count: checkingCount },
+            { id: 'CREDIT_CARD', label: 'כרטיסי אשראי', count: creditCount },
+            { id: 'SAVINGS', label: 'חסכונות והשקעות', count: savingsCount },
+            { id: 'LOAN_MORTGAGE', label: 'הלוואות ומשכנתאות', count: loansCount },
+            { id: 'ARCHIVED', label: 'ארכיון', count: accounts.filter(a => a.status === 'ARCHIVED' || a.status === 'CLOSED').length },
+          ] as const).map(option => (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => setFilterType(option.id)}
+              className={`homeos-account-filter ${filterType === option.id ? 'is-active' : ''}`}
+              aria-pressed={filterType === option.id}
+            >
+              <span>{option.label}</span><strong>{option.count}</strong>
+            </button>
+          ))}
+        </div>
+      </section>
 
       {/* Account Cards Grid */}
       {displayedAccounts.length === 0 ? (

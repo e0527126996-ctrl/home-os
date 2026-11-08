@@ -1132,10 +1132,9 @@
   .homeos-brand-mark { width:31px !important; height:31px !important; }
   .homeos-brand-wordmark { font-size:12px; }
   .homeos-brand-edition,.homeos-brand-caption,.homeos-header-divider,.homeos-header-storage { display:none !important; }
-  .homeos-header-household { max-width:126px; min-height:30px !important; padding:5px 6px !important; font-size:8px !important; }
-  .homeos-executive-utilities { gap:3px !important; }
-  .homeos-header-icon-button { width:28px; min-width:28px; height:28px; min-height:28px; }
-  .homeos-header-icon-button:nth-of-type(n+3) { display:none; }
+  .homeos-header-household { max-width:108px; min-height:30px !important; padding:5px 6px !important; font-size:8px !important; }
+  .homeos-executive-utilities { gap:2px !important; }
+  .homeos-header-icon-button,.homeos-header-user { width:25px; min-width:25px; height:25px; min-height:25px; }
   .homeos-main-content { padding:10px 9px 30px !important; }
   .homeos-page-heading { align-items:flex-start; flex-direction:column; gap:9px; }
   .homeos-page-heading h1 { font-size:25px !important; }
@@ -1145,4 +1144,9 @@
   .homeos-home-hero { padding:15px !important; }
   .homeos-home-tabs { overflow-x:auto; flex-wrap:nowrap; }
   .homeos-home-tab { white-space:nowrap; }
+}
+
+@media (max-width: 370px) {
+  .homeos-header-icon-button:nth-of-type(n+3) { display:none !important; }
+  .homeos-header-household { max-width:88px; }
 }

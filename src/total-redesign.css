@@ -523,3 +523,7 @@
   .homeos-accounts-composition-legend { grid-template-columns: 1fr; }
   .homeos-document-category-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
+
+/* Grid reset: remove Tailwind flow margins after converting the main stage to a two-column workspace. */
+.homeos-main-content > :not([hidden]) ~ :not([hidden]) { margin-block-start: 0 !important; margin-block-end: 0 !important; }
+.homeos-main-content > .homeos-navigation-shell { margin: 0 !important; }

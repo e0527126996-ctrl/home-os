@@ -1153,7 +1153,7 @@
 
 
 /* PRIVATE WEALTH ATELIER — bespoke editorial hierarchy and calm luxury. */
-.homeos-app-shell { --homeos-luxe-radius:15px;--homeos-luxe-shadow:0 18px 48px rgba(26,24,19,.075),0 2px 8px rgba(26,24,19,.035);font-family:var(--homeos-font-family,Arial,sans-serif) !important;font-size:calc(1rem * var(--homeos-font-scale,1)); }
+.homeos-app-shell { --homeos-luxe-radius:15px;--homeos-luxe-shadow:0 18px 48px rgba(26,24,19,.075),0 2px 8px rgba(26,24,19,.035);font-family:var(--homeos-font-family,Arial,sans-serif) !important; }
 .homeos-app-shell .homeos-main-content { filter:brightness(var(--homeos-brightness,1)); }
 .homeos-app-shell[data-card-style="executive"] .homeos-workspace-page :is(.homeos-lux-panel,.homeos-account-card,.homeos-settings-section,.homeos-settings-hero,.homeos-ledger-table-shell,.homeos-document-insights,.homeos-home-forecast,.homeos-home-hero,.homeos-accounts-composition,.homeos-account-toolbar,.homeos-ledger-snapshot) { border-radius:var(--homeos-luxe-radius) !important;box-shadow:var(--homeos-luxe-shadow) !important; }
 .homeos-app-shell[data-card-style="flat"] .homeos-workspace-page :is(.homeos-lux-panel,.homeos-account-card,.homeos-settings-section,.homeos-settings-hero,.homeos-ledger-table-shell,.homeos-document-insights,.homeos-home-forecast,.homeos-home-hero) { border-radius:8px !important;box-shadow:none !important; }

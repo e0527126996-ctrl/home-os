@@ -307,6 +307,7 @@ export default function App() {
     root.style.setProperty('--accent-muted', activeTheme.accentMuted);
     root.style.setProperty('--homeos-font-family', WORKSPACE_FONT_OPTIONS.find(option => option.id === appearance.font)?.css || WORKSPACE_FONT_OPTIONS[0].css);
     root.style.setProperty('--homeos-font-scale', String(appearance.fontScale / 100));
+    root.style.fontSize = `${appearance.fontScale}%`;
     root.style.setProperty('--homeos-brightness', String(appearance.brightness / 100));
 
     if (activeTheme.isDark) {

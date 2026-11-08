@@ -646,6 +646,23 @@ export default function App() {
             </button>
           </div>
 
+          <div className="homeos-sidebar-quick-actions" aria-label="פעולות מהירות">
+            <button
+              type="button"
+              disabled={!canPerformFinance}
+              onClick={() => { setEditingTransaction(null); setShowTransactionModal(true); }}
+              className="homeos-sidebar-primary-action"
+            >
+              <span className="homeos-sidebar-action-icon"><ArrowLeftRight className="h-4 w-4" /></span>
+              <span><strong>רישום עסקה</strong><small>הכנסה או הוצאה חדשה</small></span>
+              <span className="homeos-sidebar-action-plus">+</span>
+            </button>
+            <button type="button" onClick={() => setActiveTab('accounts')} className="homeos-sidebar-secondary-action">
+              <WalletCards className="h-4 w-4" />
+              <span>מעבר לחשבונות</span>
+            </button>
+          </div>
+
           <nav aria-label="ניווט ראשי" className="homeos-side-nav-groups">
             {([
               {

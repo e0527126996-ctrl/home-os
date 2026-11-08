@@ -37,5 +37,7 @@ jobs:
         run: npm run test:finance
       - name: Access control regression tests
         run: npm run test:access
+      - name: Currency precision regression tests
+        run: npm run test:currency
       - name: Production build
         run: npm run build

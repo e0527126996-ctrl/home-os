@@ -2185,7 +2185,12 @@ body {
   background: var(--homeos-card, white);
 }
 .homeos-density-preview i { display: block; height: 4px; border-radius: 4px; background: var(--homeos-muted, var(--homeos-premium-muted)); opacity: .48; }
-.homeos-density-option[data-density="compact"] .homeos-density-preview { gap: 2px; }
+.homeos-density-option:nth-child(1) .homeos-density-preview { gap: 2px; }
+.homeos-density-option:nth-child(2) .homeos-density-preview { gap: 4px; }
+.homeos-density-option:nth-child(3) .homeos-density-preview { gap: 7px; }
+.homeos-density-option:nth-child(1) .homeos-density-preview i { height: 3px; }
+.homeos-density-option:nth-child(2) .homeos-density-preview i { height: 5px; }
+.homeos-density-option:nth-child(3) .homeos-density-preview i { height: 7px; }
 .homeos-density-option strong { font-size: 11px; font-weight: 850; }
 .homeos-density-option small { color: var(--homeos-muted, var(--homeos-premium-muted)); font-size: 9px; line-height: 1.5; }
 .homeos-settings-footnote {

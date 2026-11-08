@@ -1541,3 +1541,18 @@ body {
   .homeos-audit-toolbar-premium input { width: 100%; }
   .homeos-audit-toolbar-premium select { width: 100%; }
 }
+
+.homeos-household-card:focus-visible {
+  outline: 2px solid var(--homeos-accent,#547D70);
+  outline-offset: 4px;
+}
+.homeos-household-settings {
+  border-radius: 17px !important;
+  padding: clamp(18px,2.3vw,26px) !important;
+  background: var(--homeos-card,var(--homeos-premium-white)) !important;
+  box-shadow: var(--homeos-premium-shadow);
+}
+.homeos-household-settings > div:first-child {
+  padding-bottom: 13px;
+}
+.homeos-household-settings :is(input,select,button) { min-height: 40px; border-radius: 9px; }

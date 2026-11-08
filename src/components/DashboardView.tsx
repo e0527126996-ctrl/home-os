@@ -90,7 +90,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .reduce((sum, tx) => sum + tx.amountCents, 0);
     const previousExpenseToDate = confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === previous.key && Number(tx.date.slice(8, 10)) <= currentDay)
       .reduce((sum, tx) => sum + tx.amountCents, 0);
+    const incomeToDate = currentMonthTransactions.filter(tx => tx.type === 'INCOME')
+      .reduce((sum, tx) => sum + tx.amountCents, 0);
+    const previousIncomeToDate = confirmedTransactions.filter(tx => tx.type === 'INCOME' && tx.date?.slice(0, 7) === previous.key && Number(tx.date.slice(8, 10)) <= currentDay)
+      .reduce((sum, tx) => sum + tx.amountCents, 0);
     const expenseChange = previousExpenseToDate > 0 ? ((expenseToDate - previousExpenseToDate) / previousExpenseToDate) * 100 : null;
+    const incomeChange = previousIncomeToDate > 0 ? ((incomeToDate - previousIncomeToDate) / previousIncomeToDate) * 100 : null;
     const max = Math.max(1, ...months.flatMap(m => [m.income, m.expense]));
     const categories = Object.fromEntries(financeAnalytics.categories);
     const topCategories = Object.entries(categories).sort((a, b) => b[1] - a[1]);
@@ -154,7 +159,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .sort((a, b) => b.averageAmount - a.averageAmount)
       .slice(0, 4);
 
-    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, foreignCurrencySummaries, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, pendingReviewAmount, reconciledTransactionCount, uncategorizedExpenseCount };
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, incomeChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, foreignCurrencySummaries, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, pendingReviewAmount, reconciledTransactionCount, uncategorizedExpenseCount };
   }, [accounts, transactions, confirmedTransactions, accountCurrencies, financeAnalytics]);
 
   const today = new Date();
@@ -247,6 +252,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }] : []),
   ].slice(0, 4);
 
+  // Coordinates are derived exclusively from the same verified six-month series used by the KPI layer.
+  const cashflowChartPoints = data.months.map((month, index) => ({
+    ...month,
+    x: data.months.length < 2 ? 300 : 24 + (index / (data.months.length - 1)) * 552,
+    incomeY: 190 - (month.income / data.max) * 150,
+    expenseY: 190 - (month.expense / data.max) * 150,
+  }));
+  const smoothChartLine = (field: 'incomeY' | 'expenseY') => {
+    if (!cashflowChartPoints.length) return '';
+    return cashflowChartPoints.slice(1).reduce((path, point, index) => {
+      const previousPoint = cashflowChartPoints[index];
+      const midpoint = (previousPoint.x + point.x) / 2;
+      return path + ' C ' + midpoint + ' ' + previousPoint[field] + ', ' + midpoint + ' ' + point[field] + ', ' + point.x + ' ' + point[field];
+    }, 'M ' + cashflowChartPoints[0].x + ' ' + cashflowChartPoints[0][field]);
+  };
+  const incomeLinePath = smoothChartLine('incomeY');
+  const expenseLinePath = smoothChartLine('expenseY');
+  const incomeAreaPath = cashflowChartPoints.length ? incomeLinePath + ' L ' + cashflowChartPoints[cashflowChartPoints.length - 1].x + ' 194 L ' + cashflowChartPoints[0].x + ' 194 Z' : '';
+  const expenseAreaPath = cashflowChartPoints.length ? expenseLinePath + ' L ' + cashflowChartPoints[cashflowChartPoints.length - 1].x + ' 194 L ' + cashflowChartPoints[0].x + ' 194 Z' : '';
+
   return (
     <div className="homeos-dashboard homeos-command-center homeos-dashboard-atlas space-y-6 pb-10" dir="rtl" data-view-mode={viewMode}>
       <header className="homeos-dashboard-heading homeos-command-masthead">
@@ -295,10 +320,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </section>
 
       <section className="homeos-kpi-strip homeos-atlas-kpis" aria-label="מדדי החודש" {...widgetAttributes('monthly-kpis')}>
-        <button type="button" onClick={() => setChartDetail({ title: "הכנסות החודש", subtitle: "כל ההכנסות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'INCOME' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>הכנסות החודש</span><span className="homeos-icon-tile green"><ArrowDownLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value green">{currency(data.current.income)}</div><div className="homeos-card-foot">לחץ לפירוט ההכנסות</div></button>
+        <button type="button" onClick={() => setChartDetail({ title: "הכנסות החודש", subtitle: "כל ההכנסות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'INCOME' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>הכנסות החודש</span><span className="homeos-icon-tile green"><ArrowDownLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value green">{currency(data.current.income)}</div><div className="homeos-card-foot">לחץ לפירוט ההכנסות</div>{data.incomeChange !== null && <div className="homeos-kpi-delta is-positive" data-direction={data.incomeChange >= 0 ? 'up' : 'down'}><span>{data.incomeChange > 0 ? '↑' : data.incomeChange < 0 ? '↓' : '→'}</span>{data.incomeChange > 0 ? '+' : ''}{data.incomeChange.toFixed(1)}% <small>מול אותם ימים בחודש הקודם</small></div>}</button>
         <button type="button" onClick={() => setChartDetail({ title: "הוצאות החודש", subtitle: "כל ההוצאות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>הוצאות החודש</span><span className="homeos-icon-tile copper"><ArrowUpLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{currency(data.current.expense)}</div><div className="homeos-card-foot">לחץ לפירוט ההוצאות</div></button>
         <button type="button" onClick={() => setChartDetail({ title: "מאזן חודשי", subtitle: "הכנסות והוצאות בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.date?.slice(0, 7) === data.months[5]?.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>מאזן חודשי</span><span className="homeos-icon-tile blue"><Activity className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.cashflow >= 0 ? 'green' : 'negative')}>{currency(data.cashflow)}</div><div className="homeos-card-foot">לחץ לפירוט התזרים</div></button>
-        <button type="button" onClick={() => setChartDetail({ title: "השוואת הוצאות חודשית", subtitle: "עסקאות הוצאה בחודש הנוכחי ובחודש הקודם", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && [data.months[5]?.key, data.months[4]?.key].includes(tx.date?.slice(0, 7))) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>שינוי בהוצאות</span><span className="homeos-icon-tile neutral"><CalendarDays className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{data.expenseChange === null ? '—' : ((data.expenseChange > 0 ? '+' : '') + data.expenseChange.toFixed(1) + '%')}</div><div className="homeos-card-foot">השוואה לאותם ימים בחודש הקודם · לחץ לפירוט</div></button>
+        <button type="button" onClick={() => setChartDetail({ title: "השוואת הוצאות חודשית", subtitle: "עסקאות הוצאה בחודש הנוכחי ובחודש הקודם", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && [data.months[5]?.key, data.months[4]?.key].includes(tx.date?.slice(0, 7))) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>שינוי בהוצאות</span><span className="homeos-icon-tile neutral"><CalendarDays className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.expenseChange === null ? '' : data.expenseChange > 0 ? 'negative' : 'green')}>{data.expenseChange === null ? '—' : ((data.expenseChange > 0 ? '↑ +' : data.expenseChange < 0 ? '↓ ' : '→ ') + data.expenseChange.toFixed(1) + '%')}</div><div className="homeos-card-foot">השוואה לאותם ימים בחודש הקודם · לחץ לפירוט</div></button>
       </section>
 
       {data.pendingReviewCount > 0 && (
@@ -342,16 +367,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div><div className="homeos-section-kicker">ניתוח תזרים מזומנים</div><h2 className="mt-1 text-lg font-bold">תנועת הכסף לאורך זמן</h2><p className="mt-1 text-xs" style={muted}>השוואת הכנסות והוצאות · ששת החודשים האחרונים</p></div>
             <div className="flex gap-4 text-[11px]" style={muted}><span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#547D70]" /> הכנסות</span><span className="flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#C49A69]" /> הוצאות</span></div>
           </div>
-          {hasVerifiedHistory ? <div className="homeos-chart-grid">
-            {data.months.map((month, index) => (
-              <button type="button" key={month.key} className="homeos-chart-month cursor-pointer rounded-xl px-1 transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#547D70] dark:hover:bg-white/10" aria-label={"פתיחת פירוט " + month.label} onClick={() => setChartDetail({ title: "פירוט " + month.label, subtitle: "הכנסות " + currency(month.income) + " · הוצאות " + currency(month.expense), items: confirmedTransactions.filter(tx => tx.date && tx.date.slice(0, 7) === month.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })}>
-                <div className="homeos-chart-bars">
-                  <div className="homeos-chart-bar income" title={'הכנסות: ' + currency(month.income)} style={{ height: Math.max(month.income ? 3 : 1, month.income / data.max * 100) + '%', opacity: index === 5 ? 1 : .72 }} />
-                  <div className="homeos-chart-bar expense" title={'הוצאות: ' + currency(month.expense)} style={{ height: Math.max(month.expense ? 3 : 1, month.expense / data.max * 100) + '%', opacity: index === 5 ? 1 : .72 }} />
-                </div>
-                <span>{month.label}</span>
-              </button>
-            ))}
+          {hasVerifiedHistory ? <div className="homeos-terminal-chart">
+            <div className="homeos-terminal-chart-topline">
+              <span>מגמה חודשית · ₪</span>
+              <span>שישה חודשים אחרונים</span>
+            </div>
+            <svg className="homeos-terminal-area-chart" viewBox="0 0 600 220" role="img" aria-label="גרף שטח של הכנסות והוצאות מאומתות בששת החודשים האחרונים">
+              <defs>
+                <linearGradient id="homeos-income-gradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#16866C" stopOpacity=".28" />
+                  <stop offset="100%" stopColor="#16866C" stopOpacity=".015" />
+                </linearGradient>
+                <linearGradient id="homeos-expense-gradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#B66B63" stopOpacity=".2" />
+                  <stop offset="100%" stopColor="#B66B63" stopOpacity=".012" />
+                </linearGradient>
+              </defs>
+              <path d={expenseAreaPath} fill="url(#homeos-expense-gradient)" />
+              <path d={incomeAreaPath} fill="url(#homeos-income-gradient)" />
+              <path d={expenseLinePath} className="homeos-terminal-line expense" fill="none" />
+              <path d={incomeLinePath} className="homeos-terminal-line income" fill="none" />
+              {cashflowChartPoints.map((point, index) => <g key={point.key}>
+                <circle cx={point.x} cy={point.expenseY} r={index === cashflowChartPoints.length - 1 ? 4 : 2.8} className="homeos-terminal-point expense"><title>{point.label} · הוצאות: {currency(point.expense)}</title></circle>
+                <circle cx={point.x} cy={point.incomeY} r={index === cashflowChartPoints.length - 1 ? 4 : 2.8} className="homeos-terminal-point income"><title>{point.label} · הכנסות: {currency(point.income)}</title></circle>
+              </g>)}
+            </svg>
+            <div className="homeos-terminal-months" role="group" aria-label="בחירת חודש להצגת עסקאות">
+              {data.months.map(month => (
+                <button type="button" key={month.key} className="homeos-terminal-month" aria-label={"פתיחת פירוט " + month.label} onClick={() => setChartDetail({ title: "פירוט " + month.label, subtitle: "הכנסות " + currency(month.income) + " · הוצאות " + currency(month.expense), items: confirmedTransactions.filter(tx => tx.date && tx.date.slice(0, 7) === month.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })}>
+                  <span>{month.label}</span>
+                  <strong>{currency(month.income - month.expense)}</strong>
+                </button>
+              ))}
+            </div>
           </div> : <div className="flex min-h-[230px] flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-8 text-center" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface}}>
             <ChartNoAxesCombined className="mb-3 h-8 w-8" style={{color:activeTheme.accent}} />
             <strong className="text-sm">{data.pendingReviewCount > 0 ? 'העסקאות עדיין ממתינות לאימות' : 'עדיין אין נתונים מאומתים להצגת גרף'}</strong>

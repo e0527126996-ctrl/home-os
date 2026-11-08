@@ -402,3 +402,127 @@ body {
 @media (min-width: 681px) and (max-width: 720px) {
   .homeos-navigation-shell { top: 112px; }
 }
+
+
+/* HOME OS — Responsive & interaction refinement (v3) */
+/* Keep visual feedback consistent without changing component behavior. */
+.homeos-app-shell {
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.homeos-app-shell.dark { color-scheme: dark; }
+.homeos-app-shell :is(button, a, input, select, textarea) {
+  -webkit-tap-highlight-color: transparent;
+}
+.homeos-app-shell :is(button, a) {
+  touch-action: manipulation;
+}
+.homeos-app-shell :is(button, a):focus-visible,
+.homeos-app-shell :is(input, select, textarea):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--homeos-accent, #547D70) 78%, transparent);
+  outline-offset: 3px;
+}
+.homeos-app-shell :is(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+  opacity: .58;
+}
+.homeos-app-shell ::selection {
+  color: var(--homeos-text, #211F1B);
+  background: color-mix(in srgb, var(--homeos-accent, #547D70) 22%, transparent);
+}
+.homeos-app-shell :is(.homeos-kpi-value, .tabular-nums, [data-numeric="true"]) {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.homeos-app-shell :is(table, [role="table"]) {
+  max-width: 100%;
+}
+.homeos-app-shell :is(.overflow-x-auto, [data-scroll-region="horizontal"]) {
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--homeos-border, #E6E0D8) transparent;
+}
+.homeos-app-shell :is(.overflow-x-auto, [data-scroll-region="horizontal"])::-webkit-scrollbar {
+  height: 7px;
+}
+.homeos-app-shell :is(.overflow-x-auto, [data-scroll-region="horizontal"])::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 99px;
+  background: var(--homeos-border, #E6E0D8);
+  background-clip: padding-box;
+}
+.homeos-app-shell :is(.homeos-lux-panel, .homeos-home-panel, .homeos-settings-section) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.homeos-app-shell :is(.homeos-lux-panel, .homeos-home-panel, .homeos-settings-section) :is(img, svg) {
+  flex-shrink: 0;
+}
+.homeos-topbar {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.homeos-main-content {
+  padding-bottom: max(42px, env(safe-area-inset-bottom, 0px));
+}
+.homeos-navigation-shell {
+  scrollbar-gutter: stable;
+}
+.homeos-main-nav .homeos-nav-item {
+  min-width: 0;
+}
+.homeos-main-nav .homeos-nav-item > span:nth-child(2) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.homeos-app-shell :is(.homeos-primary-action, .homeos-secondary-action, .homeos-export-button, .homeos-toolbar-button, .homeos-user-button) {
+  transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, border-color .16s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .homeos-app-shell :is(.homeos-primary-action, .homeos-secondary-action, .homeos-export-button, .homeos-toolbar-button, .homeos-user-button):not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+  .homeos-app-shell :is(.homeos-primary-action, .homeos-export-button):not(:disabled):hover {
+    box-shadow: 0 9px 22px color-mix(in srgb, var(--homeos-accent, #547D70) 24%, transparent);
+  }
+}
+@media (max-width: 680px) {
+  .homeos-main-content {
+    width: 100%;
+    min-width: 0;
+    padding-inline: max(10px, env(safe-area-inset-left, 0px)) max(10px, env(safe-area-inset-right, 0px));
+  }
+  .homeos-navigation-shell {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .homeos-main-nav {
+    width: 100%;
+    max-width: 100%;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+  .homeos-main-nav .homeos-nav-item {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+  }
+  .homeos-workspace-content {
+    width: 100%;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .homeos-app-shell :is(.homeos-lux-panel, .homeos-home-panel, .homeos-settings-section) {
+    max-width: 100%;
+  }
+  .homeos-app-shell :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    max-width: 100%;
+    font-size: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .homeos-app-shell :is(button, a, .homeos-lux-panel, .homeos-home-panel) {
+    transition: none !important;
+    transform: none !important;
+  }
+}

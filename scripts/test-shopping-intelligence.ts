@@ -53,6 +53,8 @@ const cases: Array<{ name: string; run: () => void }> = [
       assert.equal(classifyShoppingCategory('עגבניות'), 'ירקות ופירות');
       assert.equal(classifyShoppingCategory('גבינה לבנה'), 'מוצרי חלב וביצים');
       assert.equal(classifyShoppingCategory('חזה עוף'), 'בשר, דגים ועוף');
+      assert.equal(classifyShoppingCategory('פלפל שחור גרוס'), 'מזווה ותבלינים');
+      assert.equal(classifyShoppingCategory('פלפל אדום'), 'ירקות ופירות');
     },
   },
 ];

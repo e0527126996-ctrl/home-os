@@ -96,6 +96,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .reduce((sum, tx) => sum + tx.amountCents, 0);
     const expenseChange = previousExpenseToDate > 0 ? ((expenseToDate - previousExpenseToDate) / previousExpenseToDate) * 100 : null;
     const incomeChange = previousIncomeToDate > 0 ? ((incomeToDate - previousIncomeToDate) / previousIncomeToDate) * 100 : null;
+    const previousHasActivity = previousIncomeToDate > 0 || previousExpenseToDate > 0;
+    const cashflowChangeCents = previousHasActivity
+      ? (incomeToDate - expenseToDate) - (previousIncomeToDate - previousExpenseToDate)
+      : null;
     const max = Math.max(1, ...months.flatMap(m => [m.income, m.expense]));
     const categories = Object.fromEntries(financeAnalytics.categories);
     const topCategories = Object.entries(categories).sort((a, b) => b[1] - a[1]);
@@ -159,7 +163,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .sort((a, b) => b.averageAmount - a.averageAmount)
       .slice(0, 4);
 
-    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, incomeChange, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, foreignCurrencySummaries, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, pendingReviewAmount, reconciledTransactionCount, uncategorizedExpenseCount };
+    return { assets, liabilities, netWorth: assets - liabilities, months, max, current, previous, expenseChange, incomeChange, cashflowChangeCents, topCategories, recent, activeAccounts, assetAccountCount: assetAccounts.length, liabilityAccountCount: liabilityAccounts.length, foreignAccountCount: activeAccounts.filter(a => a.currency !== 'ILS').length, foreignCurrencySummaries, averageExpense, cashflow, baselineExpense, baselineIncome, baselineCashflow, baselineSavingsRate, baselineTransactionCount, baselineMonthCount, currentDay, daysInMonth, currentTransactionDays, projectionReady, projectedIncome, projectedExpense, projectedCashflow, savingsInsights, recurringExpenses, pendingReviewCount, pendingReviewAmount, reconciledTransactionCount, uncategorizedExpenseCount };
   }, [accounts, transactions, confirmedTransactions, accountCurrencies, financeAnalytics]);
 
   const today = new Date();
@@ -271,6 +275,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const expenseLinePath = smoothChartLine('expenseY');
   const incomeAreaPath = cashflowChartPoints.length ? incomeLinePath + ' L ' + cashflowChartPoints[cashflowChartPoints.length - 1].x + ' 194 L ' + cashflowChartPoints[0].x + ' 194 Z' : '';
   const expenseAreaPath = cashflowChartPoints.length ? expenseLinePath + ' L ' + cashflowChartPoints[cashflowChartPoints.length - 1].x + ' 194 L ' + cashflowChartPoints[0].x + ' 194 Z' : '';
+  const forecastMaxAbs = Math.max(1, ...financeAnalytics.forecast.monthly.map(point => Math.abs(point.cumulativeNetCents)));
+  const forecastBaselineY = 96;
+  const forecastChartPoints = financeAnalytics.forecast.monthly.map((month, index, list) => ({
+    ...month,
+    x: list.length < 2 ? 300 : 18 + (index / (list.length - 1)) * 564,
+    y: forecastBaselineY - (month.cumulativeNetCents / forecastMaxAbs) * 70,
+  }));
+  const forecastLinePath = forecastChartPoints.length
+    ? forecastChartPoints.slice(1).reduce((path, point, index) => {
+        const prior = forecastChartPoints[index];
+        const midpoint = (prior.x + point.x) / 2;
+        return path + ' C ' + midpoint + ' ' + prior.y + ', ' + midpoint + ' ' + point.y + ', ' + point.x + ' ' + point.y;
+      }, 'M ' + forecastChartPoints[0].x + ' ' + forecastChartPoints[0].y)
+    : '';
+  const forecastAreaPath = forecastChartPoints.length
+    ? forecastLinePath + ' L ' + forecastChartPoints[forecastChartPoints.length - 1].x + ' ' + forecastBaselineY + ' L ' + forecastChartPoints[0].x + ' ' + forecastBaselineY + ' Z'
+    : '';
+  const forecastIsPositive = (financeAnalytics.forecast.averageNetCents || 0) >= 0;
 
   return (
     <div className="homeos-dashboard homeos-command-center homeos-dashboard-atlas space-y-6 pb-10" dir="rtl" data-view-mode={viewMode}>
@@ -322,7 +344,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section className="homeos-kpi-strip homeos-atlas-kpis" aria-label="מדדי החודש" {...widgetAttributes('monthly-kpis')}>
         <button type="button" onClick={() => setChartDetail({ title: "הכנסות החודש", subtitle: "כל ההכנסות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'INCOME' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>הכנסות החודש</span><span className="homeos-icon-tile green"><ArrowDownLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value green">{currency(data.current.income)}</div><div className="homeos-card-foot">לחץ לפירוט ההכנסות</div>{data.incomeChange !== null && <div className={'homeos-kpi-delta ' + (data.incomeChange >= 0 ? 'is-positive' : 'is-negative')} data-direction={data.incomeChange >= 0 ? 'up' : 'down'}><span>{data.incomeChange > 0 ? '↑' : data.incomeChange < 0 ? '↓' : '→'}</span>{data.incomeChange > 0 ? '+' : ''}{data.incomeChange.toFixed(1)}% <small>מול אותם ימים בחודש הקודם</small></div>}</button>
         <button type="button" onClick={() => setChartDetail({ title: "הוצאות החודש", subtitle: "כל ההוצאות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>הוצאות החודש</span><span className="homeos-icon-tile copper"><ArrowUpLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{currency(data.current.expense)}</div><div className="homeos-card-foot">לחץ לפירוט ההוצאות</div></button>
-        <button type="button" onClick={() => setChartDetail({ title: "מאזן חודשי", subtitle: "הכנסות והוצאות בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.date?.slice(0, 7) === data.months[5]?.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>מאזן חודשי</span><span className="homeos-icon-tile blue"><Activity className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.cashflow >= 0 ? 'green' : 'negative')}>{currency(data.cashflow)}</div><div className="homeos-card-foot">לחץ לפירוט התזרים</div></button>
+        <button type="button" onClick={() => setChartDetail({ title: "מאזן חודשי", subtitle: "הכנסות והוצאות בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.date?.slice(0, 7) === data.months[5]?.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>מאזן חודשי</span><span className="homeos-icon-tile blue"><Activity className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.cashflow >= 0 ? 'green' : 'negative')}>{currency(data.cashflow)}</div><div className="homeos-card-foot">לחץ לפירוט התזרים</div>{data.cashflowChangeCents !== null && <div className={'homeos-kpi-delta ' + (data.cashflowChangeCents >= 0 ? 'is-positive' : 'is-negative')} data-direction={data.cashflowChangeCents >= 0 ? 'up' : 'down'}><span>{data.cashflowChangeCents > 0 ? '↑' : data.cashflowChangeCents < 0 ? '↓' : '→'}</span>{data.cashflowChangeCents > 0 ? '+' : data.cashflowChangeCents < 0 ? '−' : ''}{currency(Math.abs(data.cashflowChangeCents))}<small>שינוי מול אותם ימים בחודש הקודם</small></div>}</button>
         <button type="button" onClick={() => setChartDetail({ title: "השוואת הוצאות חודשית", subtitle: "עסקאות הוצאה בחודש הנוכחי ובחודש הקודם", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && [data.months[5]?.key, data.months[4]?.key].includes(tx.date?.slice(0, 7))) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>שינוי בהוצאות</span><span className="homeos-icon-tile neutral"><CalendarDays className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.expenseChange === null ? '' : data.expenseChange > 0 ? 'negative' : 'green')}>{data.expenseChange === null ? '—' : ((data.expenseChange > 0 ? '↑ +' : data.expenseChange < 0 ? '↓ ' : '→ ') + data.expenseChange.toFixed(1) + '%')}</div><div className="homeos-card-foot">השוואה לאותם ימים בחודש הקודם · לחץ לפירוט</div></button>
       </section>
 
@@ -437,17 +459,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             ))}
           </div>
-          <div className="mt-6 grid grid-cols-6 gap-2 sm:grid-cols-12">
-            {financeAnalytics.forecast.monthly.map(month => {
-              const maxCumulative = Math.max(1, ...financeAnalytics.forecast.monthly.map(point => Math.abs(point.cumulativeNetCents)));
-              const height = Math.max(4, Math.abs(month.cumulativeNetCents) / maxCumulative * 100);
-              return <button type="button" key={month.key} className="homeos-forecast-month flex min-w-0 flex-col items-center gap-2 rounded-lg px-1 text-center" title={month.label + ': ' + currency(month.cumulativeNetCents) + ' · לחיצה לפרטי התחזית'} onClick={() => setChartDetail({ title: "תחזית תזרים — " + month.label, subtitle: "תזרים מצטבר חזוי: " + currency(month.cumulativeNetCents), items: [], note: "זהו ערך תרחישי ולא תנועה שנרשמה בפועל. התחזית מחושבת מנתוני הכנסה והוצאה מאומתים משלושת החודשים המלאים האחרונים ומניחה שהקצב הממוצע יימשך. כדי לבדוק את נתוני המקור, פתח את פנקס העסקאות." })}>
-                <div className="flex h-28 w-full items-end justify-center rounded-lg px-1" style={{backgroundColor:activeTheme.bgSurface}}>
-                  <div className="w-full rounded-t-md" style={{height:height + '%',background:month.cumulativeNetCents >= 0 ? 'linear-gradient(180deg,#6F9B83,#477866)' : 'linear-gradient(180deg,#D08A7D,#B45F56)'}}/>
-                </div>
-                <span className="text-[9px] whitespace-nowrap" style={muted}>{month.label}</span>
-              </button>;
-            })}
+          <div className="homeos-forecast-terminal mt-6">
+            <div className="homeos-terminal-chart-topline">
+              <span>PROJECTED CUMULATIVE NET CASHFLOW</span>
+              <span>12M SCENARIO · ₪</span>
+            </div>
+            <svg className="homeos-forecast-area-chart" viewBox="0 0 600 176" role="img" aria-label="תחזית תזרים מצטבר ל-12 חודשים על בסיס ממוצעי פעילות מאומתת">
+              <defs>
+                <linearGradient id="homeos-forecast-gradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor={forecastIsPositive ? '#16866C' : '#A64E54'} stopOpacity=".24" />
+                  <stop offset="100%" stopColor={forecastIsPositive ? '#16866C' : '#A64E54'} stopOpacity=".012" />
+                </linearGradient>
+              </defs>
+              <line x1="18" x2="582" y1={forecastBaselineY} y2={forecastBaselineY} className="homeos-forecast-baseline" />
+              <path d={forecastAreaPath} fill="url(#homeos-forecast-gradient)" />
+              <path d={forecastLinePath} className={'homeos-forecast-line ' + (forecastIsPositive ? 'is-positive' : 'is-negative')} fill="none" />
+              {forecastChartPoints.map((point, index) => <circle key={point.key} cx={point.x} cy={point.y} r={index === forecastChartPoints.length - 1 ? 4 : 2.5} className={'homeos-forecast-point ' + (forecastIsPositive ? 'is-positive' : 'is-negative')}><title>{point.label}: {currency(point.cumulativeNetCents)}</title></circle>)}
+            </svg>
+            <div className="homeos-forecast-months" role="group" aria-label="פתיחת הסבר לתחזית בכל חודש">
+              {financeAnalytics.forecast.monthly.map(month => (
+                <button type="button" key={month.key} className="homeos-forecast-month" title={month.label + ': ' + currency(month.cumulativeNetCents) + ' · לחיצה לפרטי התחזית'} onClick={() => setChartDetail({ title: "תחזית תזרים — " + month.label, subtitle: "תזרים מצטבר חזוי: " + currency(month.cumulativeNetCents), items: [], note: "זהו ערך תרחישי ולא תנועה שנרשמה בפועל. התחזית מחושבת מנתוני הכנסה והוצאה מאומתים משלושת החודשים המלאים האחרונים ומניחה שהקצב הממוצע יימשך. כדי לבדוק את נתוני המקור, פתח את פנקס העסקאות." })}>
+                  <span>{month.label}</span><strong>{currency(month.cumulativeNetCents)}</strong>
+                </button>
+              ))}
+            </div>
           </div>
           <p className="mt-3 text-[10px] leading-5" style={muted}>רמת ביטחון: {financeAnalytics.forecast.confidence === 'good' ? 'טובה' : 'בינונית'} · מבוסס על {financeAnalytics.forecast.historyTransactions} עסקאות מאומתות בשלושה חודשים מלאים. זהו תרחיש קבוע ולא תחזית עונתית; יש להוסיף ידנית התחייבויות, שינויים בשכר והוצאות חריגות כדי לדייק אותו.</p>
         </> : <div className="mt-5 rounded-2xl border p-5 text-sm leading-6" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface,color:activeTheme.textSecondary}}>

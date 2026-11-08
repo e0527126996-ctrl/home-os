@@ -17,6 +17,7 @@ interface DashboardViewProps {
   activeTheme: ThemeConfig;
   onOpenAccounts: () => void;
   onOpenLedger: () => void;
+  onOpenHome: () => void;
 }
 
 const money = (value: number, currency: string = 'ILS') => new Intl.NumberFormat('he-IL', {
@@ -25,7 +26,7 @@ const money = (value: number, currency: string = 'ILS') => new Intl.NumberFormat
 const monthLabel = (date: Date) => new Intl.DateTimeFormat('he-IL', { month: 'short' }).format(date);
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
-  accounts, transactions, homeItems, householdName, activeTheme, onOpenAccounts, onOpenLedger,
+  accounts, transactions, homeItems, householdName, activeTheme, onOpenAccounts, onOpenLedger, onOpenHome,
 }) => {
   const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[] } | null>(null);
   const financeAnalytics = useMemo(() => buildFinanceAnalytics(accounts, transactions), [accounts, transactions]);
@@ -210,7 +211,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <section className="homeos-home-snapshot">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div><div className="homeos-section-kicker">ניהול הבית</div><h2 className="mt-1 text-lg font-bold">תמונת מצב הבית</h2><p className="mt-1 text-xs" style={muted}>נתוני ניהול הבית מסונכרנים עם לוח הבקרה</p></div>
-          <button onClick={onOpenLedger} className="homeos-text-link">מעבר לפנקס העסקאות <ArrowLeft className="h-4 w-4" /></button>
+          <button onClick={onOpenHome} className="homeos-text-link">פתיחת ניהול הבית <ArrowLeft className="h-4 w-4" /></button>
         </div>
         <div className="homeos-home-snapshot-metrics">
           <div><span>ארוחות בשבעת הימים הקרובים</span><strong>{householdSnapshot.meals}</strong></div>

@@ -6,3 +6,4 @@ import './experience-design.css';
 import './premium-interface-revolution.css';
 
 createRoot(document.getElementById('root')!).render(<App />);
+import './total-redesign.css';

@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Activity, ArrowLeftRight, ChevronLeft, ChevronRight, ClipboardList,
-  FileText, FolderOpen, House, LayoutDashboard, Search, Settings,
+  FileText, FolderOpen, House, Landmark, LayoutDashboard, Search, Settings,
   UsersRound, WalletCards, Utensils, type LucideIcon,
 } from 'lucide-react';
 
 export type WorkspaceTab =
   | 'dashboard' | 'overview' | 'accounts' | 'ledger' | 'members'
-  | 'households' | 'audit' | 'documents' | 'home' | 'settings';
+  | 'households' | 'audit' | 'documents' | 'home' | 'mortgage' | 'settings';
 
 interface WorkspaceNavigationProps {
   activeTab: WorkspaceTab;
@@ -65,6 +65,7 @@ export const WorkspaceNavigation: React.FC<WorkspaceNavigationProps> = ({
       id: 'finance', label: 'כספים', subtitle: 'FINANCIAL CONTROL',
       items: [
         { id: 'accounts', label: 'חשבונות ונכסים', description: 'יתרות, נכסים והתחייבויות', icon: WalletCards, count: accountCount, searchTerms: 'בנק עוש עו״ש אשראי כרטיס הלוואה משכנתא חסכון חיסכון השקעה יתרה' },
+        { id: 'mortgage', label: 'מרכז משכנתאות', description: 'מסלולים, דוחות, ריביות ויתרות', icon: Landmark, searchTerms: 'mortgage משכנתה משכנתא הלוואת דיור מסלולים קרן ריבית החזר דוח סילוקין' },
         { id: 'ledger', label: 'פנקס עסקאות', description: 'תנועות, סיווג ואימות', icon: ArrowLeftRight, count: transactionCount, searchTerms: 'עסקה עסקאות תנועה תנועות הכנסה הוצאה העברה קבלה חיוב זיכוי דף חשבון בנק' },
       ],
     });

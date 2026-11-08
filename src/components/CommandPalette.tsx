@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ClipboardList, FileText, House, LayoutDashboard, Search, Settings, UsersRound, WalletCards } from 'lucide-react';
+import { Activity, ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ClipboardList, FileText, House, Landmark, LayoutDashboard, Search, Settings, UsersRound, WalletCards } from 'lucide-react';
 
-export type WorkspaceCommand = 'dashboard'|'accounts'|'ledger'|'documents'|'home'|'members'|'households'|'audit'|'settings'|'create-expense'|'create-income'|'create-transfer';
+export type WorkspaceCommand = 'dashboard'|'accounts'|'mortgage'|'ledger'|'documents'|'home'|'members'|'households'|'audit'|'settings'|'create-expense'|'create-income'|'create-transfer';
 interface Props {
   isOpen:boolean; onClose:()=>void; onRun:(command:WorkspaceCommand)=>void;
   canReadFinance:boolean; canWriteFinance:boolean; canReadDocuments:boolean; canReadFood:boolean; canReadAdmin:boolean;
@@ -14,6 +14,7 @@ export const CommandPalette:React.FC<Props>=({isOpen,onClose,onRun,canReadFinanc
     {id:'dashboard',label:'לוח הבקרה',detail:'תמונת מצב והמלצות לבית',terms:'ראשי דשבורד dashboard מצב',icon:LayoutDashboard,group:'מעבר לאזור'},
     ...(canReadFinance?[
       {id:'accounts' as const,label:'חשבונות ונכסים',detail:'יתרות, חסכונות, התחייבויות וכרטיסים',terms:'בנק עוש אשראי משכנתא',icon:WalletCards,group:'מעבר לאזור' as const},
+      {id:'mortgage' as const,label:'מרכז משכנתאות',detail:'מסלולים, ריביות, דוחות ויתרות',terms:'משכנתא משכנתה הלוואה דיור מסלול פריים קלצ החזר חודשי סילוקין',icon:Landmark,group:'מעבר לאזור' as const},
       {id:'ledger' as const,label:'פנקס עסקאות',detail:'הכנסות, הוצאות, העברות ואימות',terms:'תנועות קבלה חיוב זיכוי',icon:Activity,group:'מעבר לאזור' as const},
     ]:[]),
     ...(canReadDocuments?[{id:'documents' as const,label:'מרכז מסמכים',detail:'קבלות, חשבוניות ודוחות',terms:'קובץ מסמך תלוש חשבונית',icon:FileText,group:'מעבר לאזור' as const}]:[]),

@@ -32,6 +32,7 @@ const DashboardView = lazy(() => import('./components/DashboardView.tsx').then((
 const HouseholdsView = lazy(() => import('./components/HouseholdsView.tsx').then(({ HouseholdsView }) => ({ default: HouseholdsView })));
 const MembersAndPersonsView = lazy(() => import('./components/MembersAndPersonsView.tsx').then(({ MembersAndPersonsView }) => ({ default: MembersAndPersonsView })));
 const AccountsView = lazy(() => import('./components/AccountsView.tsx').then(({ AccountsView }) => ({ default: AccountsView })));
+const MortgageView = lazy(() => import('./components/MortgageView.tsx').then(({ MortgageView }) => ({ default: MortgageView })));
 const TransactionsLedgerView = lazy(() => import('./components/TransactionsLedgerView.tsx').then(({ TransactionsLedgerView }) => ({ default: TransactionsLedgerView })));
 const TransactionModal = lazy(() => import('./components/TransactionModal.tsx').then(({ TransactionModal }) => ({ default: TransactionModal })));
 const PermissionsModal = lazy(() => import('./components/PermissionsModal.tsx').then(({ PermissionsModal }) => ({ default: PermissionsModal })));
@@ -79,7 +80,7 @@ export default function App() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   // Navigation & Theme
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'overview' | 'accounts' | 'ledger' | 'members' | 'households' | 'audit' | 'documents' | 'home' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'overview' | 'accounts' | 'mortgage' | 'ledger' | 'members' | 'households' | 'audit' | 'documents' | 'home' | 'settings'>('dashboard');
   const [homeManagementInitialTab, setHomeManagementInitialTab] = useState<'planner'|'recipes'|'shopping'|'tasks'|'finance'>('planner');
   const [activeTheme, setActiveTheme] = useState<ThemeConfig>(MODERN_EDITORIAL_THEMES[0]);
   const [workspaceDensity, setWorkspaceDensity] = useState<'compact' | 'balanced' | 'spacious'>('balanced');
@@ -819,7 +820,7 @@ export default function App() {
     if (command === 'create-income') return openQuickTransaction('INCOME');
     if (command === 'create-transfer') return openQuickTransaction('TRANSFER');
     if ((command === 'members' || command === 'audit') && !canReadAdmin) return;
-    if ((command === 'accounts' || command === 'ledger') && !canReadFinance) return;
+    if ((command === 'accounts' || command === 'mortgage' || command === 'ledger') && !canReadFinance) return;
     if (command === 'documents' && !canReadDocuments) return;
     if (command === 'home' && !canReadFood) return;
     setActiveTab(command);
@@ -844,7 +845,7 @@ export default function App() {
   const canConfigurePermissions = canApproveHouseholdDomain(currentMembership?.role, currentPermissionRules, 'admin');
 
   useEffect(() => {
-    const financeTabs = activeTab === 'accounts' || activeTab === 'ledger';
+    const financeTabs = activeTab === 'accounts' || activeTab === 'mortgage' || activeTab === 'ledger';
     if ((financeTabs && !canReadFinance) ||
         (activeTab === 'documents' && !canReadDocuments) ||
         (activeTab === 'home' && !canReadFood) ||
@@ -1177,6 +1178,17 @@ export default function App() {
             onDeleteAccount={handleDeleteAccount}
             onSeedDemoAccounts={handleSeedDemoAccounts}
             onOpenLedgerForAccount={handleOpenLedgerForAccount}
+          />
+        )}
+
+        {activeTab === 'mortgage' && activeHousehold && canReadFinance && (
+          <MortgageView
+            household={activeHousehold}
+            currentUser={currentUser}
+            accounts={accounts}
+            activeTheme={activeTheme}
+            canEdit={canPerformFinance}
+            onOpenAccounts={() => setActiveTab('accounts')}
           />
         )}
 

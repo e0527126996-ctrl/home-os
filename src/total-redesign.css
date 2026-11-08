@@ -1230,3 +1230,22 @@
 @media(max-width:880px){.homeos-command-launcher span,.homeos-command-launcher kbd{display:none}.homeos-command-launcher{width:34px;justify-content:center;padding:0}}
 @media(max-width:640px){.homeos-command-overlay{padding:12px 9px;align-items:flex-start}.homeos-command-palette{max-height:88vh;border-radius:13px}.homeos-command-palette-head{padding:17px 16px 13px}.homeos-command-palette-head h2{font-size:21px}.homeos-command-search{margin:0 12px 12px}.homeos-command-foot{gap:9px;font-size:8px}.homeos-appearance-grid{grid-template-columns:1fr}.homeos-appearance-preview{align-items:flex-start;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.homeos-app-shell *,.homeos-app-shell *::before,.homeos-app-shell *::after{scroll-behavior:auto !important;animation-duration:.01ms !important;transition-duration:.01ms !important}}
+
+
+/* Mortgage intelligence workspace */
+.homeos-mortgage-page { display:flex; flex-direction:column; gap:22px; min-width:0; }
+.homeos-mortgage-hero { position:relative; overflow:hidden; border:1px solid var(--homeos-border); border-radius:28px; padding:clamp(22px,3vw,38px); background:linear-gradient(125deg,rgba(23,34,39,.98),rgba(29,48,53,.94) 58%,rgba(87,74,55,.92)); color:#f7f2e9; box-shadow:0 22px 60px rgba(9,18,20,.16); }
+.homeos-mortgage-hero:before,.homeos-mortgage-hero:after { content:"";position:absolute;border:1px solid rgba(228,202,151,.17);border-radius:999px;pointer-events:none; }
+.homeos-mortgage-hero:before { width:330px;height:330px;left:-85px;top:-190px; }
+.homeos-mortgage-hero:after { width:210px;height:210px;left:20px;top:-135px; }
+.homeos-mortgage-panel { border:1px solid var(--homeos-border);border-radius:22px;background:var(--homeos-card);box-shadow:0 12px 34px rgba(20,24,28,.055); }
+.homeos-mortgage-metric { min-width:0;border:1px solid var(--homeos-border);border-radius:18px;padding:18px;background:var(--homeos-card); }
+.homeos-mortgage-metric strong { display:block;font-variant-numeric:tabular-nums;letter-spacing:-.035em; }
+.homeos-mortgage-field { width:100%;min-width:0;border:1px solid var(--homeos-border);border-radius:11px;padding:10px 12px;background:var(--homeos-bg-surface, var(--homeos-canvas));color:var(--homeos-text);font:inherit;font-size:12px; }
+.homeos-mortgage-field:focus { outline:2px solid var(--homeos-focus-ring);outline-offset:2px; }
+.homeos-mortgage-table { width:100%;border-collapse:separate;border-spacing:0;font-size:12px; }
+.homeos-mortgage-table th { text-align:right;color:var(--homeos-muted);font-weight:600;padding:12px 10px;border-bottom:1px solid var(--homeos-border);white-space:nowrap; }
+.homeos-mortgage-table td { padding:13px 10px;border-bottom:1px solid var(--homeos-border);vertical-align:middle; }
+.homeos-mortgage-table tr:last-child td { border-bottom:0; }
+.homeos-mortgage-pill { display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;background:var(--homeos-accent-muted);color:var(--homeos-accent);font-size:10px;font-weight:700; }
+@media(max-width:700px){.homeos-mortgage-hero{border-radius:21px}.homeos-mortgage-table{min-width:680px}.homeos-mortgage-panel{border-radius:18px}}

@@ -385,12 +385,17 @@ function attachDuplicateFlags(
   });
 }
 
+const MAX_TABULAR_FILE_BYTES = 15 * 1024 * 1024;
+
 export async function parseStatementFileWithDiagnostics(
   file: File,
   existing: LedgerTransaction[],
   onProgress?: (progress: StatementParseProgress) => void,
 ): Promise<StatementParseResult> {
   const ext = file.name.toLowerCase().split('.').pop();
+  if ((ext === 'xlsx' || ext === 'xls' || ext === 'csv') && file.size > MAX_TABULAR_FILE_BYTES) {
+    throw new Error('קובץ Excel או CSV גדול מדי. ניתן לייבא קבצים עד 15MB כדי לצמצם עומס וסיכון בעת פענוח קבצים חיצוניים.');
+  }
   let rows: ImportedStatementRow[] = [];
   let method: StatementParseMethod;
   let pages: number | undefined;
@@ -398,7 +403,7 @@ export async function parseStatementFileWithDiagnostics(
 
   if (ext === 'xlsx' || ext === 'xls') {
     const XLSX = await import('xlsx');
-    const workbook = XLSX.read(await file.arrayBuffer(), { cellDates: true, raw: true });
+    const workbook = XLSX.read(await file.arrayBuffer(), { cellDates: true, raw: true, cellFormula: false, cellHTML: false });
     const sheetErrors: string[] = [];
     for (const sheetName of workbook.SheetNames) {
       const sheet = workbook.Sheets[sheetName];
@@ -421,7 +426,7 @@ export async function parseStatementFileWithDiagnostics(
     const bytes = new Uint8Array(await file.arrayBuffer());
     const utf8 = new TextDecoder('utf-8').decode(bytes);
     const csvText = utf8.includes('\uFFFD') ? new TextDecoder('windows-1255').decode(bytes) : utf8;
-    const workbook = XLSX.read(csvText, { type: 'string', cellDates: true });
+    const workbook = XLSX.read(csvText, { type: 'string', cellDates: true, cellFormula: false, cellHTML: false });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!sheet) throw new Error('קובץ ה-CSV ריק או שלא ניתן לזהות בו טבלה.');
     const sheetRows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: '' }) as unknown[][];

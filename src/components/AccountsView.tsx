@@ -305,7 +305,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             return (
               <div
                 key={acc.id}
-                className="homeos-lux-panel flex flex-col justify-between space-y-4"
+                className="homeos-lux-panel homeos-account-card flex flex-col justify-between space-y-4"
                 style={{
                   backgroundColor: activeTheme.bgCard,
                   borderColor: activeTheme.borderSubtle,

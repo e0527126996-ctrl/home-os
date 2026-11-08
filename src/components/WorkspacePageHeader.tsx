@@ -10,7 +10,7 @@ type WorkspacePageHeaderProps = {
 
 export function WorkspacePageHeader({ eyebrow, title, description, actions, meta }: WorkspacePageHeaderProps) {
   return (
-    <header className="homeos-page-heading" dir="rtl">
+    <header className="homeos-page-heading homeos-atlas-page-heading" dir="rtl">
       <div className="homeos-page-heading-copy">
         <div className="homeos-page-eyebrow"><span className="homeos-page-eyebrow-mark" />{eyebrow}</div>
         <h1>{title}</h1>

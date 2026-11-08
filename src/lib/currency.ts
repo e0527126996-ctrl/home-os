@@ -14,15 +14,21 @@ export function toCents(val: number | string | undefined | null): number {
   // Numeric callers are normalized to two decimal places. String callers
   // must already be a plain decimal value; malformed suffixes and extra
   // decimal places are rejected instead of being silently truncated.
-  const str = typeof val === 'number'
-    ? (Number.isFinite(val) ? val.toFixed(2) : '')
+  const isNumericInput = typeof val === 'number';
+  const str = isNumericInput
+    ? (Number.isFinite(val) ? val.toString() : '')
     : String(val).trim();
-  const match = str.match(/^(-?)(\d+)(?:\.(\d{1,2}))?$/);
+  const match = str.match(/^(-?)(\\d+)(?:\\.(\\d+))?$/);
   if (!match) return 0;
 
+  const fraction = match[3] || '';
+  // Text inputs stay strict; numeric callers use decimal half-up rounding
+  // from their shortest decimal representation, avoiding 1.005 -> 1.00.
+  if (!isNumericInput && fraction.length > 2) return 0;
   const wholePart = Number(match[2]);
-  const fracPart = Number((match[3] || '').padEnd(2, '0'));
-  const totalCents = wholePart * 100 + fracPart;
+  const fracPart = Number((fraction + '00').slice(0, 2));
+  const roundUp = isNumericInput && fraction.length > 2 && fraction[2] >= '5' ? 1 : 0;
+  const totalCents = wholePart * 100 + fracPart + roundUp;
   if (!Number.isSafeInteger(totalCents)) return 0;
   return match[1] ? -totalCents : totalCents;
 }

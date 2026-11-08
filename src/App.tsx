@@ -621,52 +621,106 @@ export default function App() {
 
       <Suspense fallback={<div className="flex min-h-48 items-center justify-center text-sm" style={{ color: activeTheme.textSecondary }}>טוען אזור עבודה...</div>}>
       {/* Main Body */}
-      <main className="homeos-main-content flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-7 lg:px-10 py-7 space-y-8">
-        {/* Premium primary navigation */}
-        <section className="homeos-navigation-shell">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-2">
-            <div><div className="homeos-section-kicker">מרחב ניהול משק הבית</div><div className="mt-1 text-sm font-bold" style={{ color: activeTheme.textPrimary }}>מרחבי העבודה</div></div>
-            <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold tabular-nums" style={{ color: activeTheme.textSecondary }}>
-              <span className="homeos-workspace-stat"><span className="homeos-status-dot verified"/> {transactions.filter(tx => tx.verificationStatus !== 'PENDING').length} מאומתות</span>
-              <span className="homeos-workspace-stat"><span className="homeos-status-dot pending"/> {transactions.filter(tx => tx.verificationStatus === 'PENDING').length} לאימות</span>
-              <span className="homeos-workspace-stat">{accounts.length} חשבונות</span>
+      <main className="homeos-workspace-layout flex-1 w-full mx-auto px-4 sm:px-5 2xl:px-8 py-5 xl:py-7">
+        {/* Persistent workspace navigation */}
+        <aside className="homeos-sidebar" aria-label="ניווט סביבת העבודה">
+          <div className="homeos-sidebar-intro">
+            <span className="homeos-sidebar-kicker">HOME OS WORKSPACE</span>
+            <div className="homeos-sidebar-heading">
+              <strong>מרחבי העבודה</strong>
+              <span className="homeos-sidebar-index">01 — 03</span>
+            </div>
+            <p>כל מה שקורה בבית, מסודר במקום אחד.</p>
+          </div>
+
+          <div className="homeos-sidebar-household">
+            <div className="homeos-sidebar-overline">משק הבית הפעיל</div>
+            <button type="button" onClick={() => setShowHouseholdsModal(true)} aria-label="החלפת משק בית">
+              <span className="homeos-sidebar-household-mark"><Home className="h-4 w-4" /></span>
+              <span className="homeos-sidebar-household-copy">
+                <strong>{activeHousehold?.name || 'בחירת משק בית'}</strong>
+                <small>{currentUser?.fullName || 'משתמש מקומי'}</small>
+              </span>
+              <ChevronDown className="homeos-sidebar-chevron h-4 w-4" />
+            </button>
+          </div>
+
+          <nav aria-label="ניווט ראשי" className="homeos-side-nav-groups">
+            {([
+              {
+                label: 'כספים ותמונה כוללת',
+                items: [
+                  { id: 'dashboard', label: 'תמונת מצב', icon: LayoutDashboard, description: 'סקירה ניהולית' },
+                  { id: 'accounts', label: 'חשבונות ונכסים', icon: WalletCards, count: accounts.length },
+                  { id: 'ledger', label: 'פנקס עסקאות', icon: ArrowLeftRight, count: transactions.length },
+                ],
+              },
+              {
+                label: 'ניהול ותפעול הבית',
+                items: [
+                  { id: 'documents', label: 'מרכז מסמכים', icon: FolderOpen },
+                  { id: 'home', label: 'ניהול הבית', icon: Utensils },
+                ],
+              },
+              {
+                label: 'המשפחה והמערכת',
+                items: [
+                  { id: 'members', label: 'משפחה והרשאות', icon: UsersRound, count: memberships.length + persons.length },
+                  { id: 'households', label: 'משקי בית', icon: House, count: households.length },
+                  { id: 'audit', label: 'יומן ביקורת', icon: ClipboardList, count: auditLogs.length },
+                  { id: 'settings', label: 'הגדרות אישיות', icon: Settings },
+                ],
+              },
+            ] as const).map((group) => (
+              <div className="homeos-side-nav-group" key={group.label}>
+                <div className="homeos-side-nav-label">{group.label}</div>
+                <div className="homeos-side-nav-items">
+                  {group.items.map((item) => {
+                    const selected = activeTab === item.id;
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setActiveTab(item.id)}
+                        aria-current={selected ? 'page' : undefined}
+                        className="homeos-side-nav-item"
+                      >
+                        <span className="homeos-side-nav-icon"><Icon className="h-[17px] w-[17px]" /></span>
+                        <span className="homeos-side-nav-text">{item.label}</span>
+                        {'count' in item && <span className="homeos-side-nav-count">{item.count}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </nav>
+
+          <div className="homeos-sidebar-health">
+            <div className="homeos-sidebar-health-heading">
+              <span>בקרת נתונים</span>
+              <span className="homeos-sidebar-health-live"><i /> פעילה</span>
+            </div>
+            <div className="homeos-sidebar-health-stats">
+              <div>
+                <strong>{transactions.filter(tx => tx.verificationStatus !== 'PENDING').length}</strong>
+                <span>רשומות שאינן ממתינות</span>
+              </div>
+              <div>
+                <strong>{transactions.filter(tx => tx.verificationStatus === 'PENDING').length}</strong>
+                <span>ממתינות לאימות</span>
+              </div>
             </div>
           </div>
-          <nav aria-label="ניווט ראשי" className="homeos-main-nav">
-            {([
-              { id: 'dashboard', label: 'לוח בקרה', icon: LayoutDashboard },
-              { id: 'accounts', label: 'חשבונות ונכסים', icon: WalletCards, count: accounts.length },
-              { id: 'ledger', label: 'פנקס עסקאות', icon: ArrowLeftRight, count: transactions.length },
-              { id: 'documents', label: 'מרכז מסמכים', icon: FolderOpen },
-              { id: 'home', label: 'ניהול הבית', icon: Utensils },
-              { id: 'members', label: 'משפחה והרשאות', icon: UsersRound, count: memberships.length + persons.length },
-              { id: 'households', label: 'משקי בית', icon: House, count: households.length },
-              { id: 'audit', label: 'יומן ביקורת', icon: ClipboardList, count: auditLogs.length },
-              { id: 'settings', label: 'הגדרות אישיות', icon: Settings },
-            ] as const).map((item) => {
-              const selected = activeTab === item.id;
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  aria-current={selected ? 'page' : undefined}
-                  className="homeos-nav-item"
-                  style={{
-                    color: selected ? '#FFFFFF' : activeTheme.textSecondary,
-                    background: selected ? `linear-gradient(135deg, color-mix(in srgb, ${activeTheme.accent} 78%, #17231d), ${activeTheme.accent})` : 'transparent',
-                    boxShadow: selected ? '0 7px 18px rgba(36,72,60,.18)' : 'none',
-                  }}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                  {'count' in item && <span className="rounded-md px-1.5 py-0.5 text-[10px] tabular-nums" style={{ backgroundColor: selected ? 'rgba(255,255,255,.16)' : activeTheme.bgSurface }}>{item.count}</span>}
-                </button>
-              );
-            })}
-          </nav>
-        </section>
 
+          <div className="homeos-sidebar-footer">
+            <span>PRIVATE BY DESIGN</span>
+            <span>סביבת העבודה המשפחתית שלך</span>
+          </div>
+        </aside>
+
+        <div className="homeos-main-content homeos-page-content min-w-0 space-y-8">
         {activeTab === 'settings' && (
           <SettingsView
             themes={MODERN_EDITORIAL_THEMES}
@@ -930,6 +984,7 @@ export default function App() {
             onRefresh={() => reloadHouseholdData(activeHousehold.id)}
           />
         )}
+        </div>
       </main>
 
       {/* Modal Dialogs */}

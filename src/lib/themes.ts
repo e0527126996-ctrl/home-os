@@ -1,5 +1,5 @@
 /**
- * HOME OS — Modern Editorial 12 Curated Themes
+ * HOME OS — Executive Terminal + Curated Editorial Themes
  */
 
 export interface ThemeConfig {

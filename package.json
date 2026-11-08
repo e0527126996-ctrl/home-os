@@ -12,7 +12,8 @@
     "test:shopping": "tsx scripts/test-shopping-intelligence.ts",
     "test:statements": "tsx scripts/test-statement-import.ts",
     "test:finance": "tsx scripts/test-finance-analytics.ts",
-    "test:access": "tsx scripts/test-access-control.ts"
+    "test:access": "tsx scripts/test-access-control.ts",
+    "test:currency": "tsx scripts/test-currency.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

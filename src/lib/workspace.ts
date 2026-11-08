@@ -61,10 +61,10 @@ export const DEFAULT_WORKSPACE_APPEARANCE: WorkspaceAppearancePreferences = {
   brightness:100,fontScale:100,font:'hebrew_sans',cardStyle:'executive',
 };
 export const WORKSPACE_FONT_OPTIONS: Array<{id:WorkspaceFontId;label:string;css:string;description:string}> = [
-  {id:'hebrew_sans',label:'עברית נקייה',css:'Arial, "Helvetica Neue", sans-serif',description:'קריאה, פשוטה ונוחה'},
-  {id:'humanist',label:'הומניסטית',css:'"Trebuchet MS", Arial, sans-serif',description:'רכה וידידותית'},
-  {id:'editorial',label:'סריפית עריכתית',css:'Georgia, "David", serif',description:'מראה מגזיני וקלאסי'},
-  {id:'mono',label:'טכנית',css:'"Courier New", monospace',description:'מראה מסוף מדויק'},
+  {id:'hebrew_sans',label:'עברית נקייה',css:'Arial, "Noto Sans Hebrew", "Helvetica Neue", sans-serif',description:'קריאה, פשוטה ונוחה'},
+  {id:'humanist',label:'הומניסטית',css:'"Trebuchet MS", "Noto Sans Hebrew", Arial, sans-serif',description:'רכה וידידותית'},
+  {id:'editorial',label:'סריפית עריכתית',css:'Georgia, "David", "Noto Sans Hebrew", Arial, serif',description:'מראה מגזיני וקלאסי'},
+  {id:'mono',label:'טכנית',css:'"Courier New", "Noto Sans Hebrew", Arial, monospace',description:'מראה מסוף מדויק'},
 ];
 export const WORKSPACE_CARD_STYLE_OPTIONS: Array<{id:WorkspaceCardStyle;label:string;description:string}> = [
   {id:'executive',label:'מנהלים',description:'משטחים מדויקים עם עומק עדין'},

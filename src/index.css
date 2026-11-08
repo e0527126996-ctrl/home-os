@@ -10,7 +10,8 @@
     --focus-ring: #547D70;
   }
   html { scroll-behavior: smooth; }
-  body { min-width: 320px; font-family: var(--font-sans); direction: rtl; text-align: right; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: "kern"; }
+  html[lang="he"], html[lang="he"] body { direction: rtl; }
+  body { min-width: 320px; font-family: var(--font-sans), "Noto Sans Hebrew", Arial, sans-serif; direction: rtl; text-align: right; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: "kern"; }
   button, input, select, textarea { font: inherit; }
   button { -webkit-tap-highlight-color: transparent; }
   button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }

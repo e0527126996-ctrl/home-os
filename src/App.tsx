@@ -903,6 +903,7 @@ export default function App() {
           '--homeos-brightness': appearance.brightness / 100,
         } as React.CSSProperties),
       }}
+      lang="he"
       dir="rtl"
     >
       {/* Toast Notification */}

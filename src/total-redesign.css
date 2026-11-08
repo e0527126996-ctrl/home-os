@@ -527,3 +527,8 @@
 /* Grid reset: remove Tailwind flow margins after converting the main stage to a two-column workspace. */
 .homeos-main-content > :not([hidden]) ~ :not([hidden]) { margin-block-start: 0 !important; margin-block-end: 0 !important; }
 .homeos-main-content > .homeos-navigation-shell { margin: 0 !important; }
+
+/* Each workspace root now owns spacing through grid gap; neutralize utility-class sibling margins. */
+.homeos-dashboard > :not([hidden]) ~ :not([hidden]) { margin-block-start: 0 !important; }
+.homeos-home-management > :not([hidden]) ~ :not([hidden]) { margin-block-start: 0 !important; }
+.homeos-home-management { display: grid; gap: 19px; }

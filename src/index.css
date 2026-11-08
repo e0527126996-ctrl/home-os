@@ -3648,3 +3648,520 @@ html[data-theme] .homeos-app-shell .homeos-command-rail {
     scroll-behavior: auto !important;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   HOME OS ATLAS — shared module finish
+   A single editorial design language across every workspace page.
+   Visual-only overrides; component state and actions stay intact.
+   ═══════════════════════════════════════════════════════════════ */
+
+.homeos-app-shell .homeos-workspace-page {
+  width: 100%;
+  min-width: 0;
+  color: var(--text-primary);
+  gap: clamp(18px, 1.7vw, 26px);
+}
+.homeos-app-shell .homeos-workspace-page :is(h1,h2,h3) {
+  letter-spacing: -.035em;
+}
+.homeos-atlas-page-heading {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: end;
+  gap: 24px;
+  padding: 8px 2px 23px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--homeos-metal) 28%, var(--border-subtle));
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.homeos-atlas-page-heading .homeos-page-heading-copy > div:first-child {
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .18em;
+}
+.homeos-atlas-page-heading h1 {
+  margin-top: 13px;
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: clamp(2.25rem, 3.4vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.03;
+  letter-spacing: -.055em;
+}
+.homeos-atlas-page-heading p {
+  max-width: 680px;
+  margin-top: 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.85;
+}
+.homeos-atlas-page-heading .homeos-page-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+.homeos-atlas-page-heading .homeos-page-meta > span {
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  font-size: 9px;
+  font-weight: 750;
+}
+.homeos-atlas-page-heading .homeos-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.homeos-atlas-page-heading .homeos-page-actions > button {
+  min-height: 42px;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.homeos-atlas-accounts .homeos-wealth-hero,
+.homeos-atlas-documents .homeos-wealth-hero {
+  min-height: 245px;
+  border: 1px solid rgba(220,202,169,.28);
+  border-radius: 27px;
+  padding: clamp(25px, 3vw, 38px);
+  background:
+    radial-gradient(ellipse at 83% 0%, rgba(198,166,117,.21), transparent 36%),
+    radial-gradient(ellipse at 10% 100%, rgba(96,143,111,.24), transparent 40%),
+    linear-gradient(118deg, #10271F 0%, #1A3A2E 52%, #315442 100%);
+  box-shadow: 0 23px 54px rgba(20,48,36,.18), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.homeos-atlas-accounts .homeos-wealth-hero h1,
+.homeos-atlas-documents .homeos-wealth-hero h1 {
+  color: #F8F3E9;
+  font-family: var(--font-serif);
+  font-size: clamp(2.15rem, 3vw, 3.3rem);
+  font-weight: 600;
+  letter-spacing: -.05em;
+}
+.homeos-atlas-accounts .homeos-wealth-hero p,
+.homeos-atlas-documents .homeos-wealth-hero p {
+  max-width: 690px;
+  color: rgba(248,243,233,.69);
+  line-height: 1.85;
+}
+.homeos-atlas-accounts .homeos-wealth-hero > .relative.z-10,
+.homeos-atlas-documents .homeos-wealth-hero > .relative.z-10 {
+  gap: 24px;
+}
+.homeos-atlas-accounts .homeos-wealth-hero .rounded-2xl.border,
+.homeos-atlas-documents .homeos-wealth-hero .rounded-2xl.border {
+  border-color: rgba(255,255,255,.14);
+  border-radius: 16px;
+  background: rgba(255,255,255,.075);
+  backdrop-filter: blur(12px);
+}
+.homeos-atlas-accounts .homeos-wealth-hero button,
+.homeos-atlas-documents .homeos-wealth-hero button {
+  border-radius: 12px;
+}
+.homeos-atlas-accounts > section.grid,
+.homeos-atlas-documents .homeos-document-category-grid {
+  gap: 11px;
+}
+.homeos-atlas-accounts > section.grid > div {
+  min-height: 90px;
+  border-color: var(--border-subtle) !important;
+  border-radius: 17px;
+  background: var(--bg-card) !important;
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--text-primary) 4%, transparent) !important;
+}
+.homeos-atlas-accounts .homeos-accounts-composition,
+.homeos-atlas-documents .homeos-document-insights {
+  border: 1px solid var(--border-subtle);
+  border-radius: 22px;
+  padding: clamp(19px, 2.4vw, 29px);
+  background: var(--bg-card);
+  box-shadow: 0 11px 30px color-mix(in srgb, var(--text-primary) 4.5%, transparent);
+}
+.homeos-atlas-accounts .homeos-accounts-composition-heading h2,
+.homeos-atlas-documents .homeos-document-insights-intro h2 {
+  margin-top: 7px;
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 23px;
+  font-weight: 600;
+}
+.homeos-atlas-accounts .homeos-accounts-composition-heading p,
+.homeos-atlas-documents .homeos-document-insights-intro p {
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.75;
+}
+.homeos-atlas-accounts .homeos-accounts-composition-bar {
+  height: 13px;
+  margin-block: 22px 16px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+.homeos-atlas-accounts .homeos-accounts-composition-legend {
+  gap: 17px;
+}
+.homeos-atlas-accounts > div:has(> button[onClick]) {
+  border-color: var(--border-subtle);
+  border-radius: 15px;
+}
+.homeos-atlas-accounts :is(.rounded-2xl.border,.rounded-xl.border) {
+  border-color: var(--border-subtle);
+}
+.homeos-atlas-accounts .homeos-account-card,
+.homeos-atlas-accounts article {
+  border-radius: 17px;
+}
+
+.homeos-atlas-documents .homeos-document-category-stat {
+  min-height: 116px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 16px;
+  background: var(--bg-surface);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.homeos-atlas-documents .homeos-document-category-stat:hover,
+.homeos-atlas-documents .homeos-document-category-stat.is-active {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-subtle));
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--text-primary) 7%, transparent);
+}
+.homeos-atlas-documents .homeos-document-category-stat strong {
+  color: var(--text-primary);
+  font-size: 27px;
+  font-weight: 850;
+}
+.homeos-atlas-documents .homeos-document-category-stat small {
+  color: var(--text-secondary);
+  font-size: 9px;
+}
+.homeos-atlas-documents .homeos-document-dropzone {
+  min-height: 165px;
+  border-radius: 20px;
+  border-width: 1.5px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg-card)) !important;
+}
+.homeos-atlas-documents .homeos-document-row {
+  border-bottom: 1px solid var(--border-subtle);
+  padding-block: 16px;
+}
+.homeos-atlas-documents .homeos-document-row:last-child { border-bottom: 0; }
+.homeos-atlas-documents .homeos-lux-panel {
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: var(--bg-card);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--text-primary) 4%, transparent);
+}
+
+.homeos-atlas-ledger .homeos-ledger-note {
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border-subtle));
+  border-inline-start: 4px solid var(--accent);
+  border-radius: 13px;
+  padding: 13px 16px;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-card));
+  font-size: 11px;
+  line-height: 1.8;
+}
+.homeos-atlas-ledger > .grid:first-of-type > div {
+  min-height: 133px;
+  border-color: var(--border-subtle) !important;
+  border-radius: 17px;
+  background: var(--bg-card) !important;
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--text-primary) 5%, transparent) !important;
+}
+.homeos-atlas-ledger > .grid:first-of-type > div > div:first-child > span {
+  color: var(--text-secondary) !important;
+}
+.homeos-atlas-ledger > .grid:first-of-type > div > div:nth-child(2) {
+  font-size: clamp(1.3rem, 1.9vw, 1.75rem);
+}
+.homeos-atlas-ledger .homeos-ledger-snapshot {
+  border: 1px solid var(--border-subtle);
+  border-radius: 22px;
+  padding: clamp(19px, 2.5vw, 28px);
+  background:
+    linear-gradient(112deg, color-mix(in srgb, var(--accent) 5%, var(--bg-card)), var(--bg-card) 62%);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--text-primary) 5%, transparent);
+}
+.homeos-atlas-ledger .homeos-ledger-snapshot-heading h2 {
+  margin-top: 6px;
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 23px;
+  font-weight: 600;
+}
+.homeos-atlas-ledger .homeos-ledger-snapshot-heading p,
+.homeos-atlas-ledger .homeos-ledger-snapshot-footer {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+.homeos-atlas-ledger .homeos-ledger-snapshot-metrics {
+  gap: 0;
+  margin-top: 19px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 15px;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+.homeos-atlas-ledger .homeos-ledger-snapshot-metrics > div {
+  padding: 17px;
+  border-inline-start: 1px solid var(--border-subtle);
+}
+.homeos-atlas-ledger .homeos-ledger-snapshot-metrics > div:last-child { border-inline-start: 0; }
+.homeos-atlas-ledger .homeos-ledger-snapshot-metrics span {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+.homeos-atlas-ledger .homeos-ledger-snapshot-metrics strong {
+  margin-top: 8px;
+  font-size: clamp(1.15rem, 1.8vw, 1.65rem);
+}
+.homeos-atlas-ledger .homeos-ledger-table-shell {
+  border-color: var(--border-subtle) !important;
+  border-radius: 22px !important;
+  background: var(--bg-card) !important;
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--text-primary) 6%, transparent) !important;
+}
+.homeos-atlas-ledger .homeos-ledger-table-shell > div:first-child {
+  border-color: var(--border-subtle) !important;
+  background: var(--bg-surface);
+}
+.homeos-atlas-ledger .homeos-ledger-table-shell h2 {
+  color: var(--text-primary) !important;
+  font-family: var(--font-serif);
+  font-size: 22px;
+}
+.homeos-atlas-ledger .homeos-ledger-table-shell p,
+.homeos-atlas-ledger .homeos-ledger-table-shell label {
+  color: var(--text-secondary);
+}
+.homeos-atlas-ledger .homeos-ledger-table-shell :is(input,select,textarea) {
+  min-height: 41px;
+  border-radius: 11px;
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+.homeos-atlas-ledger .homeos-ledger-table-shell table {
+  border-color: var(--border-subtle);
+  background: var(--bg-card);
+}
+.homeos-atlas-ledger .homeos-ledger-table-shell thead {
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+}
+.homeos-atlas-ledger .homeos-ledger-table-shell tbody tr {
+  border-color: var(--border-subtle);
+  transition: background .15s ease;
+}
+.homeos-atlas-ledger .homeos-ledger-table-shell tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg-card));
+}
+.homeos-atlas-ledger .homeos-ledger-table-shell td {
+  color: var(--text-primary);
+}
+
+.homeos-atlas-home-ops .homeos-home-hero {
+  border: 1px solid color-mix(in srgb, var(--homeos-metal) 25%, var(--border-subtle)) !important;
+  border-radius: 23px;
+  padding: clamp(22px, 2.7vw, 34px);
+  background:
+    radial-gradient(ellipse at 88% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 40%),
+    linear-gradient(125deg, var(--bg-card), var(--bg-surface)) !important;
+  box-shadow: 0 14px 36px color-mix(in srgb, var(--text-primary) 5%, transparent);
+}
+.homeos-atlas-home-ops .homeos-home-hero h1 {
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: clamp(2.25rem, 3vw, 3.3rem);
+  font-weight: 600;
+  letter-spacing: -.05em;
+}
+.homeos-atlas-home-ops .homeos-home-hero > div > div:last-child > div {
+  min-width: 100px;
+  border-color: var(--border-subtle) !important;
+  border-radius: 14px !important;
+  background: var(--bg-card) !important;
+}
+.homeos-atlas-home-ops .homeos-home-tabs {
+  position: sticky;
+  top: 84px;
+  z-index: 20;
+  display: flex;
+  gap: 5px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 15px;
+  padding: 6px;
+  background: color-mix(in srgb, var(--bg-card) 94%, transparent);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--text-primary) 5%, transparent);
+  backdrop-filter: blur(16px);
+}
+.homeos-atlas-home-ops .homeos-home-tabs button {
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 11px !important;
+  padding: 10px 15px !important;
+  font-size: 11px !important;
+  font-weight: 800;
+}
+.homeos-atlas-home-ops .homeos-home-tabs button:hover {
+  border-color: var(--border-subtle);
+  background: var(--bg-surface) !important;
+}
+.homeos-atlas-home-ops .homeos-house-pulse {
+  border: 1px solid var(--border-subtle);
+  border-radius: 21px;
+  padding: 20px;
+  background: var(--bg-card);
+  box-shadow: 0 11px 29px color-mix(in srgb, var(--text-primary) 4.5%, transparent);
+}
+.homeos-atlas-home-ops .homeos-house-pulse-heading strong {
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+}
+.homeos-atlas-home-ops .homeos-house-pulse-grid { gap: 10px; }
+.homeos-atlas-home-ops .homeos-house-pulse-item {
+  min-height: 108px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 15px;
+  padding: 15px;
+  background: var(--bg-surface);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.homeos-atlas-home-ops .homeos-house-pulse-item:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border-subtle));
+  box-shadow: 0 11px 25px color-mix(in srgb, var(--text-primary) 7%, transparent);
+}
+.homeos-atlas-home-ops :is(.homeos-week-day,.homeos-recipe-card,.homeos-shopping-row,.homeos-task-row,.homeos-finance-category-detail) {
+  border-color: var(--border-subtle) !important;
+  border-radius: 15px;
+  background: var(--bg-card) !important;
+  color: var(--text-primary);
+}
+.homeos-atlas-home-ops .homeos-week-day.is-today {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-subtle)) !important;
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg-card)) !important;
+}
+.homeos-atlas-home-ops .homeos-week-meal-slot {
+  border-color: var(--border-subtle) !important;
+  border-radius: 10px;
+}
+.homeos-atlas-home-ops :is(input,select,textarea) {
+  min-height: 42px;
+  border-color: var(--border-subtle) !important;
+  border-radius: 11px !important;
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+.homeos-atlas-home-ops textarea { min-height: 100px; }
+.homeos-atlas-home-ops .homeos-forecast-bar-track {
+  border-radius: 9px;
+  background: var(--bg-surface);
+}
+.homeos-atlas-home-ops .homeos-finance-category-detail {
+  padding: 18px;
+}
+
+.homeos-atlas-settings .homeos-settings-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  border: 1px solid color-mix(in srgb, var(--homeos-metal) 24%, var(--border-subtle));
+  border-radius: 22px;
+  padding: 24px 27px;
+  background:
+    radial-gradient(ellipse at 90% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 38%),
+    linear-gradient(125deg, var(--bg-card), var(--bg-surface));
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--text-primary) 5%, transparent);
+}
+.homeos-atlas-settings .homeos-settings-hero h1 {
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 31px;
+  font-weight: 600;
+}
+.homeos-atlas-settings .homeos-settings-section {
+  border: 1px solid var(--border-subtle);
+  border-radius: 22px;
+  padding: clamp(19px, 2.4vw, 28px);
+  background: var(--bg-card);
+  box-shadow: 0 11px 28px color-mix(in srgb, var(--text-primary) 4.5%, transparent);
+}
+.homeos-atlas-settings .homeos-settings-section > div:first-child h2,
+.homeos-atlas-settings .homeos-settings-section h2 {
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+}
+.homeos-atlas-settings .homeos-theme-option,
+.homeos-atlas-settings .homeos-view-mode-option {
+  border-color: var(--border-subtle);
+  border-radius: 17px;
+  background: var(--bg-surface);
+}
+.homeos-atlas-settings .homeos-theme-option.is-selected,
+.homeos-atlas-settings .homeos-view-mode-option.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent), 0 12px 28px color-mix(in srgb, var(--text-primary) 6%, transparent);
+}
+.homeos-atlas-settings .homeos-background-preset {
+  min-height: 138px;
+  border-radius: 16px;
+}
+.homeos-atlas-settings .homeos-widget-editor-row {
+  border-radius: 15px;
+}
+
+@media (max-width: 900px) {
+  .homeos-atlas-page-heading { grid-template-columns: 1fr; gap: 17px; }
+  .homeos-atlas-page-heading .homeos-page-actions { justify-content: flex-start; }
+  .homeos-atlas-home-ops .homeos-home-tabs { top: 66px; }
+  .homeos-atlas-home-ops .homeos-house-pulse-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .homeos-atlas-settings .homeos-settings-hero { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 640px) {
+  .homeos-atlas-page-heading { padding-bottom: 17px; }
+  .homeos-atlas-page-heading h1 { font-size: clamp(2.15rem, 10vw, 2.9rem); }
+  .homeos-atlas-page-heading .homeos-page-actions { width: 100%; }
+  .homeos-atlas-page-heading .homeos-page-actions > button { flex: 1; justify-content: center; }
+  .homeos-atlas-accounts .homeos-wealth-hero,
+  .homeos-atlas-documents .homeos-wealth-hero { min-height: 0; border-radius: 20px; padding: 20px 17px; }
+  .homeos-atlas-accounts .homeos-wealth-hero > .relative.z-10,
+  .homeos-atlas-documents .homeos-wealth-hero > .relative.z-10 { flex-direction: column; align-items: stretch; }
+  .homeos-atlas-accounts .homeos-wealth-hero > .relative.z-10 > div:last-child { min-width: 0; }
+  .homeos-atlas-accounts > section.grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .homeos-atlas-accounts > section.grid > div { min-height: 78px; padding: 12px; }
+  .homeos-atlas-ledger .homeos-ledger-snapshot-metrics { grid-template-columns: 1fr; }
+  .homeos-atlas-ledger .homeos-ledger-snapshot-metrics > div {
+    border-inline-start: 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .homeos-atlas-ledger .homeos-ledger-snapshot-metrics > div:last-child { border-bottom: 0; }
+  .homeos-atlas-home-ops .homeos-home-tabs {
+    position: static;
+    overflow-x: auto;
+  }
+  .homeos-atlas-home-ops .homeos-home-tabs button { flex: 0 0 auto; }
+  .homeos-atlas-home-ops .homeos-house-pulse-grid { grid-template-columns: 1fr; }
+  .homeos-atlas-settings .homeos-settings-hero { padding: 18px; border-radius: 17px; }
+  .homeos-atlas-settings .homeos-settings-section { padding: 16px; border-radius: 17px; }
+}

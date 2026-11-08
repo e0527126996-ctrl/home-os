@@ -1628,3 +1628,351 @@ body {
 }
 .homeos-document-center :is(.text-rose-800,.text-rose-700) { color: #C05A58 !important; }
 .homeos-document-center .border-rose-200 { border-color: color-mix(in srgb, #C05A58 35%, var(--border-subtle)) !important; }
+
+
+/* HOME OS — Premium Workspace Redesign · 2026-11-08 */
+.homeos-workspace-layout {
+  display: grid;
+  grid-template-columns: minmax(232px, 258px) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(18px, 2.15vw, 32px);
+  max-width: 1740px;
+}
+.homeos-sidebar {
+  position: sticky;
+  top: 94px;
+  display: flex;
+  min-width: 0;
+  max-height: calc(100vh - 112px);
+  flex-direction: column;
+  gap: 19px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  padding: 19px 15px 15px;
+  color: var(--text-primary);
+  background:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 43%),
+    color-mix(in srgb, var(--bg-card) 96%, var(--accent));
+  box-shadow: 0 15px 42px color-mix(in srgb, var(--text-primary) 5%, transparent), inset 0 1px 0 color-mix(in srgb, white 40%, transparent);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+.homeos-sidebar-intro { padding: 2px 5px 0; }
+.homeos-sidebar-kicker {
+  display: block;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .13em;
+}
+.homeos-sidebar-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+.homeos-sidebar-heading strong {
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -.025em;
+}
+.homeos-sidebar-index {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+.homeos-sidebar-intro p {
+  margin-top: 5px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.65;
+}
+.homeos-sidebar-household {
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border-subtle));
+  border-radius: 17px;
+  padding: 11px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg-surface));
+}
+.homeos-sidebar-overline {
+  padding: 0 3px 8px;
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 700;
+}
+.homeos-sidebar-household > button {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  text-align: right;
+}
+.homeos-sidebar-household-mark {
+  display: flex;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: 11px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-card));
+}
+.homeos-sidebar-household-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+.homeos-sidebar-household-copy strong {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.homeos-sidebar-household-copy small {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+.homeos-sidebar-chevron { flex: 0 0 auto; color: var(--text-secondary); }
+.homeos-side-nav-groups { display: grid; gap: 19px; }
+.homeos-side-nav-group { display: grid; gap: 7px; }
+.homeos-side-nav-label {
+  padding: 0 9px;
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .045em;
+}
+.homeos-side-nav-items { display: grid; gap: 4px; }
+.homeos-side-nav-item {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 43px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  padding: 7px 9px;
+  color: var(--text-secondary);
+  background: transparent;
+  text-align: right;
+  transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.homeos-side-nav-item:hover:not([aria-current="page"]) {
+  transform: translateX(-2px);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--bg-surface) 82%, var(--accent));
+}
+.homeos-side-nav-item[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border-subtle));
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 11%, var(--bg-card));
+  box-shadow: inset -3px 0 0 var(--accent), 0 5px 15px color-mix(in srgb, var(--accent) 7%, transparent);
+}
+.homeos-side-nav-icon {
+  display: flex;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: inherit;
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
+}
+.homeos-side-nav-item[aria-current="page"] .homeos-side-nav-icon {
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-card));
+}
+.homeos-side-nav-text {
+  min-width: 0;
+  flex: 1;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.homeos-side-nav-count {
+  min-width: 22px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+  padding: 2px 5px;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--bg-surface) 75%, transparent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.homeos-side-nav-item[aria-current="page"] .homeos-side-nav-count {
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-card));
+}
+.homeos-sidebar-health {
+  margin-top: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--bg-surface) 80%, transparent);
+}
+.homeos-sidebar-health-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 800;
+}
+.homeos-sidebar-health-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 600;
+}
+.homeos-sidebar-health-live i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4C9A70;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #4C9A70 14%, transparent);
+}
+.homeos-sidebar-health-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 11px;
+}
+.homeos-sidebar-health-stats > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+  border-radius: 10px;
+  padding: 8px;
+  background: var(--bg-card);
+}
+.homeos-sidebar-health-stats strong {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.homeos-sidebar-health-stats span {
+  color: var(--text-secondary);
+  font-size: 8px;
+  line-height: 1.4;
+}
+.homeos-sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--border-subtle);
+  padding: 12px 5px 0;
+}
+.homeos-sidebar-footer span:first-child {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+.homeos-sidebar-footer span:last-child {
+  color: var(--text-secondary);
+  font-size: 9px;
+}
+.homeos-page-content { padding-top: 2px; }
+.homeos-workspace-layout .homeos-main-content { min-width: 0; }
+.homeos-app-shell :is(.homeos-sidebar, .homeos-main-content) { isolation: isolate; }
+@media (max-width: 1024px) {
+  .homeos-workspace-layout {
+    grid-template-columns: minmax(208px, 225px) minmax(0, 1fr);
+    gap: 16px;
+  }
+  .homeos-sidebar { padding-inline: 12px; border-radius: 19px; }
+}
+@media (max-width: 860px) {
+  .homeos-workspace-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding-top: 12px;
+  }
+  .homeos-sidebar {
+    position: sticky;
+    top: 72px;
+    z-index: 35;
+    width: 100%;
+    max-height: none;
+    flex: 0 0 auto;
+    gap: 0;
+    overflow: visible;
+    border-radius: 16px;
+    padding: 9px 10px;
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--text-primary) 6%, transparent);
+    backdrop-filter: blur(18px);
+  }
+  .homeos-sidebar-intro,
+  .homeos-sidebar-household,
+  .homeos-sidebar-health,
+  .homeos-sidebar-footer { display: none; }
+  .homeos-side-nav-groups {
+    display: flex;
+    min-width: 0;
+    gap: 13px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+  .homeos-side-nav-groups::-webkit-scrollbar { display: none; }
+  .homeos-side-nav-group {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 5px;
+  }
+  .homeos-side-nav-label { display: none; }
+  .homeos-side-nav-items { display: flex; gap: 4px; }
+  .homeos-side-nav-item {
+    width: auto;
+    min-height: 39px;
+    gap: 7px;
+    border-radius: 11px;
+    padding: 5px 9px;
+    white-space: nowrap;
+  }
+  .homeos-side-nav-item:hover:not([aria-current="page"]) { transform: none; }
+  .homeos-side-nav-icon { width: 27px; height: 27px; border-radius: 8px; }
+  .homeos-side-nav-text { flex: 0 0 auto; font-size: 10px; }
+  .homeos-side-nav-count { min-width: 18px; padding: 1px 4px; font-size: 8px; }
+  .homeos-page-content { width: 100%; padding-top: 0; }
+}
+@media (max-width: 560px) {
+  .homeos-workspace-layout { padding-inline: 10px; gap: 11px; }
+  .homeos-sidebar { top: 66px; padding: 7px; border-radius: 13px; }
+  .homeos-side-nav-groups { gap: 8px; }
+  .homeos-side-nav-item { min-height: 36px; padding: 4px 7px; }
+  .homeos-side-nav-icon { width: 25px; height: 25px; }
+  .homeos-side-nav-text { font-size: 9px; }
+  .homeos-side-nav-count { display: none; }
+  .homeos-main-content { padding-top: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .homeos-side-nav-item { transition: none; }
+}

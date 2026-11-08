@@ -248,22 +248,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   ].slice(0, 4);
 
   return (
-    <div className="homeos-dashboard homeos-command-center space-y-6 pb-10" dir="rtl" data-view-mode={viewMode}>
-      <header className="homeos-dashboard-heading">
-        <div className="homeos-dashboard-heading-copy">
-          <div className="homeos-page-eyebrow"><span className="homeos-page-eyebrow-mark" /> HOME OS <span className="homeos-page-breadcrumb">/ מרכז השליטה</span></div>
-          <h1>תמונת הבית, <em>במבט אחד.</em></h1>
-          <p>כל מה שחשוב לדעת על המצב הפיננסי של {householdName || 'הבית'} — נתונים מאומתים, תזרים ופעילות שוטפת.</p>
+    <div className="homeos-dashboard homeos-command-center homeos-dashboard-atlas space-y-6 pb-10" dir="rtl" data-view-mode={viewMode}>
+      <header className="homeos-dashboard-heading homeos-command-masthead">
+        <div className="homeos-command-masthead-copy">
+          <div className="homeos-page-eyebrow"><span className="homeos-page-eyebrow-mark" /> HOME OS <span className="homeos-page-breadcrumb">/ COMMAND CENTER</span></div>
+          <h1>הבית שלך. <em>תחת שליטה.</em></h1>
+          <p>מרכז הניהול של <strong>{householdName || 'משק הבית'}</strong> — תמונת הון, תזרים, חריגות והפעולות שדורשות תשומת לב.</p>
         </div>
-        <div className="homeos-dashboard-heading-actions">
-          <span className="homeos-view-mode-chip">{viewModeTitle}</span>
-          <span className="homeos-date-chip"><CalendarDays className="h-4 w-4" /> {monthName}</span>
-          <button onClick={onOpenLedger} className="homeos-primary-action"><ReceiptText className="h-4 w-4" /> פנקס העסקאות</button>
-          <button onClick={onOpenAccounts} className="homeos-secondary-action"><Landmark className="h-4 w-4" /> חשבונות</button>
+        <div className="homeos-command-masthead-tools">
+          <div className="homeos-command-meta">
+            <span className="homeos-command-mode">{viewModeTitle}</span>
+            <span className="homeos-command-date"><CalendarDays className="h-4 w-4" /> {monthName}</span>
+          </div>
+          <div className="homeos-command-actions">
+            <button onClick={onOpenLedger} className="homeos-primary-action"><ReceiptText className="h-4 w-4" /> רישום ובדיקת עסקאות</button>
+            <button onClick={onOpenAccounts} className="homeos-secondary-action"><Landmark className="h-4 w-4" /> חשבונות ונכסים</button>
+          </div>
+          <span className="homeos-command-integrity"><ShieldCheck className="h-3.5 w-3.5" /> נתונים מאומתים וממתינים מוצגים בנפרד</span>
         </div>
       </header>
 
-      <section className="homeos-wealth-hero homeos-portfolio-hero" {...widgetAttributes('net-worth')}>
+      <section className="homeos-wealth-hero homeos-portfolio-hero homeos-atlas-wealth" {...widgetAttributes('net-worth')}>
         <div className="homeos-hero-orbit homeos-orbit-one" />
         <div className="homeos-hero-orbit homeos-orbit-two" />
         <div className="homeos-hero-glow" />
@@ -289,7 +294,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="homeos-hero-footer"><span>תמונת ההון של משק הבית</span><span>01 — מצב פיננסי</span></div>
       </section>
 
-      <section className="homeos-kpi-strip" aria-label="מדדי החודש" {...widgetAttributes('monthly-kpis')}>
+      <section className="homeos-kpi-strip homeos-atlas-kpis" aria-label="מדדי החודש" {...widgetAttributes('monthly-kpis')}>
         <button type="button" onClick={() => setChartDetail({ title: "הכנסות החודש", subtitle: "כל ההכנסות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'INCOME' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>הכנסות החודש</span><span className="homeos-icon-tile green"><ArrowDownLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value green">{currency(data.current.income)}</div><div className="homeos-card-foot">לחץ לפירוט ההכנסות</div></button>
         <button type="button" onClick={() => setChartDetail({ title: "הוצאות החודש", subtitle: "כל ההוצאות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>הוצאות החודש</span><span className="homeos-icon-tile copper"><ArrowUpLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{currency(data.current.expense)}</div><div className="homeos-card-foot">לחץ לפירוט ההוצאות</div></button>
         <button type="button" onClick={() => setChartDetail({ title: "מאזן חודשי", subtitle: "הכנסות והוצאות בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.date?.slice(0, 7) === data.months[5]?.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>מאזן חודשי</span><span className="homeos-icon-tile blue"><Activity className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.cashflow >= 0 ? 'green' : 'negative')}>{currency(data.cashflow)}</div><div className="homeos-card-foot">לחץ לפירוט התזרים</div></button>
@@ -303,7 +308,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </aside>
       )}
 
-      <section className="homeos-action-center" aria-label="מוקדי תשומת לב ופעולות מומלצות">
+      <section className="homeos-action-center homeos-atlas-actions" aria-label="מוקדי תשומת לב ופעולות מומלצות">
         <div className="homeos-action-center-heading">
           <div>
             <div className="homeos-section-kicker">NEXT BEST ACTIONS</div>
@@ -331,7 +336,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         )}
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[1.55fr_.85fr]" {...widgetAttributes('cashflow-analysis')}>
+      <section className="homeos-analysis-grid grid gap-5 xl:grid-cols-[1.55fr_.85fr]" {...widgetAttributes('cashflow-analysis')}>
         <div className={panel + ' p-5 sm:p-7'}>
           <div className="mb-7 flex flex-wrap items-start justify-between gap-3">
             <div><div className="homeos-section-kicker">ניתוח תזרים מזומנים</div><h2 className="mt-1 text-lg font-bold">תנועת הכסף לאורך זמן</h2><p className="mt-1 text-xs" style={muted}>השוואת הכנסות והוצאות · ששת החודשים האחרונים</p></div>
@@ -575,7 +580,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </section>
       )}
 
-            <section className="homeos-home-snapshot" {...widgetAttributes('household-snapshot')}>
+            <section className="homeos-home-snapshot homeos-atlas-home" {...widgetAttributes('household-snapshot')}>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div><div className="homeos-section-kicker">ניהול הבית</div><h2 className="mt-1 text-lg font-bold">תמונת מצב הבית</h2><p className="mt-1 text-xs" style={muted}>נתוני ניהול הבית מסונכרנים עם לוח הבקרה</p></div>
           <button onClick={onOpenLedger} className="homeos-text-link">מעבר לפנקס העסקאות <ArrowLeft className="h-4 w-4" /></button>
@@ -587,7 +592,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
-            <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]" {...widgetAttributes('recent-activity')}>
+            <section className="homeos-recent-grid grid gap-5 xl:grid-cols-[1.2fr_.8fr]" {...widgetAttributes('recent-activity')}>
         <div className={panel + ' p-5 sm:p-7'}>
           <div className="mb-4 flex items-center justify-between gap-3"><div><div className="homeos-section-kicker">פעילות אחרונה</div><h2 className="mt-1 text-lg font-bold">פעילות אחרונה</h2></div><button onClick={onOpenLedger} className="homeos-text-link">לכל העסקאות <ArrowLeft className="h-4 w-4" /></button></div>
           {data.recent.length ? <div className="divide-y" style={{ borderColor: activeTheme.borderSubtle }}>{data.recent.map(tx => <button type="button" key={tx.id} onClick={onOpenLedger} title="פתיחת פנקס העסקאות" className="flex w-full items-center justify-between gap-3 py-3.5 text-right transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#547D70] dark:hover:bg-white/5"><div className="flex min-w-0 items-center gap-3"><span className={'homeos-transaction-icon ' + (tx.type === 'INCOME' ? 'income' : tx.type === 'TRANSFER' ? '' : 'expense')}>{tx.type === 'INCOME' ? <ArrowDownRight className="h-4 w-4" /> : tx.type === 'TRANSFER' ? <ArrowLeftRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span><div className="min-w-0"><div className="truncate text-sm font-semibold">{tx.payee || tx.category}</div><div className="mt-1 truncate text-[11px]" style={muted}>{tx.category} · {new Date(tx.date + 'T12:00:00').toLocaleDateString('he-IL')}{tx.verificationStatus === 'PENDING' ? ' · ממתינה לבדיקה' : ''}</div></div></div><strong className={'shrink-0 text-sm tabular-nums ' + (tx.type === 'INCOME' ? 'text-[#477866]' : '')}>{tx.type === 'INCOME' ? '+' : tx.type === 'TRANSFER' ? '↔ ' : '−'}{currency(tx.amountCents, accountCurrencies.get(tx.accountId) || 'ILS')}</strong></button>)}</div> : <div className="py-12 text-center text-sm" style={muted}>עדיין לא נרשמו עסקאות. הפעילות שתזין תופיע כאן.</div>}

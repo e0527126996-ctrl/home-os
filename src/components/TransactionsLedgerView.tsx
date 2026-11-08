@@ -302,7 +302,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
   };
 
   return (
-    <div className="homeos-ledger-view homeos-workspace-page space-y-7" dir="rtl">
+    <div className="homeos-ledger-view homeos-workspace-page homeos-atlas-ledger space-y-7" dir="rtl">
       <WorkspacePageHeader
         eyebrow="FINANCIAL OPERATIONS / LEDGER"
         title="פנקס העסקאות"

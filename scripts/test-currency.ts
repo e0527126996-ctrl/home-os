@@ -47,12 +47,12 @@ let failed = 0;
 for (const testCase of cases) {
   try {
     testCase.run();
-    process.stdout.write('✓ ' + testCase.name + '\\n');
+    process.stdout.write('✓ ' + testCase.name + '\n');
   } catch (error) {
     failed += 1;
-    process.stderr.write('✗ ' + testCase.name + '\\n');
-    process.stderr.write(String(error) + '\\n');
+    process.stderr.write('✗ ' + testCase.name + '\n');
+    process.stderr.write(String(error) + '\n');
   }
 }
-process.stdout.write('\\n' + (cases.length - failed) + '/' + cases.length + ' currency tests passed\\n');
+process.stdout.write('\n' + (cases.length - failed) + '/' + cases.length + ' currency tests passed\n');
 if (failed > 0) process.exitCode = 1;

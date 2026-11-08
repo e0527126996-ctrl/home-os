@@ -705,3 +705,444 @@
   .homeos-dashboard .homeos-kpi-item { min-height: 124px; padding: 12px !important; }
   .homeos-forecast-months { grid-template-columns: repeat(6,minmax(0,1fr)); }
 }
+
+
+/* ==========================================================================
+   HOME OS — Executive Terminal Design System
+   One consistent shell for finance, household operations and administration.
+   ========================================================================== */
+:root {
+  --ho-radius-xl: 6px;
+  --ho-radius-lg: 6px;
+  --ho-radius-md: 5px;
+  --ho-shadow-panel: 0 1px 0 rgba(15,23,32,.025);
+  --ho-shadow-float: 0 18px 48px rgba(5,12,18,.22);
+  --ho-emerald: #0E8A68;
+  --ho-emerald-soft: #E8F4EF;
+  --ho-bordeaux: #A5535B;
+  --ho-bordeaux-soft: #F7ECEE;
+  --ho-matte-gold: #B49A6A;
+  --ho-terminal-border: #DCE2E6;
+}
+.homeos-app-shell {
+  font-family: var(--font-sans), "Arial", sans-serif;
+  background-color: var(--homeos-canvas,#F4F6F7) !important;
+}
+.homeos-app-shell :is(button,a,input,select,textarea) { transition-duration: .16s; }
+.homeos-app-shell :is(button,a):focus-visible {
+  outline: 2px solid var(--homeos-accent,#0E8A68);
+  outline-offset: 2px;
+}
+
+/* Single compact masthead: navigation lives only in the sidebar below. */
+.homeos-executive-topbar {
+  min-height: 62px;
+  border-bottom: 1px solid var(--homeos-border,#DCE2E6) !important;
+  background: color-mix(in srgb,var(--homeos-card,#fff) 96%,transparent) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(18px) saturate(135%);
+}
+.homeos-executive-topbar-inner {
+  width: 100%;
+  min-height: 62px;
+  max-width: 1760px !important;
+  padding-inline: clamp(16px,2.3vw,34px) !important;
+}
+.homeos-brand-mark {
+  width: 36px !important; height: 36px !important; flex: 0 0 auto;
+  border: 1px solid rgba(16,185,129,.28);
+  border-radius: 5px !important;
+  background: #14251F !important;
+  box-shadow: none !important;
+}
+.homeos-brand-copy { display:flex; flex-direction:column; gap:2px; }
+.homeos-brand-wordmark {
+  color: var(--homeos-text,var(--text-primary));
+  font-family: var(--font-sans),Arial,sans-serif;
+  font-size: 15px; font-weight: 900; letter-spacing: .12em;
+}
+.homeos-brand-edition {
+  color: var(--homeos-muted,var(--text-secondary));
+  font-size: 7px; font-weight: 800; letter-spacing: .15em;
+}
+.homeos-brand-caption {
+  color: var(--homeos-muted,var(--text-secondary)); font-size: 8px; letter-spacing: .03em;
+}
+.homeos-header-divider {
+  width: 1px; height: 28px; margin-inline: 7px;
+  background: var(--homeos-border,#DCE2E6);
+}
+.homeos-header-household {
+  min-height: 34px !important; gap: 8px !important;
+  border: 1px solid var(--homeos-border,#DCE2E6) !important;
+  border-radius: 4px !important; padding: 6px 9px !important;
+  background: var(--homeos-surface,#F5F7F8) !important;
+  color: var(--homeos-text,var(--text-primary)) !important;
+  font-size: 10px !important; font-weight: 700 !important;
+}
+.homeos-sync-state.homeos-header-storage {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 28px; border-inline-start: 0; padding-inline: 8px;
+  color: var(--homeos-muted,var(--text-secondary)); font-size: 8px;
+}
+.homeos-header-storage svg { width:13px; height:13px; }
+.homeos-header-icon-button,.homeos-header-user {
+  display: inline-grid !important; width: 32px; min-width:32px; height:32px; min-height:32px;
+  place-items:center; padding:0 !important; border:1px solid var(--homeos-border,#DCE2E6) !important;
+  border-radius:4px !important; background:var(--homeos-card,#fff) !important;
+  box-shadow:none !important; color:var(--homeos-muted,var(--text-secondary)) !important;
+}
+.homeos-header-icon-button:hover,.homeos-header-user:hover {
+  border-color:var(--homeos-accent,#0E8A68) !important; color:var(--homeos-accent,#0E8A68) !important;
+  background:var(--homeos-surface,#F5F7F8) !important;
+}
+.homeos-header-user {
+  margin-inline-start:5px; background:var(--homeos-surface,#F5F7F8) !important;
+  font-size:11px; font-weight:850;
+}
+
+/* Desktop workspace: one narrow, persistent rail and one flexible workstage. */
+.homeos-main-content {
+  width:100%; max-width:1760px !important;
+  grid-template-columns:minmax(188px,208px) minmax(0,1fr) !important;
+  column-gap:clamp(16px,2vw,28px) !important;
+  padding:22px clamp(16px,2.3vw,34px) 48px !important;
+  margin-inline:auto !important;
+}
+.homeos-main-content > .homeos-navigation-shell {
+  position:sticky !important; top:76px !important;
+  max-height:calc(100dvh - 92px); min-height:unset;
+  align-self:start; overflow:hidden;
+}
+.homeos-main-content:has(> .homeos-navigation-shell.is-collapsed) {
+  grid-template-columns:72px minmax(0,1fr) !important;
+}
+.homeos-navigation-shell {
+  gap:10px !important; padding:12px 9px 10px !important;
+  border:1px solid var(--homeos-border,#DCE2E6) !important;
+  border-radius:6px !important;
+  background:var(--homeos-card,#fff) !important;
+  box-shadow:none !important; backdrop-filter:none;
+}
+.homeos-sidebar-heading {
+  min-height:50px; padding:2px 5px 10px;
+}
+.homeos-sidebar-kicker { font-size:7px; letter-spacing:.17em; }
+.homeos-sidebar-title-wrap h2 {
+  margin-top:4px; font-family:var(--font-sans),Arial,sans-serif;
+  font-size:15px; font-weight:800; letter-spacing:-.02em;
+}
+.homeos-sidebar-title-wrap p { margin-top:3px; font-size:8px; }
+.homeos-sidebar-collapse {
+  width:27px; height:27px; border-radius:4px; background:var(--homeos-surface,#F5F7F8);
+}
+.homeos-sidebar-integrity { gap:4px; padding-inline:2px; }
+.homeos-sidebar-integrity-item {
+  min-height:21px; border-radius:3px; padding:3px 6px;
+  font-size:8px; font-variant-numeric:tabular-nums;
+}
+.homeos-sidebar-search {
+  min-height:34px; gap:6px; border:1px solid var(--homeos-border,#DCE2E6);
+  border-radius:4px; padding:0 8px; background:var(--homeos-surface,#F5F7F8);
+}
+.homeos-sidebar-search input {
+  min-width:0; border:0 !important; background:transparent !important;
+  box-shadow:none !important; font-size:9px;
+}
+.homeos-sidebar-search kbd { border-radius:3px; font-size:7px; }
+.homeos-main-nav {
+  min-height:0; overflow-y:auto !important; overflow-x:hidden !important;
+  gap:3px !important; padding-inline-end:1px !important;
+}
+.homeos-nav-group { display:flex; flex-direction:column; gap:2px; }
+.homeos-nav-section-label { padding:11px 7px 4px; font-size:9px; font-weight:850; }
+.homeos-nav-section-label small { font-size:7px; letter-spacing:.13em; }
+.homeos-nav-item {
+  position:relative; min-height:37px; gap:8px !important;
+  border:1px solid transparent !important; border-radius:4px !important;
+  padding:7px 8px !important; font-size:10px !important; font-weight:700 !important;
+  box-shadow:none !important; transform:none !important;
+}
+.homeos-nav-icon { display:grid; width:22px; height:22px; flex:0 0 22px; place-items:center; }
+.homeos-nav-icon svg { width:15px; height:15px; stroke-width:1.65; }
+.homeos-nav-copy { display:flex; min-width:0; flex-direction:column; gap:2px; }
+.homeos-nav-copy strong { font-size:10px; font-weight:750; }
+.homeos-nav-copy small { font-size:8px; line-height:1.3; font-weight:450; }
+.homeos-nav-count { min-width:20px; border-radius:3px; padding:2px 4px; font-size:8px; font-variant-numeric:tabular-nums; }
+.homeos-nav-item:hover {
+  transform:none !important; border-color:var(--homeos-border,#DCE2E6) !important;
+  background:var(--homeos-surface,#F5F7F8) !important;
+}
+.homeos-nav-item[aria-current="page"] {
+  color:var(--homeos-text,#14221C) !important;
+  border-color:color-mix(in srgb,var(--homeos-accent,#0E8A68) 36%,var(--homeos-border,#DCE2E6)) !important;
+  border-inline-start:2px solid var(--homeos-accent,#0E8A68) !important;
+  background:color-mix(in srgb,var(--homeos-accent,#0E8A68) 9%,var(--homeos-card,#fff)) !important;
+  box-shadow:none !important;
+}
+.homeos-nav-item[aria-current="page"] .homeos-nav-icon { color:var(--homeos-accent,#0E8A68); }
+.homeos-nav-active-marker { display:none !important; }
+.homeos-sidebar-footer {
+  min-height:34px; gap:8px; border-top:1px solid var(--homeos-border,#DCE2E6);
+  padding:9px 5px 0; color:var(--homeos-muted,var(--text-secondary));
+}
+.homeos-sidebar-footer-mark { width:23px; height:23px; border-radius:4px; background:var(--homeos-surface,#F5F7F8); }
+.homeos-sidebar-footer strong { font-size:8px; letter-spacing:.12em; }
+.homeos-sidebar-footer small { font-size:6px; letter-spacing:.12em; }
+.homeos-navigation-shell.is-collapsed .homeos-sidebar-heading { justify-content:center; padding-inline:0; }
+.homeos-navigation-shell.is-collapsed .homeos-sidebar-title-wrap,
+.homeos-navigation-shell.is-collapsed .homeos-nav-section-label,
+.homeos-navigation-shell.is-collapsed .homeos-nav-copy,
+.homeos-navigation-shell.is-collapsed .homeos-nav-count,
+.homeos-navigation-shell.is-collapsed .homeos-sidebar-integrity,
+.homeos-navigation-shell.is-collapsed .homeos-sidebar-footer > span:last-child { display:none !important; }
+.homeos-navigation-shell.is-collapsed .homeos-nav-item { justify-content:center; padding:6px 2px !important; }
+.homeos-navigation-shell.is-collapsed .homeos-nav-icon { width:28px; height:28px; }
+
+/* Shared page rhythm and page-heading system. */
+.homeos-workspace-content { min-width:0; gap:18px !important; }
+.homeos-workspace-page {
+  display:grid; min-width:0; gap:17px !important;
+  padding-bottom:25px !important;
+}
+.homeos-workspace-page > * { min-width:0; }
+.homeos-page-heading {
+  align-items:flex-end; justify-content:space-between; gap:18px;
+  border-bottom:1px solid var(--homeos-border,#DCE2E6);
+  padding:4px 0 15px;
+}
+.homeos-page-eyebrow {
+  color:var(--homeos-accent,#0E8A68) !important;
+  font-size:8px !important; font-weight:850 !important; letter-spacing:.15em !important;
+}
+.homeos-page-eyebrow-mark { width:5px; height:5px; border-radius:1px; }
+.homeos-page-heading h1 {
+  margin-top:7px; font-family:var(--font-sans),Arial,sans-serif !important;
+  font-size:clamp(25px,2.5vw,34px) !important; font-weight:850 !important;
+  letter-spacing:-.045em !important;
+}
+.homeos-page-heading-copy > p {
+  max-width:680px; margin-top:6px; color:var(--homeos-muted,var(--text-secondary));
+  font-size:10px; line-height:1.75;
+}
+.homeos-page-meta { display:flex; flex-wrap:wrap; gap:7px; margin-top:9px; }
+.homeos-page-meta > * {
+  border:1px solid var(--homeos-border,#DCE2E6); border-radius:3px;
+  padding:4px 7px; color:var(--homeos-muted,var(--text-secondary)); font-size:8px;
+  font-variant-numeric:tabular-nums;
+}
+.homeos-page-actions { display:flex; flex-wrap:wrap; gap:6px; }
+.homeos-section-kicker {
+  color:var(--homeos-muted,var(--text-secondary)) !important;
+  font-size:8px !important; font-weight:850 !important;
+  letter-spacing:.14em !important; text-transform:uppercase;
+}
+.homeos-workspace-page h2,.homeos-workspace-page h3 {
+  letter-spacing:-.025em;
+}
+
+/* Common executive surface: hairline dividers, flat corners and no nested shadows. */
+.homeos-workspace-page :is(
+  .homeos-lux-panel,.homeos-account-card,.homeos-accounts-composition,
+  .homeos-account-toolbar,.homeos-ledger-snapshot,.homeos-ledger-table-shell,
+  .homeos-document-insights,.homeos-document-dropzone,.homeos-home-hero,
+  .homeos-home-tabs,.homeos-house-pulse,.homeos-finance-overview,
+  .homeos-home-forecast,.homeos-spending-alerts,.homeos-settings-hero,
+  .homeos-settings-section,.homeos-people-overview,.homeos-audit-overview
+) {
+  border:1px solid var(--homeos-border,#DCE2E6) !important;
+  border-radius:5px !important;
+  box-shadow:none !important;
+}
+.homeos-workspace-page :is(.homeos-lux-panel,.homeos-account-card,.homeos-settings-section) {
+  background:var(--homeos-card,#fff) !important;
+}
+.homeos-workspace-page :is(.homeos-account-card,.homeos-document-row,.homeos-ledger-table-shell) {
+  border-color:var(--homeos-border,#DCE2E6) !important;
+}
+.homeos-workspace-page :is(.homeos-account-card,.homeos-people-stat,.homeos-audit-stat) {
+  transition:border-color .16s,background .16s !important;
+}
+.homeos-workspace-page :is(.homeos-account-card,.homeos-people-stat,.homeos-audit-stat):hover {
+  transform:none !important; border-color:color-mix(in srgb,var(--homeos-accent,#0E8A68) 42%,var(--homeos-border,#DCE2E6)) !important;
+  box-shadow:none !important;
+}
+.homeos-workspace-page .homeos-wealth-hero {
+  min-height:unset; padding:23px clamp(17px,2.2vw,30px) !important;
+  border:1px solid rgba(255,255,255,.12) !important; border-radius:5px !important;
+  background:linear-gradient(120deg,#111922 0%,#18232C 65%,#202A31 100%) !important;
+  box-shadow:none !important;
+}
+.homeos-workspace-page .homeos-wealth-hero :is(h1,h2,strong) { letter-spacing:-.035em; }
+.homeos-workspace-page .homeos-wealth-hero h1 { font-size:clamp(24px,2.5vw,34px) !important; }
+.homeos-workspace-page .homeos-wealth-hero p { font-size:10px !important; line-height:1.75; }
+.homeos-workspace-page .homeos-wealth-hero .rounded-2xl { border-radius:4px !important; }
+.homeos-home-hero {
+  padding:21px 23px !important; background:linear-gradient(120deg,#111922,#1B2830) !important;
+  color:#ECF1F3 !important;
+}
+.homeos-home-hero :is(h1,h2,p,div,span) { color:inherit; }
+.homeos-home-hero :is(p,small) { color:rgba(232,238,241,.68) !important; }
+.homeos-home-hero .rounded-xl { border-radius:4px !important; border-color:rgba(255,255,255,.13) !important; background:rgba(255,255,255,.055) !important; }
+.homeos-home-tabs { gap:3px !important; padding:5px !important; background:var(--homeos-card,#fff) !important; }
+.homeos-home-tab {
+  min-height:34px !important; border-radius:4px !important; padding:7px 10px !important;
+  font-size:9px !important; font-weight:750 !important;
+}
+.homeos-house-pulse,.homeos-finance-overview,.homeos-home-forecast,.homeos-spending-alerts,
+.homeos-document-insights,.homeos-accounts-composition,.homeos-account-toolbar,.homeos-ledger-snapshot {
+  padding:16px !important; background:var(--homeos-card,#fff) !important;
+}
+.homeos-workspace-page .homeos-finance-summary > *,
+.homeos-workspace-page .homeos-home-forecast-kpis > *,
+.homeos-workspace-page .homeos-document-category-stat,
+.homeos-workspace-page .homeos-house-pulse-item,
+.homeos-workspace-page .homeos-week-day,
+.homeos-workspace-page .homeos-shopping-row,
+.homeos-workspace-page .homeos-task-row,
+.homeos-workspace-page .homeos-finance-category-detail {
+  border-radius:4px !important; box-shadow:none !important;
+}
+.homeos-workspace-page .homeos-week-day { border:1px solid var(--homeos-border,#DCE2E6) !important; }
+.homeos-workspace-page .homeos-document-row { border-radius:0 !important; }
+.homeos-workspace-page .homeos-account-search,.homeos-workspace-page .homeos-account-filter {
+  border-radius:4px !important; box-shadow:none !important;
+}
+.homeos-workspace-page .homeos-account-card { padding:15px !important; }
+.homeos-workspace-page :is(.homeos-ledger-table-shell,.homeos-document-insights,.homeos-settings-section) {
+  overflow:hidden;
+}
+.homeos-workspace-page .homeos-ledger-table-shell { border-radius:5px !important; background:var(--homeos-card,#fff) !important; }
+.homeos-workspace-page .homeos-ledger-table-shell thead th {
+  background:var(--homeos-surface,#F4F6F7) !important;
+  color:var(--homeos-muted,var(--text-secondary)) !important;
+  font-size:8px !important; font-weight:850 !important; letter-spacing:.06em;
+}
+.homeos-workspace-page .homeos-ledger-table-shell tbody tr:hover { background:var(--homeos-surface,#F4F6F7) !important; }
+.homeos-workspace-page .homeos-ledger-table-shell tbody td { font-size:10px; }
+.homeos-workspace-page .homeos-ledger-snapshot-metrics strong,
+.homeos-workspace-page .homeos-finance-summary strong,
+.homeos-workspace-page .homeos-home-forecast-kpis strong,
+.homeos-workspace-page .homeos-document-category-stat strong,
+.homeos-workspace-page [class*="tabular-nums"],
+.homeos-workspace-page .font-mono {
+  font-family:"IBM Plex Mono","SFMono-Regular",Consolas,"Liberation Mono",monospace !important;
+  font-variant-numeric:tabular-nums lining-nums;
+  letter-spacing:-.025em;
+}
+.homeos-workspace-page .homeos-people-stat,.homeos-workspace-page .homeos-audit-stat {
+  border:1px solid var(--homeos-border,#DCE2E6) !important;
+  border-radius:5px !important; background:var(--homeos-card,#fff) !important; box-shadow:none !important;
+}
+.homeos-workspace-page .homeos-people-stat strong,.homeos-workspace-page .homeos-audit-stat strong {
+  font-family:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+  font-variant-numeric:tabular-nums;
+}
+.homeos-workspace-page :is(.homeos-theme-option,.homeos-view-mode-option,.homeos-density-option,.homeos-background-preset,.homeos-widget-editor-row) {
+  border-radius:5px !important; box-shadow:none !important;
+}
+.homeos-settings-hero,.homeos-settings-section { box-shadow:none !important; border-radius:5px !important; }
+.homeos-settings-hero { padding:20px !important; }
+.homeos-settings-section { padding:18px !important; }
+.homeos-settings-section h2 { font-family:var(--font-sans),Arial,sans-serif !important; font-size:17px !important; font-weight:800 !important; }
+.homeos-theme-preview { border-radius:4px !important; }
+.homeos-theme-preview-sidebar,.homeos-theme-preview-main,.homeos-theme-preview-panel { border-radius:2px !important; }
+
+/* Universal control treatment; keep all existing handlers and validation. */
+.homeos-app-shell button,.homeos-app-shell [role="button"],
+.homeos-app-shell input:not([type=checkbox]):not([type=radio]),
+.homeos-app-shell select,.homeos-app-shell textarea {
+  border-radius:4px !important;
+}
+.homeos-app-shell input:not([type=checkbox]):not([type=radio]),
+.homeos-app-shell select,.homeos-app-shell textarea {
+  border:1px solid var(--homeos-border,#DCE2E6) !important;
+  background:var(--homeos-card,#fff) !important;
+  color:var(--homeos-text,var(--text-primary)) !important;
+  box-shadow:none !important;
+}
+.homeos-app-shell input:focus,.homeos-app-shell select:focus,.homeos-app-shell textarea:focus {
+  border-color:var(--homeos-accent,#0E8A68) !important;
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--homeos-accent,#0E8A68) 14%,transparent) !important;
+}
+.homeos-app-shell :is(.text-emerald-600,.text-emerald-700,.text-emerald-800,.is-income,.positive) { color:var(--ho-emerald,#0E8A68) !important; }
+.homeos-app-shell :is(.text-rose-600,.text-rose-700,.text-rose-800,.is-expense,.negative) { color:var(--ho-bordeaux,#A5535B) !important; }
+.homeos-app-shell :is(.text-amber-600,.text-amber-700,.text-amber-800) { color:var(--ho-matte-gold,#B49A6A) !important; }
+.homeos-app-shell :is(.bg-emerald-50,.bg-emerald-100) { background:var(--ho-emerald-soft,#E8F4EF) !important; }
+.homeos-app-shell :is(.bg-rose-50,.bg-rose-100) { background:var(--ho-bordeaux-soft,#F7ECEE) !important; }
+.homeos-app-shell table { border-collapse:separate; border-spacing:0; }
+.homeos-app-shell :is(th,td) { border-color:var(--homeos-border,#DCE2E6) !important; }
+.homeos-app-shell [role=dialog] > div { border-radius:6px !important; box-shadow:var(--ho-shadow-float) !important; }
+
+/* Dark and light variants retain the selected theme's contrast. */
+.homeos-app-shell.dark {
+  --homeos-border:rgba(196,211,220,.14);
+  --ho-emerald-soft:rgba(16,185,129,.11);
+  --ho-bordeaux-soft:rgba(165,83,91,.13);
+}
+.homeos-app-shell.dark .homeos-navigation-shell,
+.homeos-app-shell.dark .homeos-lux-panel,
+.homeos-app-shell.dark .homeos-settings-hero,
+.homeos-app-shell.dark .homeos-settings-section,
+.homeos-app-shell.dark .homeos-workspace-page :is(.homeos-accounts-composition,.homeos-account-toolbar,.homeos-ledger-snapshot,.homeos-document-insights,.homeos-home-tabs,.homeos-house-pulse,.homeos-finance-overview,.homeos-home-forecast,.homeos-spending-alerts) {
+  background:var(--homeos-card,#151F28) !important; border-color:var(--homeos-border) !important;
+}
+.homeos-app-shell.dark .homeos-nav-item[aria-current="page"] {
+  color:var(--homeos-text,#E8EEF1) !important;
+  background:rgba(16,185,129,.13) !important; border-color:rgba(16,185,129,.27) !important;
+}
+.homeos-app-shell.dark .homeos-nav-item[aria-current="page"] .homeos-nav-icon { color:#34D399; }
+.homeos-app-shell.dark .homeos-workspace-page .homeos-ledger-table-shell thead th { background:var(--homeos-surface,#111A22) !important; }
+.homeos-app-shell.dark .homeos-workspace-page .homeos-ledger-table-shell tbody tr:hover { background:rgba(255,255,255,.035) !important; }
+.homeos-app-shell.dark .homeos-app-shell :is(.bg-emerald-50,.bg-emerald-100) { background:rgba(16,185,129,.12) !important; }
+.homeos-app-shell.dark .homeos-header-icon-button,
+.homeos-app-shell.dark .homeos-header-user { background:var(--homeos-surface,#111A22) !important; }
+
+/* Tablet keeps a compact horizontal rail; phones get a single scrollable nav strip. */
+@media (max-width: 1120px) and (min-width: 881px) {
+  .homeos-main-content { grid-template-columns:178px minmax(0,1fr) !important; gap:14px !important; }
+  .homeos-sidebar-title-wrap h2 { font-size:13px; }
+  .homeos-nav-copy small { display:none; }
+  .homeos-nav-item { min-height:34px; }
+}
+@media (max-width: 880px) {
+  .homeos-main-content { grid-template-columns:minmax(0,1fr) !important; row-gap:12px !important; padding-top:13px !important; }
+  .homeos-main-content > .homeos-navigation-shell {
+    position:relative !important; top:auto !important; grid-column:1; grid-row:1;
+    min-height:unset; max-height:none; overflow:visible;
+  }
+  .homeos-main-content > .homeos-workspace-content { grid-column:1; grid-row:2; }
+  .homeos-navigation-shell { padding:8px !important; }
+  .homeos-navigation-shell > div:first-child { display:flex !important; align-items:center; justify-content:space-between; min-height:35px; padding:1px 5px 7px !important; }
+  .homeos-sidebar-title-wrap h2 { font-size:13px; }
+  .homeos-sidebar-title-wrap p,.homeos-sidebar-integrity,.homeos-sidebar-search { display:none !important; }
+  .homeos-main-nav { flex-direction:row !important; align-items:center; overflow-x:auto !important; overflow-y:hidden !important; gap:4px !important; padding:5px 0 1px !important; }
+  .homeos-nav-group { flex:0 0 auto; flex-direction:row; align-items:center; gap:3px; }
+  .homeos-nav-section-label,.homeos-nav-copy small,.homeos-sidebar-footer { display:none !important; }
+  .homeos-nav-item { width:auto; min-height:33px; flex:0 0 auto; gap:6px !important; padding:5px 8px !important; }
+  .homeos-nav-copy strong { font-size:9px; white-space:nowrap; }
+  .homeos-nav-count { display:none !important; }
+  .homeos-navigation-shell.is-collapsed .homeos-nav-item { justify-content:flex-start; }
+  .homeos-navigation-shell.is-collapsed .homeos-nav-copy { display:flex !important; }
+  .homeos-navigation-shell.is-collapsed .homeos-sidebar-title-wrap { display:block !important; }
+  .homeos-navigation-shell.is-collapsed .homeos-sidebar-title-wrap p { display:none; }
+}
+@media (max-width: 640px) {
+  .homeos-executive-topbar-inner { min-height:56px; padding-inline:11px !important; }
+  .homeos-brand-mark { width:31px !important; height:31px !important; }
+  .homeos-brand-wordmark { font-size:12px; }
+  .homeos-brand-edition,.homeos-brand-caption,.homeos-header-divider,.homeos-header-storage { display:none !important; }
+  .homeos-header-household { max-width:126px; min-height:30px !important; padding:5px 6px !important; font-size:8px !important; }
+  .homeos-executive-utilities { gap:3px !important; }
+  .homeos-header-icon-button { width:28px; min-width:28px; height:28px; min-height:28px; }
+  .homeos-header-icon-button:nth-of-type(n+3) { display:none; }
+  .homeos-main-content { padding:10px 9px 30px !important; }
+  .homeos-page-heading { align-items:flex-start; flex-direction:column; gap:9px; }
+  .homeos-page-heading h1 { font-size:25px !important; }
+  .homeos-workspace-page { gap:12px !important; }
+  .homeos-workspace-page :is(.homeos-lux-panel,.homeos-settings-section) { padding:12px !important; }
+  .homeos-workspace-page .homeos-wealth-hero { padding:16px !important; }
+  .homeos-home-hero { padding:15px !important; }
+  .homeos-home-tabs { overflow-x:auto; flex-wrap:nowrap; }
+  .homeos-home-tab { white-space:nowrap; }
+}

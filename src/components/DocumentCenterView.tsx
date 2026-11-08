@@ -221,7 +221,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
   }).length;
 
   return (
-    <div className="homeos-dashboard homeos-document-center homeos-workspace-page space-y-6 pb-10" dir="rtl">
+    <div className="homeos-dashboard homeos-document-center homeos-workspace-page homeos-atlas-documents space-y-6 pb-10" dir="rtl">
       <section className="homeos-wealth-hero">
         <div className="homeos-hero-orbit homeos-orbit-one" />
         <div className="relative z-10 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">

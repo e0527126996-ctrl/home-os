@@ -294,7 +294,7 @@ export const DocumentCenterView: React.FC<DocumentCenterViewProps> = ({
           <div className="divide-y" style={{ borderColor: activeTheme.borderSubtle }}>
             {visibleDocuments.map((doc) => {
               const Icon = fileIcon(doc.mimeType);
-              return <div key={doc.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
+              return <div key={doc.id} className="homeos-document-row flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-center gap-3"><span className="rounded-xl p-3" style={{background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted,color:activeTheme.accent}}><Icon className="h-5 w-5" /></span><div className="min-w-0"><div className="truncate text-sm font-bold">{doc.name}</div><div className="mt-1 text-[11px]" style={muted}>{categories.find((item) => item.value === doc.category)?.label} · {formatSize(doc.size)} · {formatDate(doc.uploadedAt)}</div></div></div>
                 <div className="flex items-center gap-2">
                   {canImportStatements && doc.category === 'BANK' && /\.(pdf|xlsx?|csv|png|jpe?g|webp)$/i.test(doc.name) && <button onClick={() => handleAnalyzeStatement(doc)} className="rounded-lg border px-3 py-2 text-xs font-bold" style={{borderColor:activeTheme.borderSubtle,background:activeTheme.isDark?activeTheme.bgSurface:activeTheme.accentMuted,color:activeTheme.accent}}>נתח דף חשבון</button>}

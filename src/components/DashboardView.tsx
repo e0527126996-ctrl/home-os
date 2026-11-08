@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowDownLeft, ArrowUpLeft, Wallet, Landmark, Activity, TrendingUp,
   TrendingDown, Lightbulb, CalendarDays, Sparkles, ArrowUpRight,
@@ -36,6 +36,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [chartDetail, setChartDetail] = useState<{ title: string; subtitle: string; items: LedgerTransaction[]; note?: string } | null>(null);
   const [detailFilter, setDetailFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
+  const chartDialogRef = useRef<HTMLDivElement>(null);
+  const chartCloseButtonRef = useRef<HTMLButtonElement>(null);
   const detailItems = chartDetail?.items.filter(tx => detailFilter === 'ALL' || tx.type === detailFilter) || [];
   const detailIncome = detailItems.filter(tx => tx.type === 'INCOME').reduce((sum, tx) => sum + tx.amountCents, 0);
   const detailExpense = detailItems.filter(tx => tx.type === 'EXPENSE').reduce((sum, tx) => sum + tx.amountCents, 0);
@@ -52,11 +54,43 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   useEffect(() => {
     if (!chartDetail) return;
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const getFocusable = () => Array.from(
+      chartDialogRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ) || [],
+    ).filter(element => element.getAttribute('aria-hidden') !== 'true');
+
+    chartCloseButtonRef.current?.focus();
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setChartDetail(null);
+      if (event.key === 'Escape') {
+        setChartDetail(null);
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusable = getFocusable();
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) {
+        event.preventDefault();
+        chartDialogRef.current?.focus();
+        return;
+      }
+      if (event.shiftKey && (document.activeElement === first || !chartDialogRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !chartDialogRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
     };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      previouslyFocused?.focus();
+    };
   }, [chartDetail]);
 
   const data = useMemo(() => {
@@ -507,11 +541,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </section>
 
       {chartDetail && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={chartDetail.title} onMouseDown={(event) => { if (event.target === event.currentTarget) setChartDetail(null); }}>
+        <div ref={chartDialogRef} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={chartDetail.title} onMouseDown={(event) => { if (event.target === event.currentTarget) setChartDetail(null); }}>
           <div className="max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-3xl border bg-white shadow-2xl dark:bg-[#1E293B]" style={{ borderColor: activeTheme.borderSubtle }}>
             <div className="flex items-start justify-between gap-4 border-b p-5 sm:p-6" style={{ borderColor: activeTheme.borderSubtle }}>
               <div><div className="homeos-section-kicker">פירוט אינטראקטיבי</div><h2 className="mt-1 text-xl font-bold">{chartDetail.title}</h2><p className="mt-1 text-sm" style={muted}>{chartDetail.subtitle}</p></div>
-              <button type="button" onClick={() => setChartDetail(null)} className="rounded-xl border px-3 py-2 text-sm" style={{ borderColor: activeTheme.borderSubtle }}>סגירה ✕</button>
+              <button ref={chartCloseButtonRef} type="button" onClick={() => setChartDetail(null)} className="rounded-xl border px-3 py-2 text-sm" style={{ borderColor: activeTheme.borderSubtle }}>סגירה ✕</button>
             </div>
             <div className="max-h-[65vh] overflow-y-auto p-5 sm:p-6">
               {chartDetail.note && <div className="mb-4 rounded-2xl border p-4 text-sm leading-6" style={{borderColor:activeTheme.borderSubtle,backgroundColor:activeTheme.bgSurface,color:activeTheme.textSecondary}}>{chartDetail.note}</div>}

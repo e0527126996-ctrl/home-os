@@ -148,7 +148,7 @@ export default function App() {
       const initialUser = savedUserId ? usersList.find(user => user.id === savedUserId) || null : null;
       const [savedHhdId, savedThemeId, savedDensity, savedViewMode, savedWidgetOrder, savedVisibleWidgets, savedWidgetSizes, savedBackgroundImage, savedBackgroundPreset] = await Promise.all([
         db.getSetting<string>('active_household_id', ''),
-        db.getSetting<string>('theme', 'warm_editorial'),
+        db.getSetting<string>('theme', 'executive_terminal'),
         db.getSetting<string>('workspace_density', 'balanced'),
         db.getSetting<WorkspaceViewMode>('workspace_view_mode', 'executive'),
         db.getSetting<string[]>('dashboard_widget_order', DEFAULT_DASHBOARD_WIDGET_ORDER),
@@ -869,7 +869,6 @@ export default function App() {
         currentUser={currentUser}
         activeTheme={activeTheme}
         canManageSystem={canManageSystem}
-        onThemeSelect={handleSelectTheme}
         onOpenHouseholds={() => setShowHouseholdsModal(true)}
         onOpenAuth={() => setShowAuthModal(true)}
         onOpenAudit={() => setShowAuditModal(true)}

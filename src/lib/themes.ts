@@ -20,6 +20,21 @@ export interface ThemeConfig {
 
 export const MODERN_EDITORIAL_THEMES: ThemeConfig[] = [
   {
+    id: 'executive_terminal',
+    nameHe: 'מסוף מנהלים (Executive Terminal)',
+    nameEn: 'Executive Terminal',
+    isDark: true,
+    bgCanvas: '#0B1117',
+    bgSurface: '#111A22',
+    bgCard: '#151F28',
+    borderSubtle: '#293640',
+    textPrimary: '#E8EEF1',
+    textSecondary: '#91A0A9',
+    accent: '#10B981',
+    accentMuted: '#0B3B31',
+    description: 'מסוף ניהול כהה ומדויק בגוני פחם וצפחה, עם אמרלד עמוק ונגיעות זהב מט',
+  },
+  {
     id: 'warm_editorial',
     nameHe: 'שמנת עריכתית (Warm Editorial)',
     nameEn: 'Warm Editorial',

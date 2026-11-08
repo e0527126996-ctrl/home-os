@@ -651,3 +651,57 @@
   .homeos-terminal-month strong { font-size: 8px; }
   .homeos-terminal-chart-topline { font-size: 8px; }
 }
+
+
+/* Financial terminal — matched-period cashflow and forecast curve */
+.homeos-dashboard .homeos-kpi-item { min-height: 132px; }
+.homeos-dashboard .homeos-kpi-delta {
+  flex-wrap: wrap; row-gap: 2px; font-size: 10px; line-height: 1.35;
+}
+.homeos-dashboard .homeos-kpi-delta small { flex-basis: 100%; margin-inline-start: 15px; }
+.homeos-forecast-terminal { min-width: 0; border-top: 1px solid var(--homeos-border,#dce1e4); padding-top: 13px; }
+.homeos-forecast-area-chart {
+  display: block; width: 100%; height: clamp(155px,19vw,190px);
+  margin-top: 4px; overflow: visible;
+}
+.homeos-forecast-baseline {
+  stroke: var(--homeos-border,#dce1e4); stroke-width: 1;
+  stroke-dasharray: 3 5; vector-effect: non-scaling-stroke;
+}
+.homeos-forecast-line {
+  stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.homeos-forecast-line.is-positive { stroke: #16866C; }
+.homeos-forecast-line.is-negative { stroke: #A64E54; }
+.homeos-forecast-point {
+  stroke: var(--homeos-card,#fff); stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+.homeos-forecast-point.is-positive { fill: #16866C; }
+.homeos-forecast-point.is-negative { fill: #A64E54; }
+.homeos-forecast-months {
+  display: grid; grid-template-columns: repeat(12,minmax(0,1fr)); gap: 2px;
+  border-top: 1px solid var(--homeos-border,#dce1e4); padding-top: 8px;
+}
+.homeos-forecast-months .homeos-forecast-month {
+  display: flex; min-width: 0; flex-direction: column; align-items: center;
+  gap: 4px; border: 1px solid transparent; border-radius: 4px;
+  padding: 5px 1px; color: var(--homeos-muted,#68747d); font-size: 8px;
+}
+.homeos-forecast-months .homeos-forecast-month strong {
+  max-width: 100%; overflow: hidden; color: var(--homeos-text,#202a31);
+  font-family: "IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+  font-size: 8px; font-weight: 700; font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.homeos-forecast-months .homeos-forecast-month:hover,
+.homeos-forecast-months .homeos-forecast-month:focus-visible {
+  border-color: var(--homeos-border,#dce1e4); background: var(--homeos-surface,#f5f7f8); outline: none;
+}
+.homeos-app-shell.dark .homeos-forecast-months .homeos-forecast-month strong { color: #e8edf0; }
+.homeos-app-shell.dark .homeos-forecast-point { stroke: #171f27; }
+@media (max-width: 760px) {
+  .homeos-dashboard .homeos-kpi-item { min-height: 124px; padding: 12px !important; }
+  .homeos-forecast-months { grid-template-columns: repeat(6,minmax(0,1fr)); }
+}

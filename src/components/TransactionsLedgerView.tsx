@@ -450,7 +450,7 @@ export const TransactionsLedgerView: React.FC<TransactionsLedgerViewProps> = ({
 
       {/* טבלת העסקאות */}
       <div
-        className="rounded-[1.5rem] border bg-white shadow-sm overflow-hidden"
+        className="homeos-ledger-table-shell rounded-[1.5rem] border bg-white shadow-sm overflow-hidden"
         style={{ borderColor: activeTheme.borderSubtle }}
       >
         {/* כותרת וסרגל סינון */}

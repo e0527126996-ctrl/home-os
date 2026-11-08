@@ -1159,7 +1159,7 @@ body {
   white-space: nowrap;
 }
 .homeos-week-planner-grid {
-  grid-template-columns: repeat(4,minmax(0,1fr));
+  grid-template-columns: repeat(2,minmax(0,1fr));
   gap: 11px !important;
 }
 .homeos-week-day {
@@ -1352,6 +1352,9 @@ body {
 }
 .homeos-households-view > div.grid > div h3 { font-size: 20px; letter-spacing: -.035em; }
 
+@media (min-width: 1360px) {
+  .homeos-week-planner-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+}
 @media (min-width: 1700px) {
   .homeos-week-planner-grid { grid-template-columns: repeat(7,minmax(0,1fr)); }
   .homeos-week-day { min-height: 280px; }

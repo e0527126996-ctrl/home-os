@@ -71,17 +71,19 @@ const cases: Array<{ name: string; run: () => void | Promise<void> }> = [
     },
   },
   {
-    name: 'rejects oversized spreadsheet and CSV files before parsing',
+    name: 'rejects oversized XLSX, XLS and CSV files before parsing',
     run: async () => {
-      const oversizedFile = {
-        name: 'oversized.csv',
-        size: 15 * 1024 * 1024 + 1,
-        arrayBuffer: async () => { throw new Error('The parser must reject before reading bytes'); },
-      } as File;
-      await assert.rejects(
-        () => parseStatementFileWithDiagnostics(oversizedFile, []),
-        /גדול מדי/,
-      );
+      for (const extension of ['xlsx', 'xls', 'csv']) {
+        const oversizedFile = {
+          name: 'oversized.' + extension,
+          size: 15 * 1024 * 1024 + 1,
+          arrayBuffer: async () => { throw new Error('The parser must reject before reading bytes'); },
+        } as File;
+        await assert.rejects(
+          () => parseStatementFileWithDiagnostics(oversizedFile, []),
+          /גדול מדי/,
+        );
+      }
     },
   },
   {

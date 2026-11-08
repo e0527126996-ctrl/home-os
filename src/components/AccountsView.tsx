@@ -254,9 +254,9 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           style={{ backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle }}
         >
           <Landmark className="w-10 h-10 mx-auto opacity-30" style={{ color: activeTheme.accent }} />
-          <h3 className="font-serif text-lg font-bold">אין חשבונות פיננסיים להצגה בקטגוריה זו</h3>
+          <h3 className="font-serif text-lg font-bold">{accountQuery.trim() ? 'לא נמצאו חשבונות התואמים לחיפוש' : 'אין חשבונות פיננסיים להצגה בקטגוריה זו'}</h3>
           <p className="text-xs max-w-md mx-auto opacity-70">
-            הקם חשבונות בנק, כרטיסי אשראי או קופות חיסכון כדי לבנות את התשתית הפיננסית של משק הבית.
+            {accountQuery.trim() ? 'נסה מונח חיפוש אחר או נקה את החיפוש כדי לראות את כל החשבונות.' : 'הקם חשבונות בנק, כרטיסי אשראי או קופות חיסכון כדי לבנות את התשתית הפיננסית של משק הבית.'}
           </p>
           {canEdit && (
             <button

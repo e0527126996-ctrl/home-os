@@ -1381,3 +1381,62 @@ body {
   .homeos-house-pulse-item:first-child,.homeos-people-stat:first-child { border-top: 0; }
   .homeos-week-planner-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Recipe, shopping and task work surfaces */
+.homeos-home-management .homeos-recipe-card {
+  overflow: hidden;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  background: var(--homeos-card,var(--homeos-premium-white)) !important;
+  box-shadow: 0 8px 25px rgba(35,47,38,.04);
+  transition: transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.homeos-home-management .homeos-recipe-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb,var(--homeos-accent,#547D70) 25%,var(--homeos-border,#ddd)) !important;
+  box-shadow: 0 15px 30px rgba(35,47,38,.07);
+}
+.homeos-home-management .homeos-recipe-card h3 {
+  color: var(--homeos-text,var(--homeos-premium-ink));
+  font-family: var(--font-serif,Georgia,serif);
+  font-size: 22px;
+  letter-spacing: -.04em;
+}
+.homeos-shopping-row {
+  min-height: 62px;
+  border-radius: 12px !important;
+  padding: 12px 14px !important;
+  background: var(--homeos-card,var(--homeos-premium-white));
+  transition: background .16s ease,border-color .16s ease,transform .16s ease;
+}
+.homeos-shopping-row:hover {
+  border-color: color-mix(in srgb,var(--homeos-accent,#547D70) 28%,var(--homeos-border,#ddd)) !important;
+  transform: translateX(-2px);
+}
+.homeos-shopping-row > div:nth-child(2) > div:first-child {
+  color: var(--homeos-text,var(--homeos-premium-ink));
+  font-size: 12px;
+}
+.homeos-shopping-row > div:nth-child(2) > div:last-child {
+  margin-top: 4px;
+  color: var(--homeos-muted,var(--homeos-premium-muted));
+}
+.homeos-task-row {
+  min-height: 65px;
+  border-radius: 12px !important;
+  padding: 12px 14px !important;
+  background: var(--homeos-card,var(--homeos-premium-white));
+  transition: background .16s ease,border-color .16s ease;
+}
+.homeos-task-row:hover {
+  border-color: color-mix(in srgb,var(--homeos-accent,#547D70) 24%,var(--homeos-border,#ddd)) !important;
+  background: color-mix(in srgb,var(--homeos-accent,#547D70) 3%,var(--homeos-card,white));
+}
+.homeos-task-row[data-overdue="true"] {
+  border-inline-start: 3px solid #B96F5B !important;
+  background: color-mix(in srgb,#B96F5B 4%,var(--homeos-card,white));
+}
+.homeos-task-row[data-overdue="true"] > div:nth-child(2) > div:first-child {
+  color: #A85F52;
+}

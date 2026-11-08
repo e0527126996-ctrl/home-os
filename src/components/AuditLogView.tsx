@@ -26,10 +26,13 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ logs, activeTheme, o
   });
 
   const uniqueDomains = Array.from(new Set(logs.map((l) => l.domain)));
-  const todayKey = new Date().toLocaleDateString('en-CA');
+  const today = new Date();
+  const todayKey = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
   const todayEvents = logs.filter(log => {
     const timestamp = new Date(log.timestamp);
-    return Number.isFinite(timestamp.getTime()) && timestamp.toLocaleDateString('en-CA') === todayKey;
+    if (!Number.isFinite(timestamp.getTime())) return false;
+    const eventKey = [timestamp.getFullYear(), String(timestamp.getMonth() + 1).padStart(2, '0'), String(timestamp.getDate()).padStart(2, '0')].join('-');
+    return eventKey === todayKey;
   }).length;
 
   return (

@@ -1094,7 +1094,7 @@
 .homeos-app-shell.dark .homeos-nav-item[aria-current="page"] .homeos-nav-icon { color:#34D399; }
 .homeos-app-shell.dark .homeos-workspace-page .homeos-ledger-table-shell thead th { background:var(--homeos-surface,#111A22) !important; }
 .homeos-app-shell.dark .homeos-workspace-page .homeos-ledger-table-shell tbody tr:hover { background:rgba(255,255,255,.035) !important; }
-.homeos-app-shell.dark .homeos-app-shell :is(.bg-emerald-50,.bg-emerald-100) { background:rgba(16,185,129,.12) !important; }
+.homeos-app-shell.dark :is(.bg-emerald-50,.bg-emerald-100) { background:rgba(16,185,129,.12) !important; }
 .homeos-app-shell.dark .homeos-header-icon-button,
 .homeos-app-shell.dark .homeos-header-user { background:var(--homeos-surface,#111A22) !important; }
 

@@ -276,3 +276,250 @@
   .homeos-nav-copy strong { font-size: 10px; }
   .homeos-sidebar-search { min-height: 38px; }
 }
+
+
+/* ─────────────────────────────────────────────────────────────
+   HOME OS — Screen-level redesign system
+   Refines real workspace surfaces and controls, not only the shell.
+   ───────────────────────────────────────────────────────────── */
+.homeos-workspace-page { min-width: 0; }
+.homeos-workspace-page > header:not(.homeos-wealth-hero),
+.homeos-page-heading {
+  display: flex; min-width: 0; align-items: flex-end; justify-content: space-between; gap: 22px;
+  padding: 4px 2px 20px; border-bottom: 1px solid var(--homeos-border, var(--border-subtle));
+}
+.homeos-page-heading-copy { min-width: 0; }
+.homeos-page-heading h1,
+.homeos-workspace-page > header h1 { color: var(--homeos-text, var(--text-primary)); font-family: var(--font-serif); font-size: clamp(32px,3.5vw,48px); font-weight: 700; letter-spacing: -.055em; line-height: 1.08; }
+.homeos-page-heading p,
+.homeos-workspace-page > header p { max-width: 700px; margin-top: 10px; color: var(--homeos-muted, var(--text-secondary)); font-size: 12px; line-height: 1.9; }
+.homeos-page-eyebrow { display: flex; align-items: center; gap: 8px; color: var(--homeos-accent, #547D70); font-family: var(--font-mono); font-size: 8px; font-weight: 800; letter-spacing: .14em; }
+.homeos-page-eyebrow-mark { width: 7px; height: 7px; border-radius: 50%; background: var(--homeos-accent, #547D70); box-shadow: 0 0 0 4px color-mix(in srgb,var(--homeos-accent,#547D70) 12%,transparent); }
+.homeos-page-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.homeos-page-meta > span { display: inline-flex; min-height: 26px; align-items: center; border: 1px solid var(--homeos-border, var(--border-subtle)); border-radius: 999px; padding: 4px 9px; color: var(--homeos-muted, var(--text-secondary)); background: var(--homeos-surface, var(--bg-surface)); font-size: 9px; }
+.homeos-page-actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; gap: 8px; }
+.homeos-page-actions button { min-height: 39px; border-radius: 11px; }
+
+/* Financial accounts — searchable inventory */
+.homeos-account-toolbar {
+  display: grid; gap: 16px; border: 1px solid var(--homeos-border, var(--border-subtle));
+  border-radius: 21px; padding: 18px 19px; background: var(--homeos-card, white); box-shadow: var(--ho-shadow-panel);
+}
+.homeos-account-toolbar-top { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.homeos-account-toolbar-top h2 { margin-top: 5px; color: var(--homeos-text, var(--text-primary)); font-family: var(--font-serif); font-size: 22px; font-weight: 700; letter-spacing: -.035em; }
+.homeos-account-toolbar-top p { margin-top: 3px; color: var(--homeos-muted, var(--text-secondary)); font-size: 10px; }
+.homeos-account-search {
+  display: flex; width: min(100%, 440px); min-height: 43px; align-items: center; gap: 9px;
+  border: 1px solid var(--homeos-border, var(--border-subtle)); border-radius: 12px; padding: 0 12px;
+  color: var(--homeos-muted, var(--text-secondary)); background: var(--homeos-surface, var(--bg-surface));
+}
+.homeos-account-search:focus-within { border-color: var(--homeos-accent, #547D70); box-shadow: 0 0 0 3px color-mix(in srgb,var(--homeos-accent,#547D70) 12%,transparent); }
+.homeos-account-search input { min-width: 0; width: 100%; border: 0 !important; outline: 0 !important; box-shadow: none !important; background: transparent !important; color: var(--homeos-text, var(--text-primary)); font-size: 10px; }
+.homeos-account-search input::placeholder { color: var(--homeos-muted, var(--text-secondary)); opacity: .8; }
+.homeos-account-search button { display: grid; width: 25px; height: 25px; flex: 0 0 auto; place-items: center; border-radius: 7px; color: var(--homeos-muted, var(--text-secondary)); }
+.homeos-account-search button:hover { color: var(--homeos-text, var(--text-primary)); background: color-mix(in srgb,var(--homeos-muted,#777) 10%,transparent); }
+.homeos-account-filter-list { display: flex; flex-wrap: wrap; gap: 7px; }
+.homeos-account-filter {
+  display: inline-flex; min-height: 35px; align-items: center; gap: 8px;
+  border: 1px solid var(--homeos-border, var(--border-subtle)); border-radius: 999px; padding: 6px 11px;
+  color: var(--homeos-muted, var(--text-secondary)); background: var(--homeos-surface, var(--bg-surface));
+  font-size: 10px; font-weight: 750; transition: background .18s,color .18s,border-color .18s,transform .18s;
+}
+.homeos-account-filter strong { display: grid; min-width: 20px; height: 20px; place-items: center; border-radius: 999px; padding-inline: 4px; color: inherit; background: color-mix(in srgb,var(--homeos-muted,#777) 12%,transparent); font-size: 8px; font-variant-numeric: tabular-nums; }
+.homeos-account-filter:hover { border-color: color-mix(in srgb,var(--homeos-accent,#547D70) 40%,var(--homeos-border,#ddd)); transform: translateY(-1px); }
+.homeos-account-filter.is-active { border-color: var(--homeos-accent, #547D70); color: white; background: var(--homeos-accent, #547D70); box-shadow: 0 5px 14px color-mix(in srgb,var(--homeos-accent,#547D70) 18%,transparent); }
+.homeos-account-filter.is-active strong { color: white; background: rgba(255,255,255,.18); }
+.homeos-accounts-composition {
+  display: grid; gap: 18px; border: 1px solid var(--homeos-border, var(--border-subtle)); border-radius: 21px;
+  padding: 21px 23px; background: var(--homeos-card, white); box-shadow: var(--ho-shadow-panel);
+}
+.homeos-accounts-composition-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.homeos-accounts-composition-heading h2 { margin-top: 6px; color: var(--homeos-text, var(--text-primary)); font-family: var(--font-serif); font-size: 22px; font-weight: 700; letter-spacing: -.035em; }
+.homeos-accounts-composition-heading p { margin-top: 4px; color: var(--homeos-muted, var(--text-secondary)); font-size: 10px; line-height: 1.7; }
+.homeos-accounts-composition-total { display: flex; flex-direction: column; gap: 5px; text-align: left; }
+.homeos-accounts-composition-total span { color: var(--homeos-muted, var(--text-secondary)); font-size: 9px; }
+.homeos-accounts-composition-total strong { color: var(--homeos-text, var(--text-primary)); font-size: 20px; font-weight: 850; font-variant-numeric: tabular-nums; }
+.homeos-accounts-composition-bar { display: flex; height: 13px; gap: 3px; overflow: hidden; border-radius: 999px; background: var(--homeos-surface, var(--bg-surface)); }
+.homeos-accounts-assets-segment { border-radius: 999px; background: linear-gradient(90deg,#6A9C81,#3C765C); transition: width .5s; }
+.homeos-accounts-liabilities-segment { border-radius: 999px; background: linear-gradient(90deg,#D6A56B,#B66D57); transition: width .5s; }
+.homeos-accounts-composition-legend { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 11px; }
+.homeos-accounts-composition-legend > div:not(.homeos-accounts-composition-note) { display: grid; grid-template-columns: 9px auto 1fr auto; align-items: center; gap: 8px; color: var(--homeos-muted, var(--text-secondary)); font-size: 10px; }
+.homeos-accounts-composition-legend i { width: 8px; height: 8px; border-radius: 50%; }
+.homeos-accounts-composition-legend i.is-assets { background: #5C9274; }
+.homeos-accounts-composition-legend i.is-liabilities { background: #C58A61; }
+.homeos-accounts-composition-legend strong { justify-self: end; color: var(--homeos-text, var(--text-primary)); font-variant-numeric: tabular-nums; }
+.homeos-accounts-composition-legend small { color: var(--homeos-muted, var(--text-secondary)); }
+.homeos-accounts-composition-note { display: flex; grid-column: 1 / -1; flex-wrap: wrap; gap: 9px 17px; padding-top: 9px; border-top: 1px solid var(--homeos-border, var(--border-subtle)); color: var(--homeos-muted, var(--text-secondary)); font-size: 9px; }
+.homeos-account-card { position: relative; min-height: 235px; overflow: hidden; border-radius: 19px !important; }
+.homeos-account-card::before { position: absolute; inset-inline-start: 0; top: 0; width: 3px; height: 100%; background: var(--homeos-accent, #547D70); opacity: .55; content: ""; }
+.homeos-account-card > * { position: relative; }
+.homeos-account-card:hover { transform: translateY(-3px); }
+.homeos-account-card button { border-radius: 9px; }
+.homeos-account-card button:focus-visible { outline-offset: 2px; }
+
+/* Transaction ledger — operational console */
+.homeos-ledger-note { border: 1px solid color-mix(in srgb,#C18A4F 22%,var(--homeos-border,#ddd)); border-radius: 12px; padding: 10px 13px; color: var(--homeos-muted, var(--text-secondary)); background: color-mix(in srgb,#C18A4F 7%,var(--homeos-card,white)); font-size: 10px; line-height: 1.7; }
+.homeos-ledger-snapshot { overflow: hidden; border: 1px solid var(--homeos-border, var(--border-subtle)); border-radius: 21px; padding: 20px; background: var(--homeos-card, white); box-shadow: var(--ho-shadow-panel); }
+.homeos-ledger-snapshot-heading h2 { color: var(--homeos-text, var(--text-primary)); font-family: var(--font-serif); font-size: 22px; letter-spacing: -.035em; }
+.homeos-ledger-snapshot-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+.homeos-ledger-snapshot-metrics > div { min-width: 0; border: 1px solid var(--homeos-border, var(--border-subtle)); border-radius: 14px; padding: 13px; background: var(--homeos-surface, var(--bg-surface)); }
+.homeos-ledger-snapshot-metrics > div > span { color: var(--homeos-muted, var(--text-secondary)); font-size: 9px; }
+.homeos-ledger-snapshot-metrics > div > strong { display: block; overflow: hidden; margin-top: 6px; color: var(--homeos-text, var(--text-primary)); font-size: 17px; font-weight: 850; font-variant-numeric: tabular-nums; text-overflow: ellipsis; }
+.homeos-ledger-composition { margin-top: 14px; border-radius: 13px; background: var(--homeos-surface, var(--bg-surface)); }
+.homeos-ledger-snapshot-footer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 13px; }
+.homeos-ledger-snapshot-footer > span { border: 1px solid var(--homeos-border, var(--border-subtle)); border-radius: 999px; padding: 5px 9px; color: var(--homeos-muted, var(--text-secondary)); font-size: 9px; }
+.homeos-ledger-table-shell { overflow: hidden; border: 1px solid var(--homeos-border, var(--border-subtle)) !important; border-radius: 21px !important; background: var(--homeos-card, white) !important; box-shadow: var(--ho-shadow-panel) !important; }
+.homeos-ledger-table-shell > div:first-child { border-color: var(--homeos-border, var(--border-subtle)) !important; background: var(--homeos-card, white); }
+.homeos-ledger-table-shell h2 { color: var(--homeos-text, var(--text-primary)) !important; font-family: var(--font-serif); letter-spacing: -.025em; }
+.homeos-ledger-table-shell p { color: var(--homeos-muted, var(--text-secondary)) !important; }
+.homeos-ledger-table-shell :is(input,select) { min-height: 38px; border: 1px solid var(--homeos-border, var(--border-subtle)) !important; border-radius: 10px !important; background: var(--homeos-surface, var(--bg-surface)) !important; color: var(--homeos-text, var(--text-primary)) !important; font-size: 10px; }
+.homeos-ledger-table-shell table { width: 100%; min-width: 800px; }
+.homeos-ledger-table-shell thead { position: sticky; top: 0; z-index: 2; }
+.homeos-ledger-table-shell thead th { border-color: var(--homeos-border, var(--border-subtle)) !important; padding: 12px 13px; color: var(--homeos-muted, var(--text-secondary)) !important; background: var(--homeos-surface, var(--bg-surface)) !important; font-size: 9px; font-weight: 850; white-space: nowrap; }
+.homeos-ledger-table-shell tbody td { border-color: color-mix(in srgb,var(--homeos-border,#ddd) 72%,transparent); padding: 12px 13px; color: var(--homeos-text, var(--text-primary)); font-size: 10px; }
+.homeos-ledger-table-shell tbody tr { background: var(--homeos-card, white); transition: background .16s; }
+.homeos-ledger-table-shell tbody tr:hover { background: color-mix(in srgb,var(--homeos-accent,#547D70) 5%,var(--homeos-card,white)); }
+.homeos-ledger-table-shell [class*="stone-900"],
+.homeos-ledger-table-shell [class*="stone-800"],
+.homeos-ledger-table-shell [class*="stone-700"] { color: var(--homeos-text, var(--text-primary)) !important; }
+.homeos-ledger-table-shell [class*="stone-500"],
+.homeos-ledger-table-shell [class*="stone-400"] { color: var(--homeos-muted, var(--text-secondary)) !important; }
+
+/* Household operations — weekly command board */
+.homeos-home-management { min-width: 0; }
+.homeos-home-hero {
+  position: relative; overflow: hidden; border: 1px solid var(--homeos-border, var(--border-subtle)) !important;
+  border-radius: var(--ho-radius-xl) !important; padding: clamp(22px,3vw,34px) !important;
+  background:
+    radial-gradient(ellipse at 8% 0%, color-mix(in srgb,var(--homeos-accent,#547D70) 14%,transparent),transparent 42%),
+    linear-gradient(135deg,var(--homeos-card,white),color-mix(in srgb,var(--homeos-surface,#f3efeA) 68%,var(--homeos-card,white))) !important;
+  box-shadow: var(--ho-shadow-panel);
+}
+.homeos-home-hero h1 { font-family: var(--font-serif); font-size: clamp(32px,3.2vw,45px) !important; letter-spacing: -.05em; }
+.homeos-home-hero > div > div:last-child > div { min-width: 90px; border-radius: 13px !important; }
+.homeos-home-tabs {
+  display: flex; flex-wrap: nowrap; gap: 5px; overflow-x: auto; border: 1px solid var(--homeos-border, var(--border-subtle)) !important;
+  border-radius: 16px !important; padding: 6px !important; background: var(--homeos-card,white) !important;
+  box-shadow: 0 7px 22px rgba(31,43,35,.035);
+  scrollbar-width: thin;
+}
+.homeos-home-tab {
+  display: inline-flex; min-height: 42px; flex: 1 0 auto; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid transparent; border-radius: 11px !important; padding: 9px 14px !important;
+  color: var(--homeos-muted,var(--text-secondary)); background: transparent;
+  font-size: 10px; font-weight: 850; white-space: nowrap; transition: background .18s,color .18s,transform .18s;
+}
+.homeos-home-tab:hover { background: var(--homeos-surface,var(--bg-surface)) !important; transform: translateY(-1px); }
+.homeos-home-tab.is-active { color: white !important; background: var(--homeos-accent,#547D70) !important; box-shadow: 0 6px 16px color-mix(in srgb,var(--homeos-accent,#547D70) 22%,transparent); }
+.homeos-house-pulse { display: grid; gap: 13px; border: 1px solid var(--homeos-border,var(--border-subtle)); border-radius: 19px; padding: 18px; background: var(--homeos-card,white); box-shadow: var(--ho-shadow-panel); }
+.homeos-house-pulse-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.homeos-house-pulse-heading strong { display: block; margin-top: 4px; color: var(--homeos-text,var(--text-primary)); font-family: var(--font-serif); font-size: 19px; }
+.homeos-house-pulse-heading > span:last-child { color: var(--homeos-muted,var(--text-secondary)); font-size: 9px; }
+.homeos-house-pulse-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 9px; }
+.homeos-house-pulse-item { display: flex; min-width: 0; align-items: center; gap: 11px; border: 1px solid var(--homeos-border,var(--border-subtle)); border-radius: 14px; padding: 12px; background: var(--homeos-surface,var(--bg-surface)); text-align: right; transition: border-color .18s,transform .18s,box-shadow .18s; }
+.homeos-house-pulse-item:hover { border-color: color-mix(in srgb,var(--homeos-accent,#547D70) 40%,var(--homeos-border,#ddd)); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(31,43,35,.055); }
+.homeos-house-pulse-icon { display: grid; width: 37px; height: 37px; flex: 0 0 auto; place-items: center; border: 1px solid color-mix(in srgb,var(--homeos-accent,#547D70) 16%,transparent); border-radius: 11px; color: var(--homeos-accent,#547D70); background: color-mix(in srgb,var(--homeos-accent,#547D70) 8%,var(--homeos-card,white)); }
+.homeos-house-pulse-copy { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.homeos-house-pulse-copy small { color: var(--homeos-muted,var(--text-secondary)); font-size: 8px; }
+.homeos-house-pulse-copy strong { color: var(--homeos-text,var(--text-primary)); font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
+.homeos-house-pulse-copy strong i { color: var(--homeos-muted,var(--text-secondary)); font-size: 10px; font-style: normal; }
+.homeos-house-pulse-copy em { overflow: hidden; color: var(--homeos-muted,var(--text-secondary)); font-size: 8px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+.homeos-week-planner-grid { gap: 11px !important; }
+.homeos-week-day { border-radius: 16px !important; padding: 13px !important; background: var(--homeos-card,white) !important; box-shadow: 0 5px 18px rgba(31,43,35,.035); }
+.homeos-week-day.is-today { border-color: var(--homeos-accent,#547D70) !important; box-shadow: 0 0 0 2px color-mix(in srgb,var(--homeos-accent,#547D70) 12%,transparent),0 7px 22px rgba(31,43,35,.045); }
+.homeos-week-day-head { align-items: center; border-bottom: 1px solid var(--homeos-border,var(--border-subtle)); padding-bottom: 10px; }
+.homeos-week-day-head strong { color: var(--homeos-text,var(--text-primary)); font-size: 11px !important; }
+.homeos-week-meal-slot { min-height: 67px; border-color: var(--homeos-border,var(--border-subtle)) !important; border-radius: 10px !important; background: var(--homeos-surface,var(--bg-surface)); }
+.homeos-week-meal-row { align-items: center; color: var(--homeos-text,var(--text-primary)); }
+.homeos-shopping-row { border-radius: 13px !important; background: var(--homeos-card,white); box-shadow: 0 4px 15px rgba(31,43,35,.025); }
+.homeos-finance-overview,.homeos-home-forecast,.homeos-spending-alerts { border: 1px solid var(--homeos-border,var(--border-subtle)); border-radius: 19px; padding: 20px; background: var(--homeos-card,white); box-shadow: var(--ho-shadow-panel); }
+.homeos-finance-summary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
+.homeos-finance-summary > * { border: 1px solid var(--homeos-border,var(--border-subtle)); border-radius: 12px; padding: 12px; background: var(--homeos-surface,var(--bg-surface)); }
+.homeos-home-forecast-kpis { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
+.homeos-home-forecast-kpis > * { border: 1px solid var(--homeos-border,var(--border-subtle)); border-radius: 12px; padding: 12px; background: var(--homeos-surface,var(--bg-surface)); }
+.homeos-finance-category-detail { border: 1px solid var(--homeos-border,var(--border-subtle)); border-radius: 13px; padding: 14px; background: var(--homeos-surface,var(--bg-surface)); }
+.homeos-task-row { background: var(--homeos-card,white); }
+.homeos-task-row[data-overdue="true"] { border-color: color-mix(in srgb,#C65E54 45%,var(--homeos-border,#ddd)) !important; background: color-mix(in srgb,#C65E54 4%,var(--homeos-card,white)); }
+
+/* Document vault — library first */
+.homeos-document-insights { display: grid; grid-template-columns: minmax(180px,.7fr) minmax(0,2fr); align-items: center; gap: 16px; border: 1px solid var(--homeos-border,var(--border-subtle)); border-radius: 19px; padding: 19px; background: var(--homeos-card,white); box-shadow: var(--ho-shadow-panel); }
+.homeos-document-insights-intro h2 { margin-top: 5px; color: var(--homeos-text,var(--text-primary)); font-family: var(--font-serif); font-size: 21px; font-weight: 700; letter-spacing: -.035em; }
+.homeos-document-insights-intro p { margin-top: 5px; color: var(--homeos-muted,var(--text-secondary)); font-size: 9px; line-height: 1.7; }
+.homeos-document-category-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; }
+.homeos-document-category-stat { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 4px; border: 1px solid var(--homeos-border,var(--border-subtle)); border-radius: 12px; padding: 10px; background: var(--homeos-surface,var(--bg-surface)); text-align: right; transition: border-color .18s,transform .18s,background .18s; }
+.homeos-document-category-stat:hover { border-color: var(--homeos-accent,#547D70); transform: translateY(-1px); }
+.homeos-document-category-stat.is-active { border-color: var(--homeos-accent,#547D70); background: color-mix(in srgb,var(--homeos-accent,#547D70) 8%,var(--homeos-card,white)); }
+.homeos-document-category-stat span { color: var(--homeos-muted,var(--text-secondary)); font-size: 8px; }
+.homeos-document-category-stat strong { color: var(--homeos-text,var(--text-primary)); font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.homeos-document-category-stat small { color: var(--homeos-muted,var(--text-secondary)); font-size: 7px; }
+.homeos-document-recent-stat { display: flex; grid-column: 1 / -1; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid var(--homeos-border,var(--border-subtle)); color: var(--homeos-muted,var(--text-secondary)); font-size: 9px; }
+.homeos-document-recent-stat strong { color: var(--homeos-text,var(--text-primary)); font-weight: 850; }
+.homeos-document-recent-dot { width: 7px; height: 7px; border-radius: 50%; background: #5D977A; box-shadow: 0 0 0 4px rgba(93,151,122,.12); }
+.homeos-document-dropzone { min-height: 145px !important; border-radius: 16px !important; background: color-mix(in srgb,var(--homeos-accent,#547D70) 5%,var(--homeos-card,white)) !important; }
+.homeos-document-dropzone:hover { border-style: solid !important; transform: translateY(-1px); box-shadow: 0 10px 25px rgba(31,43,35,.055); }
+.homeos-document-row { border-bottom: 1px solid var(--homeos-border,var(--border-subtle)); padding-block: 13px !important; }
+.homeos-document-row:last-child { border-bottom: 0; }
+.homeos-document-row > div:first-child > span { border: 1px solid var(--homeos-border,var(--border-subtle)); }
+.homeos-document-row button { min-height: 34px; border-radius: 9px !important; font-size: 9px !important; }
+.homeos-document-row button:hover { border-color: var(--homeos-accent,#547D70) !important; transform: translateY(-1px); }
+
+/* Settings studio */
+.homeos-settings-hero h1 { font-family: var(--font-serif); letter-spacing: -.045em; }
+.homeos-settings-section { scroll-margin-top: 100px; }
+.homeos-settings-section > div:first-child > p { font-size: 10px !important; }
+.homeos-settings-section .homeos-widget-editor-row { border-radius: 13px; }
+.homeos-settings-section .homeos-widget-order button { border-radius: 8px; }
+.homeos-settings-section .homeos-background-preset { min-height: 116px; }
+
+/* Universal component polish */
+.homeos-app-shell .homeos-primary-action,
+.homeos-app-shell .homeos-secondary-action { min-height: 39px; border-radius: 11px; font-size: 10px; }
+.homeos-app-shell :is(button,a):focus-visible { outline-color: var(--homeos-accent,var(--accent)); }
+.homeos-app-shell :is([role=alert],.text-rose-700,.text-rose-800) { line-height: 1.7; }
+.homeos-app-shell .homeos-lux-panel :is(h2,h3) { letter-spacing: -.025em; }
+.homeos-app-shell .homeos-dashboard-heading { min-width: 0; }
+.homeos-app-shell [aria-pressed="true"] { transition: background .18s,color .18s,border-color .18s; }
+.homeos-app-shell.dark .homeos-account-toolbar,
+.homeos-app-shell.dark .homeos-accounts-composition,
+.homeos-app-shell.dark .homeos-ledger-snapshot,
+.homeos-app-shell.dark .homeos-home-tabs,
+.homeos-app-shell.dark .homeos-house-pulse,
+.homeos-app-shell.dark .homeos-finance-overview,
+.homeos-app-shell.dark .homeos-home-forecast,
+.homeos-app-shell.dark .homeos-spending-alerts,
+.homeos-app-shell.dark .homeos-document-insights { background: var(--homeos-card,#20252B); }
+.homeos-app-shell.dark .homeos-home-hero { background: radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--homeos-accent,#547D70) 19%,transparent),transparent 42%),linear-gradient(135deg,var(--homeos-card,#20252B),var(--homeos-surface,#282E34)) !important; }
+.homeos-app-shell.dark .homeos-account-filter,
+.homeos-app-shell.dark .homeos-account-search,
+.homeos-app-shell.dark .homeos-sidebar-search { background: var(--homeos-surface,#282E34); }
+.homeos-app-shell.dark .homeos-document-row,
+.homeos-app-shell.dark .homeos-ledger-table-shell tbody td { border-color: var(--homeos-border,rgba(255,255,255,.12)); }
+@media (max-width: 1120px) {
+  .homeos-house-pulse-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .homeos-document-insights { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .homeos-account-toolbar-top { align-items: stretch; flex-direction: column; }
+  .homeos-account-search { width: 100%; }
+  .homeos-accounts-composition { padding: 16px; }
+  .homeos-accounts-composition-heading { align-items: flex-start; flex-direction: column; }
+  .homeos-accounts-composition-total { text-align: right; }
+  .homeos-ledger-snapshot { padding: 14px; }
+  .homeos-ledger-snapshot-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .homeos-home-tabs { border-radius: 13px !important; }
+  .homeos-home-tab { min-height: 39px; padding-inline: 11px !important; }
+  .homeos-house-pulse { padding: 14px; }
+  .homeos-house-pulse-heading { align-items: flex-start; flex-direction: column; }
+  .homeos-house-pulse-item { padding: 9px; }
+  .homeos-house-pulse-icon { width: 31px; height: 31px; }
+  .homeos-house-pulse-copy strong { font-size: 17px; }
+  .homeos-finance-summary,.homeos-home-forecast-kpis { grid-template-columns: 1fr; }
+  .homeos-document-category-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .homeos-page-heading { align-items: flex-start; flex-direction: column; }
+  .homeos-page-heading h1 { font-size: 33px; }
+}
+@media (max-width: 420px) {
+  .homeos-house-pulse-grid { grid-template-columns: 1fr; }
+  .homeos-accounts-composition-legend { grid-template-columns: 1fr; }
+  .homeos-document-category-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}

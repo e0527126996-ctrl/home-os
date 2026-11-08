@@ -24,9 +24,9 @@ export const Header: React.FC<HeaderProps> = ({
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const controlStyle = { backgroundColor: activeTheme.bgCard, borderColor: activeTheme.borderSubtle, color: activeTheme.textPrimary };
   return (
-    <header className="homeos-topbar" dir="rtl">
-      <div className="mx-auto flex max-w-[1540px] items-center justify-between gap-4 px-4 py-3 sm:px-7 lg:px-10">
-        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+    <header className="homeos-topbar homeos-atlas-topbar" dir="rtl">
+      <div className="homeos-topbar-inner mx-auto flex max-w-[1720px] items-center justify-between gap-4 px-4 py-3 sm:px-7 lg:px-10">
+        <div className="homeos-brand-cluster flex min-w-0 items-center gap-3 sm:gap-4">
           <div className="homeos-brand-mark"><Home className="h-5 w-5" /></div>
           <div className="min-w-0"><div className="flex items-center gap-2"><span className="text-xl font-extrabold tracking-[-.06em]">HOME OS</span><span className="hidden rounded-full border border-[#547D70]/20 bg-[#547D70]/[.07] px-2 py-0.5 text-[9px] font-bold tracking-wider text-[#547D70] sm:inline-flex">מרכז הבית</span></div><div className="mt-0.5 text-[9px] font-semibold tracking-[.22em]" style={{ color: activeTheme.textSecondary }}>מערכת ניהול משק הבית</div></div>
           <button onClick={onOpenHouseholds} className="homeos-household-switch">
@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
           <div className="homeos-sync-state" role="status" title="הנתונים נשמרים בדפדפן הנוכחי. סנכרון בין מכשירים עדיין לא הוגדר."><CloudOff aria-hidden="true" /><span>מקומי בלבד</span><small>ענן לא מחובר</small></div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="homeos-topbar-tools flex shrink-0 items-center gap-2">
           <div className="relative">
             <button
               type="button"

@@ -27,6 +27,7 @@ import {
 import { Header } from './components/Header.tsx';
 import { WorkspaceNavigation } from './components/WorkspaceNavigation.tsx';
 import { SettingsView } from './components/SettingsView.tsx';
+import { CommandPalette, type WorkspaceCommand } from './components/CommandPalette.tsx';
 const DashboardView = lazy(() => import('./components/DashboardView.tsx').then(({ DashboardView }) => ({ default: DashboardView })));
 const HouseholdsView = lazy(() => import('./components/HouseholdsView.tsx').then(({ HouseholdsView }) => ({ default: HouseholdsView })));
 const MembersAndPersonsView = lazy(() => import('./components/MembersAndPersonsView.tsx').then(({ MembersAndPersonsView }) => ({ default: MembersAndPersonsView })));
@@ -44,8 +45,8 @@ const HomeManagementView = lazy(() => import('./components/HomeManagementView.ts
 import { db } from './lib/db.ts';
 import { canApproveHouseholdDomain, canReadHouseholdDomain, canWriteHouseholdDomain, filterHouseholdsByMembership, isHouseholdManager } from './lib/accessControl.ts';
 import { MODERN_EDITORIAL_THEMES, ThemeConfig } from './lib/themes.ts';
-import { BACKGROUND_PRESETS, DASHBOARD_WIDGETS, DEFAULT_DASHBOARD_WIDGET_ORDER, WorkspaceViewMode, WORKSPACE_VIEW_MODES } from './lib/workspace.ts';
-import type { DashboardWidgetSize, WorkspaceBackgroundPresetId } from './lib/workspace.ts';
+import { BACKGROUND_PRESETS, DASHBOARD_WIDGETS, DEFAULT_DASHBOARD_WIDGET_ORDER, WorkspaceViewMode, WORKSPACE_VIEW_MODES, DEFAULT_WORKSPACE_APPEARANCE, normalizeWorkspaceAppearance, WORKSPACE_FONT_OPTIONS } from './lib/workspace.ts';
+import type { DashboardWidgetSize, WorkspaceBackgroundPresetId, WorkspaceAppearancePreferences } from './lib/workspace.ts';
 import { generateStandaloneHomeOSHtml } from './lib/standaloneGenerator.ts';
 import type { ImportedStatementRow } from './lib/statementImport.ts';
 import {
@@ -87,7 +88,8 @@ export default function App() {
   const [visibleDashboardWidgetIds, setVisibleDashboardWidgetIds] = useState<string[]>(DEFAULT_DASHBOARD_WIDGET_ORDER);
   const [dashboardWidgetSizes, setDashboardWidgetSizes] = useState<Record<string, DashboardWidgetSize>>({});
   const [personalBackgroundImage, setPersonalBackgroundImage] = useState<string | null>(null);
-  const [backgroundPresetId, setBackgroundPresetId] = useState<WorkspaceBackgroundPresetId>('midnight_ink');
+  const [backgroundPresetId, setBackgroundPresetId] = useState<WorkspaceBackgroundPresetId>('aurora_night');
+  const [appearance, setAppearance] = useState<WorkspaceAppearancePreferences>({ ...DEFAULT_WORKSPACE_APPEARANCE });
   const [ledgerSelectedAccountId, setLedgerSelectedAccountId] = useState<string | null>(null);
 
   // Modal Dialogs
@@ -97,6 +99,8 @@ export default function App() {
   const [showTestsModal, setShowTestsModal] = useState(false);
   const [showBackupModal, setShowBackupModal] = useState(false);
   const [showExportHtmlModal, setShowExportHtmlModal] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [initialTransactionMode, setInitialTransactionMode] = useState<'INCOME' | 'EXPENSE' | 'TRANSFER'>('EXPENSE');
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<LedgerTransaction | null>(null);
   const [editingPermissionsFor, setEditingPermissionsFor] = useState<{
@@ -146,16 +150,17 @@ export default function App() {
       // auto-select the first local profile on a genuinely fresh installation.
       const savedUserId = await db.getSetting<string | null>('current_user_id', usersList[0]?.id || null);
       const initialUser = savedUserId ? usersList.find(user => user.id === savedUserId) || null : null;
-      const [savedHhdId, savedThemeId, savedDensity, savedViewMode, savedWidgetOrder, savedVisibleWidgets, savedWidgetSizes, savedBackgroundImage, savedBackgroundPreset] = await Promise.all([
+      const [savedHhdId, savedThemeId, savedDensity, savedViewMode, savedWidgetOrder, savedVisibleWidgets, savedWidgetSizes, savedBackgroundImage, savedBackgroundPreset, savedAppearance] = await Promise.all([
         db.getSetting<string>('active_household_id', ''),
-        db.getSetting<string>('theme', 'executive_terminal'),
+        db.getSetting<string>('theme', 'maison_noir'),
         db.getSetting<string>('workspace_density', 'balanced'),
         db.getSetting<WorkspaceViewMode>('workspace_view_mode', 'executive'),
         db.getSetting<string[]>('dashboard_widget_order', DEFAULT_DASHBOARD_WIDGET_ORDER),
         db.getSetting<string[]>('dashboard_widget_visibility', DEFAULT_DASHBOARD_WIDGET_ORDER),
         db.getSetting<Record<string, DashboardWidgetSize>>('dashboard_widget_sizes', {}),
         db.getSetting<string>('personal_background_image', ''),
-        db.getSetting<WorkspaceBackgroundPresetId>('personal_background_preset', 'midnight_ink'),
+        db.getSetting<WorkspaceBackgroundPresetId>('personal_background_preset', 'aurora_night'),
+        db.getSetting<unknown>('workspace_appearance', DEFAULT_WORKSPACE_APPEARANCE),
       ]);
 
       const accessibleHouseholds = initialUser ? await getAccessibleHouseholds(initialUser.id) : [];
@@ -184,7 +189,8 @@ export default function App() {
       }
       setDashboardWidgetSizes(normalizedWidgetSizes);
       setPersonalBackgroundImage(typeof savedBackgroundImage === 'string' && savedBackgroundImage.startsWith('data:image/') ? savedBackgroundImage : null);
-      setBackgroundPresetId(BACKGROUND_PRESETS.some(preset => preset.id === savedBackgroundPreset) ? savedBackgroundPreset : 'midnight_ink');
+      setBackgroundPresetId(BACKGROUND_PRESETS.some(preset => preset.id === savedBackgroundPreset) ? savedBackgroundPreset : 'aurora_night');
+      setAppearance(normalizeWorkspaceAppearance(savedAppearance));
 
       if (initialUser) await db.setSetting('current_user_id', initialUser.id);
       else await db.setSetting('current_user_id', null);
@@ -260,6 +266,18 @@ export default function App() {
     loadInitialData();
   }, []);
 
+  useEffect(() => {
+    const handleGlobalShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setShowCommandPalette(open => !open);
+      }
+      if (event.key === 'Escape') setShowCommandPalette(false);
+    };
+    window.addEventListener('keydown', handleGlobalShortcut);
+    return () => window.removeEventListener('keydown', handleGlobalShortcut);
+  }, []);
+
   // Keep other open HOME OS tabs in sync after a committed IndexedDB write.
   // This is same-browser synchronization, not cloud or multi-device sync.
   useEffect(() => {
@@ -287,13 +305,16 @@ export default function App() {
     root.style.setProperty('--text-secondary', activeTheme.textSecondary);
     root.style.setProperty('--accent', activeTheme.accent);
     root.style.setProperty('--accent-muted', activeTheme.accentMuted);
+    root.style.setProperty('--homeos-font-family', WORKSPACE_FONT_OPTIONS.find(option => option.id === appearance.font)?.css || WORKSPACE_FONT_OPTIONS[0].css);
+    root.style.setProperty('--homeos-font-scale', String(appearance.fontScale / 100));
+    root.style.setProperty('--homeos-brightness', String(appearance.brightness / 100));
 
     if (activeTheme.isDark) {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-  }, [activeTheme, workspaceViewMode]);
+  }, [activeTheme, workspaceViewMode, appearance]);
 
   const handleSwitchUser = async (user: User) => {
     // Clear the previous user's household state before awaiting any new data.
@@ -771,6 +792,38 @@ export default function App() {
     showToast('תמונת הרקע הוסרה');
   };
 
+  const handleAppearanceChange = async (next: WorkspaceAppearancePreferences) => {
+    const normalized = normalizeWorkspaceAppearance(next);
+    setAppearance(normalized);
+    try { await db.setSetting('workspace_appearance', normalized); }
+    catch (error: any) { showToast('העדפת התצוגה לא נשמרה: ' + error.message, 'error'); }
+  };
+
+  const openQuickTransaction = (mode: 'INCOME' | 'EXPENSE' | 'TRANSFER') => {
+    if (!canPerformFinance) {
+      showToast('אין לך הרשאת כתיבה בתחום הכספים', 'error');
+      setShowCommandPalette(false);
+      return;
+    }
+    setInitialTransactionMode(mode);
+    setEditingTransaction(null);
+    setShowCommandPalette(false);
+    setActiveTab('ledger');
+    setShowTransactionModal(true);
+  };
+
+  const runWorkspaceCommand = (command: WorkspaceCommand) => {
+    setShowCommandPalette(false);
+    if (command === 'create-expense') return openQuickTransaction('EXPENSE');
+    if (command === 'create-income') return openQuickTransaction('INCOME');
+    if (command === 'create-transfer') return openQuickTransaction('TRANSFER');
+    if ((command === 'members' || command === 'audit') && !canReadAdmin) return;
+    if ((command === 'accounts' || command === 'ledger') && !canReadFinance) return;
+    if (command === 'documents' && !canReadDocuments) return;
+    if (command === 'home' && !canReadFood) return;
+    setActiveTab(command);
+  };
+
   const currentMembership = memberships.find(membership => membership.userId === currentUser?.id);
   const isOwnerOrAdmin = isHouseholdManager(currentMembership?.role);
   const canReadDomain = (domain: HouseholdPermissionRule['domain']) =>
@@ -813,6 +866,8 @@ export default function App() {
   return (
     <div
       className={`homeos-app-shell homeos-density-${workspaceDensity} ${activeTheme.isDark ? 'dark' : ''} min-h-screen flex flex-col transition-colors duration-200`}
+      data-theme={activeTheme.id}
+      data-card-style={appearance.cardStyle}
       style={{
         backgroundColor: activeTheme.bgCanvas,
         backgroundImage: personalBackgroundImage
@@ -841,6 +896,9 @@ export default function App() {
           '--text-primary': activeTheme.textPrimary,
           '--text-secondary': activeTheme.textSecondary,
           '--focus-ring': activeTheme.accent,
+          '--homeos-font-family': WORKSPACE_FONT_OPTIONS.find(option => option.id === appearance.font)?.css || WORKSPACE_FONT_OPTIONS[0].css,
+          '--homeos-font-scale': appearance.fontScale / 100,
+          '--homeos-brightness': appearance.brightness / 100,
         } as React.CSSProperties),
       }}
       dir="rtl"
@@ -875,6 +933,7 @@ export default function App() {
         onOpenTests={() => setShowTestsModal(true)}
         onOpenBackup={() => setShowBackupModal(true)}
         onOpenExportHtml={() => setShowExportHtmlModal(true)}
+        onOpenCommands={() => setShowCommandPalette(true)}
       />
 
       <Suspense fallback={<div className="flex min-h-48 items-center justify-center text-sm" style={{ color: activeTheme.textSecondary }}>טוען אזור עבודה...</div>}>
@@ -901,6 +960,8 @@ export default function App() {
         {activeTab === 'settings' && (
           <SettingsView
             themes={MODERN_EDITORIAL_THEMES}
+            appearance={appearance}
+            onAppearanceChange={handleAppearanceChange}
             activeTheme={activeTheme}
             onThemeSelect={handleSelectTheme}
             density={workspaceDensity}
@@ -1126,10 +1187,12 @@ export default function App() {
             activeTheme={activeTheme}
             canEdit={canPerformFinance}
             onAddTransaction={() => {
+              setInitialTransactionMode('EXPENSE');
               setEditingTransaction(null);
               setShowTransactionModal(true);
             }}
             onAddTransfer={() => {
+              setInitialTransactionMode('TRANSFER');
               setEditingTransaction(null);
               setShowTransactionModal(true);
             }}
@@ -1189,6 +1252,17 @@ export default function App() {
         )}
         </div>
       </main>
+
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        onRun={runWorkspaceCommand}
+        canReadFinance={canReadFinance}
+        canWriteFinance={canPerformFinance}
+        canReadDocuments={canReadDocuments}
+        canReadFood={canReadFood}
+        canReadAdmin={canReadAdmin}
+      />
 
       {/* Modal Dialogs */}
       {(showAuthModal || !currentUser) && (
@@ -1342,6 +1416,7 @@ export default function App() {
           onSaveTransfer={handleSaveTransfer}
           onUpdateTransaction={handleUpdateTransaction}
           initialTransaction={editingTransaction}
+          initialMode={initialTransactionMode}
           accounts={accounts.filter((a) => a.status === 'ACTIVE' || a.id === editingTransaction?.accountId)}
           activeTheme={activeTheme}
           canEdit={canPerformFinance}

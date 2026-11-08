@@ -1150,3 +1150,83 @@
   .homeos-header-icon-button:nth-of-type(n+3) { display:none !important; }
   .homeos-header-household { max-width:88px; }
 }
+
+
+/* PRIVATE WEALTH ATELIER — bespoke editorial hierarchy and calm luxury. */
+.homeos-app-shell { --homeos-luxe-radius:15px;--homeos-luxe-shadow:0 18px 48px rgba(26,24,19,.075),0 2px 8px rgba(26,24,19,.035);font-family:var(--homeos-font-family,Arial,sans-serif) !important;font-size:calc(1rem * var(--homeos-font-scale,1)); }
+.homeos-app-shell .homeos-main-content { filter:brightness(var(--homeos-brightness,1)); }
+.homeos-app-shell[data-card-style="executive"] .homeos-workspace-page :is(.homeos-lux-panel,.homeos-account-card,.homeos-settings-section,.homeos-settings-hero,.homeos-ledger-table-shell,.homeos-document-insights,.homeos-home-forecast,.homeos-home-hero,.homeos-accounts-composition,.homeos-account-toolbar,.homeos-ledger-snapshot) { border-radius:var(--homeos-luxe-radius) !important;box-shadow:var(--homeos-luxe-shadow) !important; }
+.homeos-app-shell[data-card-style="flat"] .homeos-workspace-page :is(.homeos-lux-panel,.homeos-account-card,.homeos-settings-section,.homeos-settings-hero,.homeos-ledger-table-shell,.homeos-document-insights,.homeos-home-forecast,.homeos-home-hero) { border-radius:8px !important;box-shadow:none !important; }
+.homeos-app-shell[data-card-style="outlined"] .homeos-workspace-page :is(.homeos-lux-panel,.homeos-account-card,.homeos-settings-section,.homeos-settings-hero,.homeos-ledger-table-shell,.homeos-document-insights,.homeos-home-forecast,.homeos-home-hero) { border:1.5px solid var(--homeos-accent) !important;border-radius:12px !important;box-shadow:none !important; }
+.homeos-app-shell[data-card-style="glass"] .homeos-workspace-page :is(.homeos-lux-panel,.homeos-account-card,.homeos-settings-section,.homeos-settings-hero,.homeos-ledger-table-shell,.homeos-document-insights,.homeos-home-forecast) { background:color-mix(in srgb,var(--homeos-card) 82%,transparent) !important;border-radius:16px !important;backdrop-filter:blur(18px);box-shadow:0 12px 38px rgba(0,0,0,.075) !important; }
+.homeos-app-shell[data-theme="maison_noir"] { --homeos-accent:#C6A66B;--homeos-border:#34302A; }
+.homeos-app-shell[data-theme="maison_noir"] .homeos-nav-item[aria-current="page"] { color:#F6F0E5 !important;border-color:rgba(198,166,107,.42) !important;border-inline-start:3px solid #C6A66B !important;background:linear-gradient(105deg,rgba(198,166,107,.19),rgba(198,166,107,.055)) !important; }
+.homeos-app-shell[data-theme="maison_noir"] .homeos-nav-item[aria-current="page"] .homeos-nav-icon { color:#D8BD8A; }
+.homeos-executive-topbar-inner { min-height:70px; }
+.homeos-topbar { box-shadow:0 8px 30px rgba(0,0,0,.06) !important; }
+.homeos-navigation-shell { border-radius:15px !important;box-shadow:0 12px 34px rgba(0,0,0,.045) !important; }
+.homeos-nav-item { border-radius:9px !important;min-height:43px; }
+.homeos-nav-section-label { padding-top:19px;font-size:10px !important; }
+.homeos-nav-section-label small { font-size:8px !important; }
+.homeos-sidebar-title-wrap h2 { font-size:17px !important; }
+.homeos-sidebar-title-wrap p { font-size:10px !important;line-height:1.55; }
+.homeos-nav-copy strong { font-size:12px !important; }
+.homeos-nav-copy small { font-size:9px !important;line-height:1.45; }
+.homeos-page-heading h1 { font-size:clamp(30px,3vw,42px) !important;font-weight:760 !important;letter-spacing:-.045em !important; }
+.homeos-page-heading-copy>p { font-size:12px !important;line-height:1.8; }
+.homeos-section-kicker,.homeos-page-eyebrow { font-size:9px !important;letter-spacing:.12em !important; }
+.homeos-workspace-page { gap:21px !important; }
+.homeos-settings-section { padding:clamp(20px,2.5vw,30px) !important; }
+.homeos-settings-section h2 { font-size:20px !important; }
+.homeos-theme-option,.homeos-background-preset,.homeos-view-mode-option,.homeos-density-option { border-radius:12px !important; }
+.homeos-theme-preview { border-radius:8px !important; }
+.homeos-theme-preview-sidebar,.homeos-theme-preview-main,.homeos-theme-preview-panel { border-radius:4px !important; }
+.homeos-background-preset { min-height:128px; }
+.homeos-widget-editor-row { min-height:66px;border-radius:9px !important; }
+.homeos-widget-editor-row strong { font-size:12px; }
+.homeos-widget-editor-row small { font-size:10px;line-height:1.5; }
+.homeos-app-shell :is(button,input,select,textarea) { font-family:inherit; }
+.homeos-app-shell :is(button,a,input,select,textarea,[tabindex]):focus-visible { outline:3px solid color-mix(in srgb,var(--homeos-accent) 72%,transparent) !important;outline-offset:3px !important; }
+.homeos-app-shell input[type="range"] { accent-color:var(--homeos-accent);min-height:23px;cursor:pointer; }
+.homeos-app-shell input:not([type=checkbox]):not([type=radio]),.homeos-app-shell select,.homeos-app-shell textarea { min-height:40px; }
+.homeos-app-shell button:disabled { cursor:not-allowed !important;opacity:.48;transform:none !important; }
+.homeos-command-launcher { display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 12px;border:1px solid var(--homeos-border,var(--border-subtle));border-radius:9px;color:var(--homeos-text,var(--text-primary));background:var(--homeos-surface,var(--bg-surface));font-size:11px;font-weight:700;white-space:nowrap; }
+.homeos-command-launcher:hover { border-color:var(--homeos-accent);background:var(--homeos-card,var(--bg-card)); }
+.homeos-command-launcher kbd { padding:3px 5px;border:1px solid var(--homeos-border);border-radius:5px;color:var(--homeos-muted);font-size:9px; }
+.homeos-command-overlay { position:fixed;inset:0;z-index:120;display:flex;align-items:flex-start;justify-content:center;padding:min(12vh,110px) 16px 24px;background:rgba(5,8,10,.67);backdrop-filter:blur(12px); }
+.homeos-command-palette { width:min(680px,100%);max-height:min(76vh,760px);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--homeos-border);border-radius:18px;background:var(--homeos-card);color:var(--homeos-text);box-shadow:0 35px 100px rgba(0,0,0,.34); }
+.homeos-command-palette-head { display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:24px 25px 19px; }
+.homeos-command-eyebrow { color:var(--homeos-accent);font-size:9px;font-weight:800;letter-spacing:.17em; }
+.homeos-command-palette-head h2 { margin-top:7px;font-size:25px;font-weight:800;letter-spacing:-.04em; }
+.homeos-command-palette-head p { margin-top:5px;color:var(--homeos-muted);font-size:12px;line-height:1.6; }
+.homeos-command-close { min-width:38px;min-height:32px;border:1px solid var(--homeos-border);border-radius:7px;color:var(--homeos-muted);font-size:10px; }
+.homeos-command-search { display:flex;align-items:center;gap:10px;margin:0 20px 15px;padding:0 13px;min-height:52px;border:1px solid var(--homeos-border);border-radius:10px;background:var(--homeos-surface);color:var(--homeos-muted); }
+.homeos-command-search input { flex:1;width:100%;min-width:0;border:0 !important;outline:0 !important;box-shadow:none !important;background:transparent !important;color:var(--homeos-text) !important;font-size:14px !important; }
+.homeos-command-search kbd { padding:4px 6px;border:1px solid var(--homeos-border);border-radius:5px;font-size:9px;white-space:nowrap; }
+.homeos-command-results { min-height:80px;overflow:auto;padding:0 13px 14px; }
+.homeos-command-group+.homeos-command-group { margin-top:14px; }
+.homeos-command-group-title { padding:7px 9px;color:var(--homeos-muted);font-size:9px;font-weight:800;letter-spacing:.1em; }
+.homeos-command-item { display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:8px 10px;border:1px solid transparent;border-radius:9px;text-align:right;color:var(--homeos-text);background:transparent; }
+.homeos-command-item:hover,.homeos-command-item.is-active { border-color:color-mix(in srgb,var(--homeos-accent) 28%,var(--homeos-border));background:color-mix(in srgb,var(--homeos-accent) 9%,var(--homeos-card)); }
+.homeos-command-item-icon { display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border-radius:8px;background:color-mix(in srgb,var(--homeos-accent) 13%,var(--homeos-surface));color:var(--homeos-accent); }
+.homeos-command-item-copy { display:flex;min-width:0;flex:1;flex-direction:column;gap:3px; }
+.homeos-command-item-copy strong { font-size:12px;font-weight:750; }
+.homeos-command-item-copy small { color:var(--homeos-muted);font-size:10px;line-height:1.4; }
+.homeos-command-item-enter { color:var(--homeos-muted);font-size:15px; }
+.homeos-command-empty { display:flex;flex-direction:column;align-items:center;gap:8px;padding:34px 12px;color:var(--homeos-muted);font-size:11px; }
+.homeos-command-empty strong { color:var(--homeos-text);font-size:13px; }
+.homeos-command-foot { display:flex;justify-content:center;gap:20px;padding:12px;border-top:1px solid var(--homeos-border);color:var(--homeos-muted);font-size:9px; }
+.homeos-appearance-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:19px; }
+.homeos-appearance-control { display:flex;flex-direction:column;gap:9px;min-width:0;padding:16px;border:1px solid var(--homeos-border);border-radius:10px;background:var(--homeos-surface);color:var(--homeos-text);font-size:12px;font-weight:700; }
+.homeos-appearance-control-heading { display:flex;align-items:center;justify-content:space-between;gap:12px; }
+.homeos-appearance-control-heading strong { color:var(--homeos-accent);font-variant-numeric:tabular-nums; }
+.homeos-appearance-control select { width:100%;min-height:42px;padding:7px 10px; }
+.homeos-range-labels { display:flex;justify-content:space-between;color:var(--homeos-muted);font-size:9px;font-weight:500; }
+.homeos-appearance-preview { display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px; }
+.homeos-appearance-preview-tile { display:flex;flex-direction:column;gap:5px;padding:13px 16px;border:1px solid var(--homeos-border);border-radius:9px;background:var(--homeos-card); }
+.homeos-appearance-preview-tile span { color:var(--homeos-accent);font-size:8px;letter-spacing:.15em; }
+.homeos-appearance-preview-tile strong { font-size:14px; }
+.homeos-appearance-preview-tile small { color:var(--homeos-muted);font-size:10px; }
+@media(max-width:880px){.homeos-command-launcher span,.homeos-command-launcher kbd{display:none}.homeos-command-launcher{width:34px;justify-content:center;padding:0}}
+@media(max-width:640px){.homeos-command-overlay{padding:12px 9px;align-items:flex-start}.homeos-command-palette{max-height:88vh;border-radius:13px}.homeos-command-palette-head{padding:17px 16px 13px}.homeos-command-palette-head h2{font-size:21px}.homeos-command-search{margin:0 12px 12px}.homeos-command-foot{gap:9px;font-size:8px}.homeos-appearance-grid{grid-template-columns:1fr}.homeos-appearance-preview{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.homeos-app-shell *,.homeos-app-shell *::before,.homeos-app-shell *::after{scroll-behavior:auto !important;animation-duration:.01ms !important;transition-duration:.01ms !important}}

@@ -29,6 +29,7 @@ interface TransactionModalProps {
   }) => Promise<void>;
   onUpdateTransaction?: (id: string, updates: Partial<LedgerTransaction>) => Promise<void>;
   initialTransaction?: LedgerTransaction | null;
+  initialMode?: TransactionType;
   accounts: FinancialAccount[];
   activeTheme: ThemeConfig;
   canEdit: boolean;
@@ -79,6 +80,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   onSaveTransfer,
   onUpdateTransaction,
   initialTransaction,
+  initialMode = 'EXPENSE',
   accounts,
   activeTheme,
   canEdit,
@@ -87,7 +89,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   const isExistingTransfer = initialTransaction?.type === 'TRANSFER';
 
   const [mode, setMode] = useState<TransactionType>(
-    initialTransaction ? initialTransaction.type : 'EXPENSE'
+    initialTransaction ? initialTransaction.type : initialMode
   );
 
   // Form states

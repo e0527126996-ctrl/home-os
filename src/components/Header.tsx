@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, ShieldCheck, Database, History, Users, ChevronDown, Home, CloudOff } from 'lucide-react';
+import { Download, ShieldCheck, Database, History, Users, ChevronDown, Home, CloudOff, Command } from 'lucide-react';
 import { Household, User } from '../types.ts';
 import { ThemeConfig } from '../lib/themes.ts';
 
@@ -14,11 +14,12 @@ interface HeaderProps {
   onOpenTests: () => void;
   onOpenBackup: () => void;
   onOpenExportHtml: () => void;
+  onOpenCommands: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   household, currentUser, activeTheme, canManageSystem, onOpenHouseholds,
-  onOpenAuth, onOpenAudit, onOpenTests, onOpenBackup, onOpenExportHtml,
+  onOpenAuth, onOpenAudit, onOpenTests, onOpenBackup, onOpenExportHtml, onOpenCommands,
 }) => {
   const controlStyle = {
     backgroundColor: activeTheme.bgCard,
@@ -47,6 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="homeos-topbar-tools homeos-executive-utilities flex shrink-0 items-center gap-1.5">
+          <button type="button" onClick={onOpenCommands} className="homeos-command-launcher" title="חיפוש ופעולות מהירות (Ctrl+K)" aria-label="פתיחת חיפוש ופעולות מהירות"><Command className="h-4 w-4" aria-hidden="true" /><span>חיפוש ופעולות</span><kbd>Ctrl K</kbd></button>
           <div className="homeos-sync-state homeos-header-storage" role="status" title="הנתונים נשמרים בדפדפן הנוכחי. סנכרון בין מכשירים עדיין לא הוגדר.">
             <CloudOff aria-hidden="true" />
             <span>אחסון מקומי</span>

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Activity, ArrowLeftRight, ChevronLeft, ChevronRight, ClipboardList,
   FileText, FolderOpen, House, LayoutDashboard, Search, Settings,
@@ -31,6 +31,7 @@ type NavigationItem = {
   description: string;
   icon: LucideIcon;
   count?: number;
+  searchTerms?: string;
 };
 type NavigationGroup = { id: string; label: string; subtitle: string; items: NavigationItem[] };
 
@@ -45,27 +46,10 @@ export const WorkspaceNavigation: React.FC<WorkspaceNavigationProps> = ({
     catch { return false; }
   });
   const [query, setQuery] = useState('');
-  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     try { window.localStorage.setItem('homeos:sidebar-collapsed', String(collapsed)); }
     catch { /* Storage can be disabled; the navigation still works for this session. */ }
-  }, [collapsed]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
-        event.preventDefault();
-        if (collapsed) setCollapsed(false);
-        requestAnimationFrame(() => searchRef.current?.focus());
-      }
-      if (event.key === 'Escape' && document.activeElement === searchRef.current) {
-        setQuery('');
-        searchRef.current?.blur();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
   }, [collapsed]);
 
   const groups = useMemo<NavigationGroup[]>(() => {
@@ -80,23 +64,23 @@ export const WorkspaceNavigation: React.FC<WorkspaceNavigationProps> = ({
     if (canReadFinance) result.push({
       id: 'finance', label: 'כספים', subtitle: 'FINANCIAL CONTROL',
       items: [
-        { id: 'accounts', label: 'חשבונות ונכסים', description: 'יתרות, נכסים והתחייבויות', icon: WalletCards, count: accountCount },
-        { id: 'ledger', label: 'פנקס עסקאות', description: 'תנועות, סיווג ואימות', icon: ArrowLeftRight, count: transactionCount },
+        { id: 'accounts', label: 'חשבונות ונכסים', description: 'יתרות, נכסים והתחייבויות', icon: WalletCards, count: accountCount, searchTerms: 'בנק עוש עו״ש אשראי כרטיס הלוואה משכנתא חסכון חיסכון השקעה יתרה' },
+        { id: 'ledger', label: 'פנקס עסקאות', description: 'תנועות, סיווג ואימות', icon: ArrowLeftRight, count: transactionCount, searchTerms: 'עסקה עסקאות תנועה תנועות הכנסה הוצאה העברה קבלה חיוב זיכוי דף חשבון בנק' },
       ],
     });
     if (canReadDocuments || canReadFood) result.push({
       id: 'operations', label: 'תפעול הבית', subtitle: 'HOME OPERATIONS',
       items: [
-        ...(canReadDocuments ? [{ id: 'documents' as const, label: 'מרכז מסמכים', description: 'קליטה, עיון וארכיון', icon: FolderOpen }] : []),
-        ...(canReadFood ? [{ id: 'home' as const, label: 'ניהול הבית', description: 'תכנון, מלאי ומשימות', icon: Utensils }] : []),
+        ...(canReadDocuments ? [{ id: 'documents' as const, label: 'מרכז מסמכים', description: 'קליטה, עיון וארכיון', icon: FolderOpen, searchTerms: 'מסמך מסמכים קובץ קבצים חשבונית קבלה תלוש דוח ארכיון' }] : []),
+        ...(canReadFood ? [{ id: 'home' as const, label: 'ניהול הבית', description: 'תכנון, מלאי ומשימות', icon: Utensils, searchTerms: 'בית מטבח אוכל מזון מתכון מתכונים קניות רשימה מלאי משימה משימות תכנון ארוחה' }] : []),
       ],
     });
     result.push({
       id: 'system', label: 'ניהול מערכת', subtitle: 'PEOPLE & SYSTEM',
       items: [
-        ...(canReadAdmin ? [{ id: 'members' as const, label: 'משפחה והרשאות', description: 'משתמשים, בני בית וגישה', icon: UsersRound, count: memberAndPersonCount }] : []),
-        { id: 'households', label: 'משקי בית', description: 'ניהול סביבות הבית', icon: House, count: householdCount },
-        ...(canReadAdmin ? [{ id: 'audit' as const, label: 'יומן ביקורת', description: 'היסטוריית שינויים', icon: ClipboardList, count: auditCount }] : []),
+        ...(canReadAdmin ? [{ id: 'members' as const, label: 'משפחה והרשאות', description: 'משתמשים, בני בית וגישה', icon: UsersRound, count: memberAndPersonCount, searchTerms: 'משפחה בן בית ילדים משתמש הרשאות גישה תפקיד' }] : []),
+        { id: 'households', label: 'משקי בית', description: 'ניהול סביבות הבית', icon: House, count: householdCount, searchTerms: 'בית סביבה משק משפחה בחירה' },
+        ...(canReadAdmin ? [{ id: 'audit' as const, label: 'יומן ביקורת', description: 'היסטוריית שינויים', icon: ClipboardList, count: auditCount, searchTerms: 'לוג היסטוריה שינוי פעולות תיעוד audit' }] : []),
         { id: 'settings', label: 'הגדרות אישיות', description: 'עיצוב וסביבת העבודה', icon: Settings },
       ],
     });
@@ -114,7 +98,8 @@ export const WorkspaceNavigation: React.FC<WorkspaceNavigationProps> = ({
         ...group,
         items: group.items.filter(item =>
           item.label.toLocaleLowerCase('he-IL').includes(normalized)
-          || item.description.toLocaleLowerCase('he-IL').includes(normalized),
+          || item.description.toLocaleLowerCase('he-IL').includes(normalized)
+          || (item.searchTerms || '').toLocaleLowerCase('he-IL').includes(normalized),
         ),
       }))
       .filter(group => group.items.length > 0);
@@ -155,14 +140,13 @@ export const WorkspaceNavigation: React.FC<WorkspaceNavigationProps> = ({
         <label className="homeos-sidebar-search">
           <Search className="h-4 w-4" aria-hidden="true" />
           <input
-            ref={searchRef}
             type="search"
             value={query}
             onChange={event => setQuery(event.target.value)}
             placeholder="חיפוש אזור במערכת"
             aria-label="חיפוש אזור במערכת"
           />
-          <kbd>Ctrl K</kbd>
+          <kbd>סינון</kbd>
         </label>
       )}
 

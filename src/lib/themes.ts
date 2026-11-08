@@ -20,6 +20,20 @@ export interface ThemeConfig {
 
 export const MODERN_EDITORIAL_THEMES: ThemeConfig[] = [
   {
+    id: 'maison_noir', nameHe: 'מזון נואר — שחור שמפניה', nameEn: 'Maison Noir',
+    isDark: true, bgCanvas: '#0B0B0C', bgSurface: '#121314', bgCard: '#191A1B',
+    borderSubtle: '#34302A', textPrimary: '#F3F0E8', textSecondary: '#AAA49A',
+    accent: '#C6A66B', accentMuted: '#352B1B',
+    description: 'שחור אדריכלי, שנהב וזהב שמפניה — יוקרה שקטה ומדויקת',
+  },
+  {
+    id: 'ivory_atelier', nameHe: 'אטלייה שנהב', nameEn: 'Ivory Atelier',
+    isDark: false, bgCanvas: '#F5F2EB', bgSurface: '#ECE7DD', bgCard: '#FFFEFA',
+    borderSubtle: '#DED6C8', textPrimary: '#25231F', textSecondary: '#777065',
+    accent: '#A88956', accentMuted: '#EFE5D3',
+    description: 'שנהב טבעי, אבן בהירה וזהב מט — מראה ביתי-יוקרתי',
+  },
+  {
     id: 'executive_terminal',
     nameHe: 'מסוף מנהלים (Executive Terminal)',
     nameEn: 'Executive Terminal',
@@ -228,6 +242,42 @@ export const MODERN_EDITORIAL_THEMES: ThemeConfig[] = [
     accent: '#D4AF37',
     accentMuted: '#3A321D',
     description: 'שחור פחם עמוק, משטחי מתכת כהים, זהב מוברש והדגשות אמרלד',
+  },,
+  {
+    id:'ocean_graphite',nameHe:'גרפיט אוקייני',nameEn:'Ocean Graphite',isDark:true,
+    bgCanvas:'#081820',bgSurface:'#102832',bgCard:'#15313B',borderSubtle:'#294751',
+    textPrimary:'#E7F2F3',textSecondary:'#91B0B5',accent:'#37C5B0',accentMuted:'#123F40',
+    description:'כחול-פחם עמוק עם טורקיז מאופק',
   },
+  {
+    id:'porcelain_sand',nameHe:'פורצלן וחול',nameEn:'Porcelain Sand',isDark:false,
+    bgCanvas:'#F7F5EF',bgSurface:'#EDEAE1',bgCard:'#FFFDF8',borderSubtle:'#DED9CC',
+    textPrimary:'#292923',textSecondary:'#777365',accent:'#687D78',accentMuted:'#E0E9E3',
+    description:'לבן שבור, אבן טבעית וירוק-אפור שקט',
+  },
+  {
+    id:'plum_noir',nameHe:'שזיף לילי',nameEn:'Plum Noir',isDark:true,
+    bgCanvas:'#17121D',bgSurface:'#211A29',bgCard:'#2A2133',borderSubtle:'#46364F',
+    textPrimary:'#F5EEF7',textSecondary:'#B6A5BE',accent:'#C08AD7',accentMuted:'#432A50',
+    description:'סגול-פחם עמוק עם הדגשות לילך',
+  },
+  {
+    id:'olive_atelier',nameHe:'אטלייה זית',nameEn:'Olive Atelier',isDark:false,
+    bgCanvas:'#F4F3EA',bgSurface:'#E9E8D9',bgCard:'#FCFCF5',borderSubtle:'#D9D8C5',
+    textPrimary:'#252A20',textSecondary:'#707563',accent:'#687A3D',accentMuted:'#E6EBD5',
+    description:'זית, אבן בהירה ונגיעות מרווה טבעיות',
+  },
+  {
+    id:'arctic_blue',nameHe:'קרח כחול',nameEn:'Arctic Blue',isDark:true,
+    bgCanvas:'#0C1726',bgSurface:'#14243A',bgCard:'#192D46',borderSubtle:'#2B4663',
+    textPrimary:'#EDF5FF',textSecondary:'#9CB2CA',accent:'#63B3ED',accentMuted:'#173C63',
+    description:'כחול קר ומודרני עם ניגודיות גבוהה',
+  },
+  {
+    id:'copper_studio',nameHe:'סטודיו נחושת',nameEn:'Copper Studio',isDark:false,
+    bgCanvas:'#F8F3EE',bgSurface:'#F0E6DD',bgCard:'#FFFCF8',borderSubtle:'#E4D3C5',
+    textPrimary:'#30231C',textSecondary:'#806A5D',accent:'#A65D3F',accentMuted:'#F4E1D5',
+    description:'נחושת חמה, שמנת ותחושת סטודיו מעוצבת',
+  }
 
 ];

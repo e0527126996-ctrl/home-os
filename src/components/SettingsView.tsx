@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowDown, ArrowUp, Check, ImagePlus, LayoutGrid, Palette, Sparkles, Trash2 } from 'lucide-react';
 import type { ThemeConfig } from '../lib/themes.ts';
 import type { WorkspaceViewMode, DashboardWidgetSize, WorkspaceBackgroundPresetId } from '../lib/workspace.ts';
-import { BACKGROUND_PRESETS, DASHBOARD_WIDGETS } from '../lib/workspace.ts';
+import { BACKGROUND_PRESETS, DASHBOARD_WIDGETS, WORKSPACE_FONT_OPTIONS, WORKSPACE_CARD_STYLE_OPTIONS, type WorkspaceAppearancePreferences } from '../lib/workspace.ts';
 
 interface SettingsViewProps {
   themes: ThemeConfig[];
@@ -23,6 +23,8 @@ interface SettingsViewProps {
   onBackgroundPresetChange: (presetId: WorkspaceBackgroundPresetId) => void | Promise<void>;
   onBackgroundImageChange: (file: File | null) => void | Promise<void>;
   onBackgroundImageClear: () => void | Promise<void>;
+  appearance: WorkspaceAppearancePreferences;
+  onAppearanceChange: (appearance: WorkspaceAppearancePreferences) => void | Promise<void>;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -31,6 +33,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   visibleDashboardWidgetIds, onDashboardWidgetToggle, onDashboardWidgetMove,
   dashboardWidgetSizes, onDashboardWidgetSizeChange,
   backgroundImage, backgroundPresetId, onBackgroundPresetChange, onBackgroundImageChange, onBackgroundImageClear,
+  appearance, onAppearanceChange,
 }) => {
   const orderedWidgets = [...DASHBOARD_WIDGETS].sort(
     (a, b) => dashboardWidgetOrder.indexOf(a.id) - dashboardWidgetOrder.indexOf(b.id),
@@ -158,6 +161,44 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             );
           })}
+        </div>
+      </section>
+
+      <section className="homeos-settings-section homeos-appearance-controls">
+        <div>
+          <div className="homeos-section-kicker">PERSONAL DISPLAY & TYPOGRAPHY</div>
+          <h2 className="mt-1 text-lg font-semibold">התאמה אישית של התצוגה</h2>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>כוונון הבהירות, הקריאות והמשטחים של HOME OS. הבהירות משנה את תצוגת האפליקציה בלבד ואינה משנה את תאורת המסך הפיזית.</p>
+        </div>
+        <div className="homeos-appearance-grid">
+          <div className="homeos-appearance-control">
+            <div className="homeos-appearance-control-heading"><label htmlFor="homeos-brightness">בהירות ממשק</label><strong>{appearance.brightness}%</strong></div>
+            <input id="homeos-brightness" type="range" min="75" max="125" step="5" value={appearance.brightness}
+              onChange={event => void onAppearanceChange({ ...appearance, brightness: Number(event.target.value) })} />
+            <div className="homeos-range-labels"><span>כהה יותר</span><span>בהיר יותר</span></div>
+          </div>
+          <div className="homeos-appearance-control">
+            <div className="homeos-appearance-control-heading"><label htmlFor="homeos-font-scale">גודל טקסט</label><strong>{appearance.fontScale}%</strong></div>
+            <input id="homeos-font-scale" type="range" min="90" max="115" step="5" value={appearance.fontScale}
+              onChange={event => void onAppearanceChange({ ...appearance, fontScale: Number(event.target.value) })} />
+            <div className="homeos-range-labels"><span>קטן</span><span>גדול</span></div>
+          </div>
+          <label className="homeos-appearance-control"><span>סגנון גופן</span>
+            <select value={appearance.font} onChange={event => {
+              const font=WORKSPACE_FONT_OPTIONS.find(option=>option.id===event.target.value)?.id;
+              if(font) void onAppearanceChange({ ...appearance,font });
+            }}>{WORKSPACE_FONT_OPTIONS.map(option=><option key={option.id} value={option.id}>{option.label} — {option.description}</option>)}</select>
+          </label>
+          <label className="homeos-appearance-control"><span>סגנון קוביות ומשטחים</span>
+            <select value={appearance.cardStyle} onChange={event => {
+              const cardStyle=WORKSPACE_CARD_STYLE_OPTIONS.find(option=>option.id===event.target.value)?.id;
+              if(cardStyle) void onAppearanceChange({ ...appearance,cardStyle });
+            }}>{WORKSPACE_CARD_STYLE_OPTIONS.map(option=><option key={option.id} value={option.id}>{option.label} — {option.description}</option>)}</select>
+          </label>
+        </div>
+        <div className="homeos-appearance-preview" aria-live="polite">
+          <div className="homeos-appearance-preview-tile"><span>HOME OS</span><strong>תצוגה לדוגמה</strong><small>קריאות, מרווחים וסגנון מותאם אישית</small></div>
+          <button type="button" className="homeos-secondary-action" onClick={() => void onAppearanceChange({ brightness:100,fontScale:100,font:'hebrew_sans',cardStyle:'executive' })}>איפוס הגדרות התצוגה</button>
         </div>
       </section>
 

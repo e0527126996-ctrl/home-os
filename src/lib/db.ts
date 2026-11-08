@@ -14,6 +14,8 @@ import {
   LedgerTransaction,
   HouseholdDocument,
   HouseholdHomeItem,
+  MortgageWorkspace,
+  MortgageSnapshot,
   Role,
   TransactionSource,
   TransactionType,
@@ -2133,7 +2135,7 @@ class HomeOSIndexedDB {
     return this.transaction(['household_documents'], 'readonly', async (tx) => {
       const store = tx.objectStore('household_documents');
       const records = await this.reqToPromise<HouseholdDocument[]>(store.index('householdId').getAll(householdId));
-      return records.sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt));
+      return records.filter(record => record.category !== 'MORTGAGE').sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt));
     });
   }
 
@@ -2170,6 +2172,52 @@ class HomeOSIndexedDB {
     });
   }
 
+
+  /** Mortgage statements are stored in the shared document vault but use finance permissions. */
+  async getMortgageDocumentsByHousehold(householdId: string, actorUserId: string): Promise<HouseholdDocument[]> {
+    await this.assertPermission(householdId, actorUserId, 'finance', 'read');
+    return this.transaction(['household_documents'], 'readonly', async (tx) => {
+      const records = await this.reqToPromise<HouseholdDocument[]>(tx.objectStore('household_documents').index('householdId').getAll(householdId));
+      return records.filter(record => record.category === 'MORTGAGE').sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt));
+    });
+  }
+
+  async saveMortgageDocument(document: HouseholdDocument, actorUserId: string, actorEmail: string): Promise<void> {
+    await this.assertPermission(document.householdId, actorUserId, 'finance', 'write');
+    if (document.category !== 'MORTGAGE' || !document.id || !document.name?.trim() || !(document.blob instanceof Blob)) throw new Error('פרטי מסמך המשכנתא אינם תקינים');
+    if (document.blob.size > 25 * 1024 * 1024) throw new Error('גודל הקובץ המרבי הוא 25MB');
+    const safe = { ...document, name: document.name.trim(), size: document.blob.size };
+    const now = new Date().toISOString();
+    const log: AuditLog = {
+      id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), householdId: safe.householdId,
+      userId: actorUserId, userEmail: actorEmail, action: 'UPLOAD_MORTGAGE_STATEMENT', domain: 'FINANCE',
+      details: 'קליטת דוח משכנתא: ' + safe.name, timestamp: now,
+    };
+    await this.transaction(['household_documents', 'audit_logs'], 'readwrite', async tx => {
+      const store = tx.objectStore('household_documents');
+      const existing = await this.reqToPromise<HouseholdDocument | undefined>(store.get(safe.id));
+      if (existing && existing.householdId !== safe.householdId) throw new Error('הפרת בידוד משקי בית');
+      await this.reqToPromise(store.put(safe));
+      await this.reqToPromise(tx.objectStore('audit_logs').add(log));
+    });
+  }
+
+  async deleteMortgageDocument(documentId: string, householdId: string, actorUserId: string, actorEmail: string): Promise<void> {
+    await this.assertPermission(householdId, actorUserId, 'finance', 'write');
+    const log: AuditLog = {
+      id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), householdId,
+      userId: actorUserId, userEmail: actorEmail, action: 'DELETE_MORTGAGE_STATEMENT', domain: 'FINANCE',
+      details: 'מחיקת דוח משכנתא: ' + documentId, timestamp: new Date().toISOString(),
+    };
+    await this.transaction(['household_documents', 'audit_logs'], 'readwrite', async tx => {
+      const store = tx.objectStore('household_documents');
+      const existing = await this.reqToPromise<HouseholdDocument | undefined>(store.get(documentId));
+      if (!existing || existing.householdId !== householdId || existing.category !== 'MORTGAGE') throw new Error('דוח המשכנתא לא נמצא');
+      await this.reqToPromise(store.delete(documentId));
+      await this.reqToPromise(tx.objectStore('audit_logs').add(log));
+    });
+  }
+
   async deleteDocument(documentId: string, householdId: string, actorUserId: string, actorEmail: string): Promise<void> {
     await this.assertPermission(householdId, actorUserId, 'documents', 'write');
     const auditLog: AuditLog = {
@@ -2200,7 +2248,7 @@ class HomeOSIndexedDB {
       const items = await this.reqToPromise<HouseholdHomeItem[]>(
         tx.objectStore('household_home_items').index('householdId').getAll(householdId)
       );
-      return items.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+      return items.filter(item => item.kind !== 'mortgage').sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
     });
   }
 
@@ -2288,12 +2336,65 @@ class HomeOSIndexedDB {
     });
   }
 
+
+  async getMortgageWorkspacesByHousehold(householdId: string, actorUserId: string): Promise<MortgageWorkspace[]> {
+    await this.assertPermission(householdId, actorUserId, 'finance', 'read');
+    return this.transaction(['household_home_items'], 'readonly', async tx => {
+      const items = await this.reqToPromise<HouseholdHomeItem[]>(tx.objectStore('household_home_items').index('householdId').getAll(householdId));
+      return items.filter(item => item.kind === 'mortgage').map(item => {
+        const data = item.data as { accountId?: string; snapshots?: MortgageSnapshot[] };
+        return { id: item.id, householdId: item.householdId, accountId: String(data.accountId || ''),
+          snapshots: Array.isArray(data.snapshots) ? data.snapshots : [], createdAt: item.createdAt, updatedAt: item.updatedAt };
+      }).filter(item => item.accountId);
+    });
+  }
+
+  async saveMortgageWorkspace(workspace: MortgageWorkspace, actorUserId: string, actorEmail: string): Promise<void> {
+    await this.assertPermission(workspace.householdId, actorUserId, 'finance', 'write');
+    if (!workspace.id || !workspace.accountId || !Array.isArray(workspace.snapshots)) throw new Error('נתוני תיק המשכנתא אינם תקינים');
+    const account = await this.getAccountById(workspace.accountId, workspace.householdId);
+    if (!account || account.type !== 'LOAN_MORTGAGE') throw new Error('יש לשייך את התיק לחשבון משכנתא במשק הבית');
+    const ids = new Set<string>();
+    for (const snapshot of workspace.snapshots) {
+      if (!snapshot.id || ids.has(snapshot.id) || !isValidISODate(snapshot.reportDate) || !Array.isArray(snapshot.tracks)) throw new Error('דוח משכנתא מכיל תאריך, מזהה או מסלולים לא תקינים');
+      ids.add(snapshot.id);
+      for (const amount of [snapshot.outstandingBalanceCents, snapshot.monthlyPaymentCents]) if (amount !== undefined && (!Number.isSafeInteger(amount) || amount < 0)) throw new Error('נמצא סכום דוח לא תקין');
+      for (const track of snapshot.tracks) {
+        if (!track.id || !track.name?.trim() || !['PRIME','FIXED_UNLINKED','FIXED_LINKED','VARIABLE_UNLINKED','VARIABLE_LINKED','ELIGIBLE','OTHER'].includes(track.type)) throw new Error('נמצא מסלול משכנתא לא תקין');
+        for (const amount of [track.originalAmountCents, track.balanceCents, track.monthlyPaymentCents]) if (amount !== undefined && (!Number.isSafeInteger(amount) || amount < 0)) throw new Error('נמצא סכום מסלול לא תקין');
+        if (track.annualInterestRate !== undefined && (!Number.isFinite(track.annualInterestRate) || track.annualInterestRate < 0 || track.annualInterestRate > 100)) throw new Error('שיעור ריבית במסלול אינו תקין');
+        if (track.remainingMonths !== undefined && (!Number.isSafeInteger(track.remainingMonths) || track.remainingMonths < 0 || track.remainingMonths > 1200)) throw new Error('יתרת תקופה במסלול אינה תקינה');
+      }
+    }
+    const now = new Date().toISOString();
+    const item: HouseholdHomeItem = {
+      id: workspace.id, householdId: workspace.householdId, kind: 'mortgage',
+      data: { accountId: workspace.accountId, snapshots: workspace.snapshots },
+      createdAt: workspace.createdAt || now, updatedAt: now,
+    };
+    const log: AuditLog = {
+      id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      householdId: workspace.householdId, userId: actorUserId, userEmail: actorEmail,
+      action: 'SAVE_MORTGAGE_WORKSPACE', domain: 'FINANCE',
+      details: 'עדכון תיק משכנתא עבור ' + account.name + '; ' + workspace.snapshots.length + ' דוחות', timestamp: now,
+    };
+    await this.transaction(['household_home_items', 'financial_accounts', 'audit_logs'], 'readwrite', async tx => {
+      const current = await this.reqToPromise<FinancialAccount | undefined>(tx.objectStore('financial_accounts').get(workspace.accountId));
+      if (!current || current.householdId !== workspace.householdId || current.type !== 'LOAN_MORTGAGE' || current.status !== 'ACTIVE') throw new Error('חשבון המשכנתא אינו פעיל או אינו שייך למשק הבית הנוכחי');
+      const store = tx.objectStore('household_home_items');
+      const existing = await this.reqToPromise<HouseholdHomeItem | undefined>(store.get(workspace.id));
+      if (existing && (existing.householdId !== workspace.householdId || existing.kind !== 'mortgage')) throw new Error('מזהה התיק משויך לרשומה אחרת');
+      await this.reqToPromise(store.put(item));
+      await this.reqToPromise(tx.objectStore('audit_logs').add(log));
+    });
+  }
+
   // -------------------------------------------------------------
   // BACKUP EXPORT & IMPORT
   // -------------------------------------------------------------
   async exportFullBackup(householdId: string, actorUserId: string): Promise<BackupData> {
     await this.assertPermission(householdId, actorUserId, 'admin', 'read');
-    const [households, users, memberships, persons, permissions, auditLogs, accounts, transactions, documents, homeItems] = await Promise.all([
+    const [households, users, memberships, persons, permissions, auditLogs, accounts, transactions, documents, homeItems, mortgageDocuments] = await Promise.all([
       this.getHouseholds(),
       this.getUsers(),
       this.getMembershipsByHousehold(householdId),
@@ -2308,6 +2409,7 @@ class HomeOSIndexedDB {
       this.getTransactionsByHousehold(householdId),
       this.getDocumentsByHousehold(householdId, actorUserId),
       this.transaction(['household_home_items'], 'readonly', async (tx) => this.reqToPromise<HouseholdHomeItem[]>(tx.objectStore('household_home_items').index('householdId').getAll(householdId))),
+      this.getMortgageDocumentsByHousehold(householdId, actorUserId),
     ]);
 
     const targetHhd = households.filter((h) => h.id === householdId);
@@ -2326,7 +2428,7 @@ class HomeOSIndexedDB {
       accounts,
       transactions,
       homeItems,
-      documents: await Promise.all(documents.map(async (doc) => ({
+      documents: await Promise.all([...documents, ...mortgageDocuments].map(async (doc) => ({
         id: doc.id,
         householdId: doc.householdId,
         name: doc.name,

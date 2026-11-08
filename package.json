@@ -13,7 +13,8 @@
     "test:statements": "tsx scripts/test-statement-import.ts",
     "test:finance": "tsx scripts/test-finance-analytics.ts",
     "test:access": "tsx scripts/test-access-control.ts",
-    "test:currency": "tsx scripts/test-currency.ts"
+    "test:currency": "tsx scripts/test-currency.ts",
+    "test:mortgage": "tsx scripts/test-mortgage-analysis.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

@@ -162,7 +162,7 @@ export interface HouseholdDocument {
   name: string;
   mimeType: string;
   size: number;
-  category: 'BANK' | 'CREDIT_CARD' | 'INVOICE' | 'RECEIPT' | 'INSURANCE' | 'TAX' | 'OTHER';
+  category: 'BANK' | 'CREDIT_CARD' | 'MORTGAGE' | 'INVOICE' | 'RECEIPT' | 'INSURANCE' | 'TAX' | 'OTHER';
   uploadedAt: string;
   uploadedBy: string;
   blob: Blob;
@@ -170,7 +170,24 @@ export interface HouseholdDocument {
 
 
 /** Local-first household operations: recipes, meal plans, shopping and tasks. */
-export type HouseholdHomeItemKind = 'recipe' | 'meal' | 'shopping' | 'task';
+export type HouseholdHomeItemKind = 'recipe' | 'meal' | 'shopping' | 'task' | 'mortgage';
+
+export type MortgageTrackType = 'PRIME' | 'FIXED_UNLINKED' | 'FIXED_LINKED' | 'VARIABLE_UNLINKED' | 'VARIABLE_LINKED' | 'ELIGIBLE' | 'OTHER';
+export interface MortgageTrack {
+  id: string; name: string; type: MortgageTrackType;
+  originalAmountCents?: number; balanceCents?: number; monthlyPaymentCents?: number;
+  annualInterestRate?: number; remainingMonths?: number;
+  indexation: 'LINKED' | 'UNLINKED' | 'UNKNOWN'; nextRateChangeDate?: string; notes?: string;
+}
+export interface MortgageSnapshot {
+  id: string; reportDate: string; outstandingBalanceCents?: number; monthlyPaymentCents?: number;
+  nextPaymentDate?: string; tracks: MortgageTrack[]; sourceDocumentId: string; sourceDocumentName: string;
+  extractionMethod: 'pdf-text' | 'pdf-ocr' | 'image-ocr' | 'excel' | 'csv';
+  confidence: 'high' | 'medium' | 'low'; extractedAt: string; notes?: string;
+}
+export interface MortgageWorkspace {
+  id: string; householdId: string; accountId: string; snapshots: MortgageSnapshot[]; createdAt: string; updatedAt: string;
+}
 
 export interface HouseholdHomeItem {
   id: string;

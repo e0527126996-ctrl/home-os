@@ -35,6 +35,8 @@ jobs:
         run: npm run test:statements
       - name: Finance analytics regression tests
         run: npm run test:finance
+      - name: Mortgage statement extraction regression tests
+        run: npm run test:mortgage
       - name: Access control regression tests
         run: npm run test:access
       - name: Currency precision regression tests

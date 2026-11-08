@@ -370,6 +370,41 @@ async function recognizeImageLocally(
   }
 }
 
+
+/** Extract text locally from financial documents for specialized analyzers. */
+export async function extractStatementDocumentText(
+  file: File,
+  onProgress?: (progress: StatementParseProgress) => void,
+): Promise<{ text: string; method: StatementParseMethod; pages?: number }> {
+  const ext = file.name.toLowerCase().split('.').pop();
+  if (ext === 'pdf') {
+    const pdfjsLib = await loadPdfEngine();
+    const data = new Uint8Array(await file.arrayBuffer());
+    const pdf = await pdfjsLib.getDocument({ data, isEvalSupported: false, useSystemFonts: true }).promise;
+    const text = await extractPdfText(pdf);
+    if (text.replace(/\s/g, '').length >= 30) return { text, method: 'pdf-text', pages: pdf.numPages };
+    return { text: await recognizePdfLocally(pdf, onProgress), method: 'pdf-ocr', pages: pdf.numPages };
+  }
+  if (['png', 'jpg', 'jpeg', 'webp'].includes(ext || '')) return { text: await recognizeImageLocally(file, onProgress), method: 'image-ocr' };
+  if (ext === 'xlsx' || ext === 'xls' || ext === 'csv') {
+    const XLSX = await import('xlsx');
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const input = ext === 'csv'
+      ? (() => {
+          const utf8 = new TextDecoder('utf-8').decode(bytes);
+          return new TextDecoder(utf8.includes('\uFFFD') ? 'windows-1255' : 'utf-8').decode(bytes);
+        })()
+      : bytes;
+    const workbook = XLSX.read(input, { type: ext === 'csv' ? 'string' : 'array', cellDates: true, raw: false });
+    const sections = workbook.SheetNames.map(name => {
+      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1, raw: false, defval: '' }) as unknown[][];
+      return 'גיליון: ' + name + '\n' + rows.map(row => row.map(clean).join(' | ')).join('\n');
+    });
+    return { text: sections.join('\n\n'), method: ext === 'csv' ? 'csv' : 'excel' };
+  }
+  throw new Error('סוג הקובץ אינו נתמך. יש לבחור PDF, תמונה, Excel או CSV.');
+}
+
 function attachDuplicateFlags(
   rows: ImportedStatementRow[],
   fileName: string,

@@ -12,6 +12,15 @@ const cases: Array<{ name: string; run: () => void }> = [
     },
   },
   {
+    name: 'rounds numeric inputs using decimal half-up semantics',
+    run: () => {
+      assert.equal(toCents(1.005), 101);
+      assert.equal(toCents(-1.005), -101);
+      assert.equal(toCents(19.999), 2000);
+      assert.equal(toCents(19.994), 1999);
+    },
+  },
+  {
     name: 'rejects malformed strings and values outside the safe integer range',
     run: () => {
       assert.equal(toCents('1.234'), 0);

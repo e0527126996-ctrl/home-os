@@ -159,8 +159,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const hasActivity = data.current.income > 0 || data.current.expense > 0;
 
   return (
-    <div className="homeos-dashboard space-y-6 pb-10" dir="rtl">
-      <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div className="homeos-dashboard homeos-dashboard-v2 space-y-6 pb-10" dir="rtl">
+      <header className="homeos-dashboard-masthead flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <div className="homeos-kicker"><span className="homeos-live-dot" /> HOME OS <span className="opacity-30">/</span> מרכז פיננסי למשק הבית</div>
           <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl" style={{ color: activeTheme.textPrimary }}>המרכז הפיננסי של {householdName || 'הבית'}</h1>
@@ -204,6 +204,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <button type="button" onClick={() => setChartDetail({ title: "הוצאות החודש", subtitle: "כל ההוצאות שנרשמו בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && tx.date?.slice(0, 7) === data.months[5]?.key) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>הוצאות החודש</span><span className="homeos-icon-tile copper"><ArrowUpLeft className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{currency(data.current.expense)}</div><div className="homeos-card-foot">לחץ לפירוט ההוצאות</div></button>
         <button type="button" onClick={() => setChartDetail({ title: "מאזן חודשי", subtitle: "הכנסות והוצאות בחודש הנוכחי", items: confirmedTransactions.filter(tx => tx.date?.slice(0, 7) === data.months[5]?.key && (tx.type === 'INCOME' || tx.type === 'EXPENSE')) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>מאזן חודשי</span><span className="homeos-icon-tile blue"><Activity className="h-5 w-5" /></span></div><div className={'homeos-kpi-value ' + (data.cashflow >= 0 ? 'green' : 'negative')}>{currency(data.cashflow)}</div><div className="homeos-card-foot">לחץ לפירוט התזרים</div></button>
         <button type="button" onClick={() => setChartDetail({ title: "השוואת הוצאות חודשית", subtitle: "עסקאות הוצאה בחודש הנוכחי ובחודש הקודם", items: confirmedTransactions.filter(tx => tx.type === 'EXPENSE' && [data.months[5]?.key, data.months[4]?.key].includes(tx.date?.slice(0, 7))) })} className="homeos-kpi-item"><div className="homeos-card-top"><span>שינוי בהוצאות</span><span className="homeos-icon-tile neutral"><CalendarDays className="h-5 w-5" /></span></div><div className="homeos-kpi-value">{data.expenseChange === null ? '—' : ((data.expenseChange > 0 ? '+' : '') + data.expenseChange.toFixed(1) + '%')}</div><div className="homeos-card-foot">השוואה לאותם ימים בחודש הקודם · לחץ לפירוט</div></button>
+      </section>
+
+
+            <section className="homeos-home-snapshot">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div><div className="homeos-section-kicker">ניהול הבית</div><h2 className="mt-1 text-lg font-bold">תמונת מצב הבית</h2><p className="mt-1 text-xs" style={muted}>נתוני ניהול הבית מסונכרנים עם לוח הבקרה</p></div>
+          <button onClick={onOpenLedger} className="homeos-text-link">מעבר לפנקס העסקאות <ArrowLeft className="h-4 w-4" /></button>
+        </div>
+        <div className="homeos-home-snapshot-metrics">
+          <div><span>ארוחות בשבעת הימים הקרובים</span><strong>{householdSnapshot.meals}</strong></div>
+          <div><span>משימות פתוחות</span><strong>{householdSnapshot.openTasks}</strong></div>
+          <div><span>פריטים ברשימת הקניות</span><strong>{householdSnapshot.openShopping}</strong></div>
+        </div>
       </section>
 
       {data.pendingReviewCount > 0 && (
@@ -452,17 +465,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </section>
       )}
 
-            <section className="homeos-home-snapshot">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div><div className="homeos-section-kicker">ניהול הבית</div><h2 className="mt-1 text-lg font-bold">תמונת מצב הבית</h2><p className="mt-1 text-xs" style={muted}>נתוני ניהול הבית מסונכרנים עם לוח הבקרה</p></div>
-          <button onClick={onOpenLedger} className="homeos-text-link">מעבר לפנקס העסקאות <ArrowLeft className="h-4 w-4" /></button>
-        </div>
-        <div className="homeos-home-snapshot-metrics">
-          <div><span>ארוחות בשבעת הימים הקרובים</span><strong>{householdSnapshot.meals}</strong></div>
-          <div><span>משימות פתוחות</span><strong>{householdSnapshot.openTasks}</strong></div>
-          <div><span>פריטים ברשימת הקניות</span><strong>{householdSnapshot.openShopping}</strong></div>
-        </div>
-      </section>
+
 
             <section className="grid gap-5 xl:grid-cols-[1.2fr_.8fr]">
         <div className={panel + ' p-5 sm:p-7'}>

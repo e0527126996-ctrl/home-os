@@ -66,10 +66,11 @@ export function parseMortgageText(text: string, method: StatementParseMethod = '
     const balanceLine = adjacent.find(x => /יתרה|קרן\s*נותרת|balance/i.test(x));
     const paymentLine = adjacent.find(x => /החזר|תשלום\s*חודשי|חיוב\s*חודשי|monthly\s*payment/i.test(x));
     const originalLine = adjacent.find(x => /סכום\s*מקורי|סכום\s*הלוואה|קרן\s*מקורית|original\s*amount/i.test(x));
-    const monthsLine = adjacent.find(x => /חודשים|חודש|שנים|months|years/i.test(x)) || '';
+    const monthsLine = adjacent.find(x => /תקופה שנותרה|יתרת תקופה|תשלומים שנותרו|נותרו.*חודשים|remaining term|remaining months/i.test(x)) || '';
     const months = monthsLine.match(/(\d{1,3})\s*(?:חודשים|חודש|months)/i);
     const years = monthsLine.match(/(\d{1,2})\s*(?:שנים|שנה|years)/i);
-    if (tracks.some(track => track.type === type)) continue;
+    const rateChangeLine = adjacent.find(x => /מועד שינוי ריבית|תחנת שינוי ריבית|עדכון ריבית|next rate change|rate reset/i.test(x)) || '';
+    const rateChangeMatch = rateChangeLine.match(/\d{1,4}[./-]\d{1,2}[./-]\d{1,4}/i);
     tracks.push({
       id: 'track_' + i + '_' + type.toLowerCase(), name: trackLabels[type], type,
       balanceCents: balanceLine ? amountCandidates(balanceLine).at(-1) : undefined,
@@ -77,6 +78,7 @@ export function parseMortgageText(text: string, method: StatementParseMethod = '
       originalAmountCents: originalLine ? amountCandidates(originalLine).at(-1) : undefined,
       annualInterestRate: rateMatch ? Number(rateMatch[1].replace(',', '.')) : undefined,
       remainingMonths: months ? Number(months[1]) : years ? Number(years[1]) * 12 : undefined,
+      nextRateChangeDate: rateChangeMatch ? parseIsoDate(rateChangeMatch[0]) : undefined,
       indexation: /לא.?צמודה|לא צמוד|unlinked/i.test(line) ? 'UNLINKED' : /צמודה|linked/i.test(line) ? 'LINKED' : type === 'PRIME' ? 'UNLINKED' : 'UNKNOWN',
     });
   }

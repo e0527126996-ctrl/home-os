@@ -57,7 +57,7 @@ export const MortgageView: React.FC<Props> = ({ household, currentUser, accounts
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
   const fileRef=useRef<HTMLInputElement>(null);
-  const mortgageAccounts=useMemo(()=>accounts.filter(a=>a.type==='LOAN_MORTGAGE' && a.status!=='CLOSED'),[accounts]);
+  const mortgageAccounts=useMemo(()=>accounts.filter(a=>a.type==='LOAN_MORTGAGE' && a.status==='ACTIVE'),[accounts]);
   const selectedAccount=mortgageAccounts.find(a=>a.id===selectedAccountId) || mortgageAccounts[0];
   const selectedWorkspace=workspaces.find(w=>w.accountId===selectedAccount?.id);
   const snapshots=[...(selectedWorkspace?.snapshots||[])].sort((a,b)=>b.reportDate.localeCompare(a.reportDate));
@@ -146,7 +146,9 @@ export const MortgageView: React.FC<Props> = ({ household, currentUser, accounts
       };
       await db.saveMortgageDocument(document,currentUser.id,currentUser.email);savedDocumentId=documentId;
       await db.saveMortgageWorkspace(workspace,currentUser.id,currentUser.email);
-      await refresh();setDraft(null);setNotice('הדוח נשמר ונוסף להיסטוריית המשכנתא. הנתונים נשארים לבדיקה מול המקור.'); 
+      savedDocumentId='';
+      setDraft(null);setNotice('הדוח נשמר ונוסף להיסטוריית המשכנתא. הנתונים נשארים לבדיקה מול המקור.');
+      try { await refresh(); } catch (refreshError:any) { setError('הדוח נשמר, אך רענון התצוגה נכשל: ' + (refreshError.message || 'נסה לרענן את המסך')); } 
     }catch(e:any){
       if(savedDocumentId){try{await db.deleteMortgageDocument(savedDocumentId,household.id,currentUser.id,currentUser.email);}catch{/* Keep the original save error visible. */}}
       setError(e.message||'שמירת דוח המשכנתא נכשלה');
@@ -173,7 +175,7 @@ export const MortgageView: React.FC<Props> = ({ household, currentUser, accounts
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] text-stone-100/80"><ShieldCheck className="ml-1 inline h-3.5 w-3.5"/> עיבוד מסמכים מקומי</span>
-          {canEdit&&selectedAccount&&<button type="button" onClick={()=>fileRef.current?.click()} disabled={busy} className="inline-flex items-center gap-2 rounded-xl bg-[#d8bd88] px-4 py-3 text-xs font-bold text-[#20282a] shadow-lg transition hover:brightness-105 disabled:opacity-50"><Upload className="h-4 w-4"/> קליטת דוח חדש</button>}
+          {canEdit&&selectedAccount&&<button type="button" onClick={()=>fileRef.current?.click()} disabled={busy||Boolean(draft)} className="inline-flex items-center gap-2 rounded-xl bg-[#d8bd88] px-4 py-3 text-xs font-bold text-[#20282a] shadow-lg transition hover:brightness-105 disabled:opacity-50"><Upload className="h-4 w-4"/> קליטת דוח חדש</button>}
         </div>
       </div>
     </section>
@@ -188,7 +190,7 @@ export const MortgageView: React.FC<Props> = ({ household, currentUser, accounts
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><div className="text-[10px] font-bold tracking-[.16em]" style={{color:activeTheme.accent}}>MORTGAGE PORTFOLIO</div><h2 className="mt-1 text-lg font-semibold">תיקי ההלוואות שלך</h2></div>
         <label className="flex min-w-[230px] items-center gap-3 text-xs font-semibold" style={muted}>בחירת משכנתא
-          <select className="homeos-mortgage-field max-w-xs" style={style} value={selectedAccount?.id||''} onChange={e=>setSelectedAccountId(e.target.value)}>
+          <select className="homeos-mortgage-field max-w-xs" style={style} value={selectedAccount?.id||''} disabled={Boolean(draft)||busy} onChange={e=>setSelectedAccountId(e.target.value)}>
             {mortgageAccounts.map(account=><option key={account.id} value={account.id}>{account.name} · {account.institution}</option>)}
           </select>
         </label>
@@ -223,7 +225,7 @@ export const MortgageView: React.FC<Props> = ({ household, currentUser, accounts
         })}
       </section>}
       <section className="homeos-mortgage-panel p-5 sm:p-6" style={style}>
-        <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">מסמכי המשכנתא</h2><p className="mt-1 text-xs" style={muted}>עותקי המקור נשמרים בכספת המקומית ונכללים בגיבוי המערכת.</p></div>{canEdit&&<button type="button" onClick={()=>fileRef.current?.click()} className="rounded-xl border px-3 py-2 text-xs font-bold" style={{borderColor:activeTheme.borderSubtle,color:activeTheme.accent}}><Upload className="ml-1 inline h-4 w-4"/>הוסף דוח</button>}</div>
+        <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">מסמכי המשכנתא</h2><p className="mt-1 text-xs" style={muted}>עותקי המקור נשמרים בכספת המקומית ונכללים בגיבוי המערכת.</p></div>{canEdit&&<button type="button" onClick={()=>fileRef.current?.click()} disabled={busy||Boolean(draft)} className="rounded-xl border px-3 py-2 text-xs font-bold disabled:opacity-50" style={{borderColor:activeTheme.borderSubtle,color:activeTheme.accent}}><Upload className="ml-1 inline h-4 w-4"/>הוסף דוח</button>}</div>
         {linkedDocs.length?<div className="divide-y" style={{borderColor:activeTheme.borderSubtle}}>{linkedDocs.map(doc=><div key={doc.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div className="flex min-w-0 items-center gap-3"><FileText className="h-5 w-5 shrink-0" style={{color:activeTheme.accent}}/><div className="min-w-0"><div className="truncate text-sm font-semibold">{doc.name}</div><div className="text-[10px]" style={muted}>{new Date(doc.uploadedAt).toLocaleDateString('he-IL')} · {Math.max(1,Math.round(doc.size/1024))} KB</div></div></div><div className="flex gap-2"><button type="button" onClick={()=>openDocument(doc)} className="rounded-lg border px-3 py-2 text-xs" style={{borderColor:activeTheme.borderSubtle}}>פתח</button><button type="button" onClick={()=>downloadDocument(doc)} className="rounded-lg border px-3 py-2 text-xs" style={{borderColor:activeTheme.borderSubtle}}>הורד</button></div></div>)}</div>:<p className="py-6 text-center text-xs" style={muted}>הדוחות שתקלוט לתיק זה יופיעו כאן.</p>}
       </section>
     </>}

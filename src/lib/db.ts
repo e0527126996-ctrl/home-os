@@ -2141,6 +2141,7 @@ class HomeOSIndexedDB {
 
   async saveDocument(document: HouseholdDocument, actorUserId: string, actorEmail: string): Promise<void> {
     await this.assertPermission(document.householdId, actorUserId, 'documents', 'write');
+    if (document.category === 'MORTGAGE') throw new Error('מסמכי משכנתא נשמרים דרך מרכז המשכנתאות');
     if (!document.id || !document.householdId || !document.name?.trim() || !(document.blob instanceof Blob)) {
       throw new Error('פרטי המסמך אינם תקינים');
     }
@@ -2167,6 +2168,7 @@ class HomeOSIndexedDB {
       if (existing && existing.householdId !== safeDocument.householdId) {
         throw new Error('הפרת בידוד משקי בית: לא ניתן להחליף מסמך השייך למשק בית אחר');
       }
+      if (existing?.category === 'MORTGAGE') throw new Error('אין לעדכן מסמך משכנתא דרך מרכז המסמכים הכללי');
       await this.reqToPromise(store.put(safeDocument));
       await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
     });
@@ -2197,6 +2199,7 @@ class HomeOSIndexedDB {
       const store = tx.objectStore('household_documents');
       const existing = await this.reqToPromise<HouseholdDocument | undefined>(store.get(safe.id));
       if (existing && existing.householdId !== safe.householdId) throw new Error('הפרת בידוד משקי בית');
+      if (existing && existing.category !== 'MORTGAGE') throw new Error('מזהה המסמך כבר משויך למסמך מסוג אחר');
       await this.reqToPromise(store.put(safe));
       await this.reqToPromise(tx.objectStore('audit_logs').add(log));
     });
@@ -2233,7 +2236,7 @@ class HomeOSIndexedDB {
     return this.transaction(['household_documents', 'audit_logs'], 'readwrite', async (tx) => {
       const store = tx.objectStore('household_documents');
       const existing = await this.reqToPromise<HouseholdDocument | undefined>(store.get(documentId));
-      if (!existing || existing.householdId !== householdId) throw new Error('המסמך לא נמצא במשק הבית הפעיל');
+      if (!existing || existing.householdId !== householdId || existing.category === 'MORTGAGE') throw new Error('המסמך לא נמצא במשק הבית הפעיל');
       await this.reqToPromise(store.delete(documentId));
       await this.reqToPromise(tx.objectStore('audit_logs').add(auditLog));
     });
@@ -2331,7 +2334,7 @@ class HomeOSIndexedDB {
     return this.transaction(['household_home_items'], 'readwrite', async (tx) => {
       const store = tx.objectStore('household_home_items');
       const existing = await this.reqToPromise<HouseholdHomeItem | undefined>(store.get(itemId));
-      if (!existing || existing.householdId !== householdId) throw new Error('הרשומה לא נמצאה במשק הבית הפעיל');
+      if (!existing || existing.householdId !== householdId || existing.kind === 'mortgage') throw new Error('הרשומה לא נמצאה במשק הבית הפעיל');
       await this.reqToPromise(store.delete(itemId));
     });
   }

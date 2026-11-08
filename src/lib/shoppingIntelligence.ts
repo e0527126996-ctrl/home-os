@@ -42,6 +42,8 @@ export function normalizeShoppingName(value: string): string {
 
 export function classifyShoppingCategory(value: string): ShoppingCategory {
   const name = normalizeShoppingName(value);
+  // Spice variants must be checked before the broad vegetable "פלפל" match.
+  if (/^פלפל (?:שחור|לבן|אנגלי)(?: |$)/.test(name)) return 'מזווה ותבלינים';
   if (/עגבנ|מלפפ|חסה|גזר|בצל|פלפל|קישוא|חציל|תפוח|בננ|לימון|תפוז|אבוקדו|פטרוזיליה|כוסברה|שמיר|שום|ירק|פרי/.test(name)) return 'ירקות ופירות';
   if (/עוף|חזה עוף|כנפיים|בשר|בקר|הודו|דג|סלמון|טונה|קציצ|שניצל|נקניק|המבורגר/.test(name)) return 'בשר, דגים ועוף';
   if (/חלב|גבינה|קוטג|יוגורט|שמנת|חמאה|לבנה|ביצה|מעדן/.test(name)) return 'מוצרי חלב וביצים';

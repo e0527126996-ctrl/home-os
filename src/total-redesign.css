@@ -532,3 +532,122 @@
 .homeos-dashboard > :not([hidden]) ~ :not([hidden]) { margin-block-start: 0 !important; }
 .homeos-home-management > :not([hidden]) ~ :not([hidden]) { margin-block-start: 0 !important; }
 .homeos-home-management { display: grid; gap: 19px; }
+
+
+/* HOME OS Financial Terminal — institutional data presentation */
+.homeos-dashboard .homeos-wealth-hero {
+  border-radius: 6px !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  background: linear-gradient(122deg,#111923 0%,#17232d 58%,#1d2c35 100%) !important;
+  box-shadow: 0 18px 42px rgba(11,20,29,.14) !important;
+}
+.homeos-dashboard .homeos-hero-orbit,
+.homeos-dashboard .homeos-hero-glow { opacity: .12 !important; filter: none !important; }
+.homeos-dashboard .homeos-kpi-item,
+.homeos-dashboard .homeos-lux-panel,
+.homeos-dashboard .homeos-analysis-grid > div,
+.homeos-dashboard .homeos-advanced-content > section,
+.homeos-dashboard .homeos-foreign-currency {
+  border: 1px solid var(--homeos-border, #dce1e4) !important;
+  border-radius: 5px !important;
+  box-shadow: none !important;
+}
+.homeos-dashboard .homeos-kpi-item {
+  padding: 15px 17px !important;
+  background: var(--homeos-card, #fff) !important;
+  text-align: right;
+}
+.homeos-dashboard .homeos-kpi-item:hover {
+  border-color: color-mix(in srgb,var(--homeos-accent,#547D70) 50%,var(--homeos-border,#dce1e4)) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(20,34,42,.045) !important;
+}
+.homeos-dashboard :is(.homeos-kpi-value,.homeos-net-worth,.homeos-hero-metric .text-xl,.homeos-terminal-month strong,.homeos-dashboard [class*="tabular-nums"]) {
+  font-family: "IBM Plex Mono","SFMono-Regular",Consolas,"Liberation Mono",monospace !important;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -.035em;
+}
+.homeos-dashboard .homeos-kpi-value { font-size: clamp(20px,2vw,26px) !important; }
+.homeos-dashboard .homeos-section-kicker {
+  color: var(--homeos-muted,#68747d) !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: .13em !important;
+  text-transform: uppercase;
+}
+.homeos-dashboard .homeos-analysis-grid { align-items: stretch; gap: 12px !important; }
+.homeos-dashboard .homeos-analysis-grid > div {
+  padding: 19px !important;
+  background: var(--homeos-card,#fff) !important;
+}
+.homeos-dashboard .homeos-terminal-chart { min-width: 0; padding-top: 3px; }
+.homeos-terminal-chart-topline {
+  display: flex; justify-content: space-between; gap: 12px;
+  color: var(--homeos-muted,#68747d); font-size: 9px; font-weight: 700;
+  letter-spacing: .06em;
+}
+.homeos-terminal-area-chart {
+  display: block; width: 100%; height: clamp(174px,22vw,225px);
+  overflow: visible; margin-top: 7px;
+}
+.homeos-terminal-line { stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.homeos-terminal-line.income { stroke: #16866C; }
+.homeos-terminal-line.expense { stroke: #B66B63; }
+.homeos-terminal-point { stroke: var(--homeos-card,#fff); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.homeos-terminal-point.income { fill: #16866C; }
+.homeos-terminal-point.expense { fill: #B66B63; }
+.homeos-terminal-months {
+  display: grid; grid-template-columns: repeat(6,minmax(0,1fr));
+  gap: 4px; border-top: 1px solid var(--homeos-border,#dce1e4); padding-top: 9px;
+}
+.homeos-terminal-month {
+  display: flex; min-width: 0; flex-direction: column; align-items: center; gap: 4px;
+  border: 1px solid transparent; border-radius: 4px; padding: 6px 2px;
+  color: var(--homeos-muted,#68747d); font-size: 9px; transition: background .16s,border-color .16s;
+}
+.homeos-terminal-month:hover,.homeos-terminal-month:focus-visible {
+  border-color: var(--homeos-border,#dce1e4); background: var(--homeos-surface,#f5f7f8); outline: none;
+}
+.homeos-terminal-month strong {
+  max-width: 100%; overflow: hidden; color: var(--homeos-text,#202a31);
+  font-size: 9px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap;
+}
+.homeos-kpi-delta {
+  display: flex; align-items: center; gap: 4px; margin-top: 8px;
+  font-family: "IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+  font-size: 10px; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.homeos-kpi-delta.is-positive { color: #14765F; }
+.homeos-kpi-delta.is-negative { color: #A64E54; }
+.homeos-kpi-delta small {
+  margin-inline-start: 3px; color: var(--homeos-muted,#68747d);
+  font-family: inherit; font-size: 8px; font-weight: 500;
+}
+.homeos-dashboard .homeos-card-foot { color: var(--homeos-muted,#68747d) !important; font-size: 9px !important; }
+.homeos-dashboard .homeos-advanced-details,
+.homeos-dashboard .homeos-action-center,
+.homeos-dashboard .homeos-insight {
+  border-radius: 5px !important; box-shadow: none !important;
+}
+.homeos-dashboard .homeos-analysis-grid h2,
+.homeos-dashboard .homeos-advanced-content h2 { letter-spacing: -.025em; }
+.homeos-dashboard .homeos-category-donut { max-width: 186px; }
+.homeos-dashboard .homeos-category-donut-segment { cursor: pointer; transition: opacity .15s; }
+.homeos-dashboard .homeos-category-donut-segment:hover,
+.homeos-dashboard .homeos-category-donut-segment:focus { opacity: .76; outline: none; }
+.homeos-app-shell.dark .homeos-dashboard .homeos-kpi-item,
+.homeos-app-shell.dark .homeos-dashboard .homeos-analysis-grid > div,
+.homeos-app-shell.dark .homeos-dashboard .homeos-advanced-content > section {
+  background: #171f27 !important; border-color: rgba(207,220,229,.14) !important;
+}
+.homeos-app-shell.dark .homeos-terminal-month strong { color: #e8edf0; }
+.homeos-app-shell.dark .homeos-terminal-month:hover,
+.homeos-app-shell.dark .homeos-terminal-month:focus-visible { background: #202b35; }
+.homeos-app-shell.dark .homeos-terminal-point { stroke: #171f27; }
+@media (max-width: 640px) {
+  .homeos-dashboard .homeos-analysis-grid > div { padding: 14px !important; }
+  .homeos-terminal-months { gap: 1px; }
+  .homeos-terminal-month { font-size: 8px; padding-inline: 0; }
+  .homeos-terminal-month strong { font-size: 8px; }
+  .homeos-terminal-chart-topline { font-size: 8px; }
+}

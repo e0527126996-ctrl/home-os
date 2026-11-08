@@ -23,6 +23,7 @@ import {
   ClipboardList,
   FolderOpen,
   Utensils,
+  ChevronDown,
 } from 'lucide-react';
 import { Header } from './components/Header.tsx';
 import { SettingsView } from './components/SettingsView.tsx';

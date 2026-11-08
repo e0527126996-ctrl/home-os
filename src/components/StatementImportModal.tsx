@@ -92,6 +92,7 @@ export const StatementImportModal: React.FC<Props> = ({ file, accounts, transact
           <div><div className="mb-2 flex items-center gap-2 text-[10px] font-bold tracking-[.2em] text-emerald-100/70"><ShieldCheck className="h-4 w-4"/> SMART STATEMENT IMPORT</div>
             <h2 className="font-serif text-2xl font-bold sm:text-3xl">קליטת דף חשבון</h2>
             <p className="mt-2 text-xs text-emerald-50/75">{file.name} · המסמך מעובד בדפדפן ואינו נשלח לשרת</p>
+            {/\\.(xlsx|xls|csv)$/i.test(file.name) && <p className="mt-1 text-[10px] text-emerald-100/70">קובצי Excel ו־CSV נתמכים עד 15MB</p>}
           </div>
           <button onClick={onClose} className="rounded-xl border border-white/20 bg-white/10 p-2 hover:bg-white/20"><X className="h-5 w-5"/></button>
         </div>

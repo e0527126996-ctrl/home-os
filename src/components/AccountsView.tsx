@@ -135,7 +135,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   };
 
   return (
-    <div className="homeos-dashboard homeos-accounts-view homeos-workspace-page space-y-6 pb-8">
+    <div className="homeos-dashboard homeos-accounts-view homeos-workspace-page homeos-atlas-accounts space-y-6 pb-8">
       <section className="homeos-wealth-hero">
         <div className="homeos-hero-orbit homeos-orbit-one" />
         <div className="homeos-hero-orbit homeos-orbit-two" />

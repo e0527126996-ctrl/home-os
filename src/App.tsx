@@ -25,6 +25,7 @@ import {
   Utensils,
 } from 'lucide-react';
 import { Header } from './components/Header.tsx';
+import { WorkspaceNavigation } from './components/WorkspaceNavigation.tsx';
 import { SettingsView } from './components/SettingsView.tsx';
 const DashboardView = lazy(() => import('./components/DashboardView.tsx').then(({ DashboardView }) => ({ default: DashboardView })));
 const HouseholdsView = lazy(() => import('./components/HouseholdsView.tsx').then(({ HouseholdsView }) => ({ default: HouseholdsView })));
@@ -880,76 +881,23 @@ export default function App() {
       <Suspense fallback={<div className="flex min-h-48 items-center justify-center text-sm" style={{ color: activeTheme.textSecondary }}>טוען אזור עבודה...</div>}>
       {/* Main Body */}
       <main className="homeos-main-content homeos-command-layout flex-1 max-w-[1720px] w-full mx-auto px-4 sm:px-7 xl:px-10 py-7 space-y-8">
-        {/* Premium primary navigation */}
-        <section className="homeos-navigation-shell homeos-command-rail">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-2">
-            <div><div className="homeos-section-kicker">מרחב ניהול משק הבית</div><div className="mt-1 text-sm font-bold" style={{ color: activeTheme.textPrimary }}>מרחבי העבודה</div></div>
-            <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold tabular-nums" style={{ color: activeTheme.textSecondary }}>
-              {canReadFinance && <>
-                <span className="homeos-workspace-stat"><span className="homeos-status-dot verified"/> {transactions.filter(tx => tx.verificationStatus !== 'PENDING').length} מאומתות</span>
-                <span className="homeos-workspace-stat"><span className="homeos-status-dot pending"/> {transactions.filter(tx => tx.verificationStatus === 'PENDING').length} לאימות</span>
-                <span className="homeos-workspace-stat">{accounts.length} חשבונות</span>
-              </>}
-            </div>
-          </div>
-          <nav aria-label="ניווט ראשי" className="homeos-main-nav">
-            {([
-              { id: 'dashboard', label: 'לוח בקרה', icon: LayoutDashboard },
-              { id: 'accounts', label: 'חשבונות ונכסים', icon: WalletCards, count: accounts.length },
-              { id: 'ledger', label: 'פנקס עסקאות', icon: ArrowLeftRight, count: transactions.length },
-              { id: 'documents', label: 'מרכז מסמכים', icon: FolderOpen },
-              { id: 'home', label: 'ניהול הבית', icon: Utensils },
-              { id: 'members', label: 'משפחה והרשאות', icon: UsersRound, count: memberships.length + persons.length },
-              { id: 'households', label: 'משקי בית', icon: House, count: households.length },
-              { id: 'audit', label: 'יומן ביקורת', icon: ClipboardList, count: auditLogs.length },
-              { id: 'settings', label: 'הגדרות אישיות', icon: Settings },
-            ] as const)
-              .filter(item => {
-                if (item.id === 'accounts' || item.id === 'ledger') return canReadFinance;
-                if (item.id === 'documents') return canReadDocuments;
-                if (item.id === 'home') return canReadFood;
-                if (item.id === 'members' || item.id === 'audit') return canReadAdmin;
-                return true;
-              })
-              .map(item => {
-              const selected = activeTab === item.id;
-              const Icon = item.icon;
-              const sectionLabel = item.id === 'dashboard'
-                ? { title: 'כספים', subtitle: 'FINANCIAL CONTROL' }
-                : item.id === 'documents'
-                  ? { title: 'ניהול הבית', subtitle: 'HOME OPERATIONS' }
-                  : item.id === 'members'
-                    ? { title: 'מערכת ומשפחה', subtitle: 'PEOPLE & SYSTEM' }
-                    : null;
-              return (
-                <React.Fragment key={item.id}>
-                  {sectionLabel && (
-                    <div className="homeos-nav-section-label">
-                      <span>{sectionLabel.title}</span>
-                      <small>{sectionLabel.subtitle}</small>
-                    </div>
-                  )}
-                  <button
-                    onClick={() => setActiveTab(item.id)}
-                    aria-current={selected ? 'page' : undefined}
-                    className="homeos-nav-item"
-                    style={{
-                      color: selected ? '#FFFFFF' : activeTheme.textSecondary,
-                      background: selected ? `linear-gradient(135deg, color-mix(in srgb, ${activeTheme.accent} 78%, #17231d), ${activeTheme.accent})` : 'transparent',
-                      boxShadow: selected ? '0 7px 18px rgba(36,72,60,.18)' : 'none',
-                    }}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                    {'count' in item && <span className="rounded-md px-1.5 py-0.5 text-[10px] tabular-nums" style={{ backgroundColor: selected ? 'rgba(255,255,255,.16)' : activeTheme.bgSurface }}>{item.count}</span>}
-                  </button>
-                </React.Fragment>
-              );
-            })}
-          </nav>
-        </section>
+        <WorkspaceNavigation
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          canReadFinance={canReadFinance}
+          canReadDocuments={canReadDocuments}
+          canReadFood={canReadFood}
+          canReadAdmin={canReadAdmin}
+          accountCount={accounts.length}
+          transactionCount={transactions.length}
+          verifiedTransactionCount={transactions.filter(tx => tx.verificationStatus !== 'PENDING').length}
+          pendingTransactionCount={transactions.filter(tx => tx.verificationStatus === 'PENDING').length}
+          householdCount={households.length}
+          memberAndPersonCount={memberships.length + persons.length}
+          auditCount={auditLogs.length}
+        />
 
-                <div className="homeos-workspace-content homeos-command-stage">
+        <div className="homeos-workspace-content homeos-command-stage">
 
         {activeTab === 'settings' && (
           <SettingsView

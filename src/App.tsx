@@ -879,9 +879,9 @@ export default function App() {
 
       <Suspense fallback={<div className="flex min-h-48 items-center justify-center text-sm" style={{ color: activeTheme.textSecondary }}>טוען אזור עבודה...</div>}>
       {/* Main Body */}
-      <main className="homeos-main-content flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-7 lg:px-10 py-7 space-y-8">
+      <main className="homeos-main-content homeos-command-layout flex-1 max-w-[1720px] w-full mx-auto px-4 sm:px-7 xl:px-10 py-7 space-y-8">
         {/* Premium primary navigation */}
-        <section className="homeos-navigation-shell">
+        <section className="homeos-navigation-shell homeos-command-rail">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-2">
             <div><div className="homeos-section-kicker">מרחב ניהול משק הבית</div><div className="mt-1 text-sm font-bold" style={{ color: activeTheme.textPrimary }}>מרחבי העבודה</div></div>
             <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold tabular-nums" style={{ color: activeTheme.textSecondary }}>
@@ -949,7 +949,7 @@ export default function App() {
           </nav>
         </section>
 
-                <div className="homeos-workspace-content">
+                <div className="homeos-workspace-content homeos-command-stage">
 
         {activeTab === 'settings' && (
           <SettingsView
